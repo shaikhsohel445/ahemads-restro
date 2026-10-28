@@ -20,3 +20,14 @@ declare module 'cloudflare:node' {
     fetch(request: unknown, env: unknown, ctx: unknown): Promise<Response>;
   };
 }
+
+declare module 'cloudflare:sockets' {
+  export interface Socket {
+    readonly opened: Promise<unknown>;
+    readonly closed: Promise<void>;
+    readonly readable: ReadableStream<Uint8Array>;
+    readonly writable: WritableStream<Uint8Array>;
+    close(): Promise<void>;
+  }
+  export function connect(address: { hostname: string; port: number }): Socket;
+}

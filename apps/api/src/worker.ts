@@ -21,7 +21,8 @@ export { WriteLock } from './cloudflare/write-lock.do';
 // (global scope may not do I/O on Workers) and then serves every later
 // request that isolate handles.
 //
-// Two things bypass Express:
+// Around Express, every mutating /api request holds its restaurant's
+// WriteLock (cloudflare/write-lock.service.ts). Two things bypass Express:
 //   - GET /api/realtime (WebSocket upgrade): authenticated by the Nest
 //     RealtimeGateway, then handed to the restaurant's RealtimeHub Durable
 //     Object, which owns the socket (Socket.IO replacement).
@@ -100,7 +101,14 @@ export default {
     if (new URL(request.url).pathname === '/api/realtime') {
       return realtimeUpgrade(request, app);
     }
-    return nodeHandler.fetch(request as never, env as never, ctx as never);
+    const handle = () =>
+      nodeHandler.fetch(request as never, env as never, ctx as never);
+    const { WriteLockService } = await import(
+      './cloudflare/write-lock.service.js'
+    );
+    const lock = app.get(WriteLockService);
+    if (!lock.needsLock(request)) return handle();
+    return lock.run(request, handle, (p) => ctx.waitUntil(p));
   },
 
   async scheduled(

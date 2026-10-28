@@ -1,7 +1,9 @@
 // Raw ESC/POS over TCP (JetDirect / "port 9100") for network thermal printers.
-// The backend connects out to the printer, so the printer's address must be
-// reachable from wherever the backend runs; there is no discovery.
-import * as net from 'net';
+// The API connects out to the printer through Cloudflare's TCP sockets API
+// (`cloudflare:sockets`), so the printer's address must be reachable from the
+// internet — a printer on the restaurant's private LAN is not. Exposing a
+// printer publicly has obvious risks; the browser print buttons are the
+// recommended path (docs/cloudflare/MIGRATION-REPORT.md).
 import { PrinterNotFoundError } from './escpos-usb';
 
 const CONNECT_TIMEOUT_MS = 4000;
@@ -16,57 +18,52 @@ function describe(target: NetworkPrinterTarget): string {
   return `${target.host}:${target.port}`;
 }
 
-export function sendViaNetwork(
+function timeout<T>(ms: number, error: () => Error): Promise<T> {
+  return new Promise((_, reject) => setTimeout(() => reject(error()), ms));
+}
+
+export async function sendViaNetwork(
   target: NetworkPrinterTarget,
   buffer: Buffer,
 ): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const socket = new net.Socket();
-    let settled = false;
-    const done = (err?: Error) => {
-      if (settled) return;
-      settled = true;
-      socket.destroy();
-      if (err) reject(err);
-      else resolve();
-    };
-
-    socket.setTimeout(CONNECT_TIMEOUT_MS, () =>
-      done(
-        new PrinterNotFoundError(
-          `Printer at ${describe(target)} did not answer - check it is on, on the same network as the server, and the address is right`,
-        ),
+  const { connect } = await import('cloudflare:sockets');
+  let socket: ReturnType<typeof connect>;
+  try {
+    socket = connect({ hostname: target.host, port: target.port });
+    await Promise.race([
+      socket.opened,
+      timeout(
+        CONNECT_TIMEOUT_MS,
+        () =>
+          new PrinterNotFoundError(
+            `Printer at ${describe(target)} did not answer - check it is on, reachable from the internet, and the address is right`,
+          ),
       ),
+    ]);
+  } catch (err) {
+    if (err instanceof PrinterNotFoundError) throw err;
+    throw new PrinterNotFoundError(
+      `Could not reach the printer at ${describe(target)}: ${err instanceof Error ? err.message : String(err)}`,
     );
-    socket.once('error', (err: NodeJS.ErrnoException) => {
-      const why =
-        err.code === 'ECONNREFUSED'
-          ? 'connection refused (is raw/9100 printing enabled on the printer?)'
-          : err.code === 'EHOSTUNREACH' || err.code === 'ENETUNREACH'
-            ? 'host unreachable from the server'
-            : err.code === 'ENOTFOUND'
-              ? 'host name not found'
-              : err.message;
-      done(
-        new PrinterNotFoundError(
-          `Could not reach the printer at ${describe(target)}: ${why}`,
-        ),
-      );
-    });
-    socket.connect(target.port, target.host, () => {
-      socket.setTimeout(WRITE_TIMEOUT_MS, () =>
-        done(
+  }
+  try {
+    const writer = socket.writable.getWriter();
+    await Promise.race([
+      (async () => {
+        if (buffer.length) await writer.write(new Uint8Array(buffer));
+        await writer.close();
+      })(),
+      timeout(
+        WRITE_TIMEOUT_MS,
+        () =>
           new Error(
             `Timed out sending to ${describe(target)} - printer not responding`,
           ),
-        ),
-      );
-      // end() flushes then half-closes; wait for the close so the bytes have
-      // left our side before we report success.
-      socket.end(buffer, () => undefined);
-      socket.once('close', () => done());
-    });
-  });
+      ),
+    ]);
+  } finally {
+    await socket.close().catch(() => undefined);
+  }
 }
 
 /** Opens and closes a connection without sending anything. */

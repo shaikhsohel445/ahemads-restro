@@ -24,9 +24,15 @@ export const kotStatusSchema = z.enum([
 ]);
 export type KotStatusDto = z.infer<typeof kotStatusSchema>;
 
+// MADA (Saudi debit network), STC_PAY (wallet) and APPLE_PAY are recorded
+// like CARD: staff confirm the terminal/wallet approved the payment; nothing
+// is marked paid from a client redirect or a displayed QR code.
 export const paymentMethodSchema = z.enum([
   "CASH",
   "CARD",
+  "MADA",
+  "STC_PAY",
+  "APPLE_PAY",
   "UPI",
   "WALLET",
   "BANK_TRANSFER",

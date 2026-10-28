@@ -13,6 +13,7 @@ import type { SessionUser } from '@nodedr-restaurant/types';
 import type { Request } from 'express';
 import { Observable, tap } from 'rxjs';
 import { AuditService } from './audit.service';
+import { detach } from '../cloudflare/bindings';
 
 const AUDIT_KEY = 'audit-action';
 
@@ -63,7 +64,8 @@ export class AuditInterceptor implements NestInterceptor {
           typeof req.query.branchId === 'string'
             ? req.query.branchId
             : undefined;
-        void this.audit
+        detach(
+          this.audit
           .record({
             userId: req.user?.id ?? null,
             action: meta.action,
@@ -73,7 +75,8 @@ export class AuditInterceptor implements NestInterceptor {
           })
           .catch((err: unknown) =>
             this.logger.warn(`audit write failed: ${String(err)}`),
-          );
+          ),
+        );
       }),
     );
   }

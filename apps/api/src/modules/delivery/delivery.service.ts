@@ -13,6 +13,7 @@ import { RealtimeGateway } from '../../realtime/realtime.gateway';
 import { WebhooksService } from '../webhooks/webhooks.service';
 import { stringArray } from '../../common/json-array';
 import { findZoneForPincode } from './zone-lookup';
+import { detach } from '../../cloudflare/bindings';
 
 // Forward-only lifecycle; FAILED is reachable from any open state.
 const NEXT: Record<DeliveryStatusDto, DeliveryStatusDto[]> = {
@@ -196,13 +197,13 @@ export class DeliveryService {
       include: ORDER_INCLUDE,
     });
     this.realtime.emitToBranch(branchId, 'order.updated', { id: orderId });
-    void this.webhooks.emitForBranch(branchId, 'delivery.updated', {
+    detach(this.webhooks.emitForBranch(branchId, 'delivery.updated', {
       orderId,
       orderNumber: updated.orderNumber,
       status: updated.deliveryStatus,
       driver: updated.driver?.name ?? null,
       address: updated.deliveryAddress,
-    });
+    }));
     return updated;
   }
 }

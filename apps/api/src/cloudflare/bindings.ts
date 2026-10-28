@@ -59,3 +59,14 @@ export function waitUntil(promise: Promise<unknown>) {
     promise.catch(() => undefined);
   }
 }
+
+// Work deliberately not awaited by the request that starts it ("void
+// this.webhooks.emit(...)" in the self-hosted code). On Workers an un-awaited
+// promise is not enough: once the response is sent, I/O the request still has
+// in flight is cancelled, and a D1 query cancelled half-way leaves the shared
+// Prisma client waiting on it, stalling every later query in the isolate.
+// detach() hands the promise to waitUntil() so it runs to completion, and
+// swallows its error the way the original `.catch(() => undefined)` did.
+export function detach(promise: Promise<unknown>) {
+  waitUntil(promise.catch(() => undefined));
+}

@@ -28,6 +28,8 @@ export { resolveProfile, type PrinterProfile } from './escpos/encoder';
 // Preferred symbol first; used only when the selected code page can print it,
 // otherwise the ISO-style code after it (never a '?').
 const CURRENCY_SYMBOLS: Record<string, [string, string]> = {
+  // ESC/POS code pages have no Arabic glyphs; "SAR" prints everywhere.
+  SAR: ['SAR ', 'SAR '],
   INR: ['Rs.', 'Rs.'],
   USD: ['$', 'USD '],
   EUR: ['\u20ac', 'EUR '],

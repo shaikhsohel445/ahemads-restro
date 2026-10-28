@@ -1,17 +1,12 @@
-import {
-  Global,
-  type MiddlewareConsumer,
-  Module,
-  type NestModule,
-} from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, type JwtModuleOptions } from '@nestjs/jwt';
 import { StorageService } from './storage.service';
 import { UploadsController } from './uploads.controller';
-import { WriteLockMiddleware } from './write-lock.middleware';
+import { WriteLockService } from './write-lock.service';
 
 // Cloudflare-specific infrastructure shared by every module: R2 object
-// storage and the per-restaurant write lock.
+// storage and the per-restaurant write lock (applied in src/worker.ts).
 @Global()
 @Module({
   imports: [
@@ -28,12 +23,7 @@ import { WriteLockMiddleware } from './write-lock.middleware';
     }),
   ],
   controllers: [UploadsController],
-  providers: [StorageService, WriteLockMiddleware],
-  exports: [StorageService, WriteLockMiddleware],
+  providers: [StorageService, WriteLockService],
+  exports: [StorageService, WriteLockService],
 })
-export class CloudflareModule implements NestModule {
-  // Every route: the middleware itself skips GET/HEAD/OPTIONS.
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(WriteLockMiddleware).forRoutes('*');
-  }
-}
+export class CloudflareModule {}

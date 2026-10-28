@@ -10,6 +10,7 @@ import type {
 } from '@nodedr-restaurant/types';
 import { AuditService } from '../../audit/audit.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { TAX_REGIME_PRESETS } from '@nodedr-restaurant/types';
 
 @Injectable()
 export class MenuService {
@@ -98,9 +99,22 @@ export class MenuService {
   async createItem(branchId: string, dto: MenuItemDto) {
     const { modifierGroupIds, ...rest } = dto;
     await this.assertModifierGroupsInBranch(branchId, modifierGroupIds);
+    // No rate sent: start from the branch regime's usual rate (15% under
+    // Saudi VAT). Zero-rated/exempt items set it explicitly.
+    const taxRatePercent =
+      rest.taxRatePercent ??
+      TAX_REGIME_PRESETS[
+        (
+          await this.prisma.branch.findUniqueOrThrow({
+            where: { id: branchId },
+            select: { taxRegime: true },
+          })
+        ).taxRegime
+      ].defaultRatePercent;
     return this.prisma.menuItem.create({
       data: {
         ...rest,
+        taxRatePercent,
         branchId,
         modifierGroups: {
           create: modifierGroupIds.map((modifierGroupId, index) => ({

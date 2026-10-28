@@ -8,6 +8,7 @@ import { createHash } from 'node:crypto';
 import type { SessionUser } from '@nodedr-restaurant/types';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { AuthenticatedRequest } from '../types/authenticated-request';
+import { detach } from '../../cloudflare/bindings';
 
 // Authenticates the MCP server (src/mcp/) via a personal access token
 // (StaffApiKey) instead of the cookie-based Passport JWT session — an AI
@@ -68,9 +69,12 @@ export class StaffApiKeyGuard implements CanActivate {
     request.user = sessionUser;
 
     // Best-effort — must never block an already-authenticated request.
-    this.prisma.staffApiKey
-      .update({ where: { id: key.id }, data: { lastUsedAt: new Date() } })
-      .catch(() => undefined);
+    detach(
+      this.prisma.staffApiKey.update({
+        where: { id: key.id },
+        data: { lastUsedAt: new Date() },
+      }),
+    );
 
     return true;
   }

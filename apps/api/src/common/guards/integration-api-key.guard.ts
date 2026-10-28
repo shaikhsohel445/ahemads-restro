@@ -11,6 +11,7 @@ import type { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
 import { INTEGRATION_SCOPES_KEY } from '../decorators/require-scope.decorator';
 import { stringArray } from '../json-array';
+import { detach } from '../../cloudflare/bindings';
 
 // Authenticates every route on IntegrationsController — the public REST API
 // external websites use as a backend (see docs/integrations-api.md). A
@@ -68,9 +69,12 @@ export class IntegrationApiKeyGuard implements CanActivate {
     };
 
     // Best-effort — must never block an already-authenticated request.
-    this.prisma.integrationApiKey
-      .update({ where: { id: key.id }, data: { lastUsedAt: new Date() } })
-      .catch(() => undefined);
+    detach(
+      this.prisma.integrationApiKey.update({
+        where: { id: key.id },
+        data: { lastUsedAt: new Date() },
+      }),
+    );
 
     return true;
   }

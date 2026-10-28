@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { DEFAULT_REGION } from '@nodedr-restaurant/types';
 
 /** Looks up the restaurant timezone a branch's reports should be cut in. */
 @Injectable()
@@ -11,7 +12,7 @@ export class BranchTimeService {
       where: { id: branchId },
       select: { restaurant: { select: { timezone: true } } },
     });
-    return branch?.restaurant.timezone ?? 'Asia/Kolkata';
+    return branch?.restaurant.timezone ?? DEFAULT_REGION.timezone;
   }
 
   async tzForRestaurant(restaurantId: string): Promise<string> {
@@ -19,6 +20,6 @@ export class BranchTimeService {
       where: { id: restaurantId },
       select: { timezone: true },
     });
-    return r?.timezone ?? 'Asia/Kolkata';
+    return r?.timezone ?? DEFAULT_REGION.timezone;
   }
 }

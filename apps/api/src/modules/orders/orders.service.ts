@@ -45,6 +45,8 @@ import {
 import type { TaxMode } from '@nodedr-restaurant/types';
 import { VerifactuService } from '../verifactu/verifactu.service';
 import { findZoneForPincode } from '../delivery/zone-lookup';
+import { DEFAULT_REGION, formatMoney } from '@nodedr-restaurant/types';
+import { detach } from '../../cloudflare/bindings';
 
 const KOT_FORWARD_STATUSES = [
   'ACCEPTED',
@@ -106,6 +108,15 @@ export class OrdersService {
       codepage: branch?.printerCodepage,
       columns: branch?.printerColumns,
     });
+  }
+
+  // The restaurant's currency, for user-facing amounts in messages.
+  private async currencyOf(branchId: string): Promise<string> {
+    const branch = await this.prisma.branch.findUnique({
+      where: { id: branchId },
+      select: { restaurant: { select: { currency: true } } },
+    });
+    return branch?.restaurant.currency ?? DEFAULT_REGION.currency;
   }
 
   async getReceiptData(branchId: string, id: string) {
@@ -288,7 +299,7 @@ export class OrdersService {
         }
         if (totals.subtotal < Number(zone.minOrderAmount)) {
           throw new BadRequestException(
-            `Minimum order for ${zone.name} is ₹${Number(zone.minOrderAmount)}`,
+            `Minimum order for ${zone.name} is ${formatMoney(Number(zone.minOrderAmount), await this.currencyOf(branchId))}`,
           );
         }
         delivery.deliveryZoneId = zone.id;
@@ -403,7 +414,7 @@ export class OrdersService {
         await this.notifications.notifyByPermission(branchId, 'orders.accept', {
           type: 'order.pending',
           title: 'New online order — accept?',
-          body: `Order ${full.orderNumber} (${full.type.replace('_', ' ')})${who ? ` — ${who}` : ''} · ₹${Number(full.totalAmount)}`,
+          body: `Order ${full.orderNumber} (${full.type.replace('_', ' ')})${who ? ` — ${who}` : ''} · ${formatMoney(Number(full.totalAmount), await this.currencyOf(branchId))}`,
           entity: 'Order',
           entityId: full.id,
         });
@@ -424,7 +435,7 @@ export class OrdersService {
       );
     }
 
-    void this.webhooks.emitForBranch(branchId, 'order.created', {
+    detach(this.webhooks.emitForBranch(branchId, 'order.created', {
       orderId: full.id,
       orderNumber: full.orderNumber,
       type: full.type,
@@ -433,7 +444,7 @@ export class OrdersService {
       deliveryAddress: full.deliveryAddress,
       deliveryPhone: full.deliveryPhone,
       scheduledFor: full.scheduledFor,
-    });
+    }));
 
     return full;
   }
@@ -917,11 +928,11 @@ export class OrdersService {
         total: order.totalAmount.toString(),
       },
     });
-    void this.webhooks.emitForBranch(branchId, 'order.cancelled', {
+    detach(this.webhooks.emitForBranch(branchId, 'order.cancelled', {
       orderId,
       orderNumber: order.orderNumber,
       type: order.type,
-    });
+    }));
 
     return this.getOrder(branchId, orderId);
   }
@@ -1733,7 +1744,7 @@ export class OrdersService {
           id: order.tableId,
         });
       }
-      void this.webhooks.emitForBranch(branchId, 'order.paid', {
+      detach(this.webhooks.emitForBranch(branchId, 'order.paid', {
         orderId: updated.id,
         orderNumber: updated.orderNumber,
         type: updated.type,
@@ -1745,7 +1756,7 @@ export class OrdersService {
           method: p.method,
           amount: Number(p.amount),
         })),
-      });
+      }));
     }
     return {
       ...updated,

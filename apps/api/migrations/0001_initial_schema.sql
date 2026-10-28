@@ -1,11 +1,17 @@
+-- Initial Cloudflare D1 schema for Nodedr OrderRestro.
+-- Generated from prisma/schema.prisma (itself converted from the PostgreSQL
+-- schema by scripts/migration/convert-prisma-schema.mjs). Replaces the 38
+-- PostgreSQL migrations, which cannot run on D1 (kept for reference in
+-- prisma/pg-migrations-reference). See docs/cloudflare/DATABASE.md.
+
 -- CreateTable
 CREATE TABLE "restaurants" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
     "legalName" TEXT,
     "logoUrl" TEXT,
-    "currency" TEXT NOT NULL DEFAULT 'INR',
-    "timezone" TEXT NOT NULL DEFAULT 'Asia/Kolkata',
+    "currency" TEXT NOT NULL DEFAULT 'SAR',
+    "timezone" TEXT NOT NULL DEFAULT 'Asia/Riyadh',
     "upiVpa" TEXT,
     "upiPayeeName" TEXT,
     "loyaltyPointValue" DECIMAL NOT NULL DEFAULT 1,
@@ -22,8 +28,8 @@ CREATE TABLE "branches" (
     "address" TEXT,
     "phone" TEXT,
     "gstNumber" TEXT,
-    "country" TEXT NOT NULL DEFAULT 'IN',
-    "taxRegime" TEXT NOT NULL DEFAULT 'INDIA_GST',
+    "country" TEXT NOT NULL DEFAULT 'SA',
+    "taxRegime" TEXT NOT NULL DEFAULT 'SA_VAT',
     "taxMode" TEXT NOT NULL DEFAULT 'INCLUSIVE',
     "taxLabel" TEXT,
     "taxId" TEXT,
@@ -86,7 +92,7 @@ CREATE TABLE "users" (
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "twoFactorSecret" TEXT,
     "twoFactorEnabled" BOOLEAN NOT NULL DEFAULT false,
-    "twoFactorRecoveryHashes" JSONB NOT NULL DEFAULT [],
+    "twoFactorRecoveryHashes" JSONB NOT NULL DEFAULT '[]',
     "twoFactorLastStep" INTEGER,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
@@ -523,7 +529,7 @@ CREATE TABLE "menu_items" (
     "isHalal" BOOLEAN NOT NULL DEFAULT false,
     "isGlutenFree" BOOLEAN NOT NULL DEFAULT false,
     "spiceLevel" TEXT NOT NULL DEFAULT 'NONE',
-    "allergens" JSONB NOT NULL DEFAULT [],
+    "allergens" JSONB NOT NULL DEFAULT '[]',
     "availableFrom" TEXT,
     "availableTo" TEXT,
     "isSeasonal" BOOLEAN NOT NULL DEFAULT false,
@@ -1058,7 +1064,7 @@ CREATE TABLE "webhook_endpoints" (
     "restaurantId" TEXT NOT NULL,
     "url" TEXT NOT NULL,
     "secret" TEXT NOT NULL,
-    "events" JSONB NOT NULL DEFAULT [],
+    "events" JSONB NOT NULL DEFAULT '[]',
     "description" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1131,7 +1137,7 @@ CREATE TABLE "document_files" (
     "fileName" TEXT NOT NULL,
     "mimeType" TEXT NOT NULL,
     "size" INTEGER NOT NULL,
-    "data" BLOB NOT NULL,
+    "storageKey" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "document_files_documentId_fkey" FOREIGN KEY ("documentId") REFERENCES "documents" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -1215,7 +1221,7 @@ CREATE TABLE "sync_state" (
     "lastPushSeq" BIGINT NOT NULL DEFAULT 0,
     "lastSyncAt" DATETIME,
     "lastError" TEXT,
-    "conflicts" JSONB NOT NULL DEFAULT []
+    "conflicts" JSONB NOT NULL DEFAULT '[]'
 );
 
 -- CreateTable

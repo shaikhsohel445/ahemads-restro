@@ -50,6 +50,7 @@ import {
 import { probeNetworkPrinter } from './escpos-network';
 import {
   PrinterNotFoundError,
+  USB_UNAVAILABLE,
   findPrinterDescriptor,
   probeCharDevices,
 } from './escpos-usb';
@@ -441,6 +442,8 @@ export class OrdersController {
     const html = buildReceiptHtml({
       restaurantName: order.branch.restaurant.name,
       currency: order.branch.restaurant.currency,
+      timezone: order.branch.restaurant.timezone,
+      language: query.lang,
       branch: {
         name: order.branch.name,
         address: order.branch.address,
@@ -534,7 +537,7 @@ export class OrdersController {
                 : 'Network printing is selected but no printer address is set.',
             ]
           : [
-              'No printer detected. On the till, check `lsusb` lists it and `ls -l /dev/usb/lp0` exists; the backend container needs the USB passthrough from docker-compose.yml (Linux host only). A server in the cloud cannot reach a USB or LAN printer - use a network printer the server can reach, or the browser print buttons.',
+              USB_UNAVAILABLE,
             ],
     };
   }

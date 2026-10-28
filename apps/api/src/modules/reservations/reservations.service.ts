@@ -12,6 +12,7 @@ import { NotificationsService } from '../../notifications/notifications.service'
 import { PrismaService } from '../../prisma/prisma.service';
 import { RealtimeGateway } from '../../realtime/realtime.gateway';
 import { WebhooksService } from '../webhooks/webhooks.service';
+import { detach } from '../../cloudflare/bindings';
 
 export interface CreateReservationOptions {
   // True only for the public "website" booking path (integrations.service's
@@ -137,14 +138,14 @@ export class ReservationsService {
       );
     }
 
-    void this.webhooks.emitForBranch(branchId, 'reservation.created', {
+    detach(this.webhooks.emitForBranch(branchId, 'reservation.created', {
       reservationId: created.id,
       customerName: created.customerName,
       phone: created.phone,
       guestCount: created.guestCount,
       reservedAt: created.reservedAt,
       channel: created.channel,
-    });
+    }));
 
     return created;
   }

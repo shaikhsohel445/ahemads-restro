@@ -39,7 +39,8 @@ export const menuItemSchema = z.object({
   price: z.coerce.number().nonnegative(),
   // Set to enable the Half / Full / Custom portion picker; `price` is the full portion.
   halfPrice: z.number().nonnegative().nullable().optional(),
-  taxRatePercent: z.coerce.number().min(0).max(100).default(0),
+  // Omitted -> the branch's tax regime default (15% for Saudi VAT, 0 otherwise).
+  taxRatePercent: z.coerce.number().min(0).max(100).optional(),
   costPrice: z.coerce.number().nonnegative().optional(),
   prepTimeMinutes: z.number().int().nonnegative().optional(),
   calories: z.number().int().nonnegative().optional(),

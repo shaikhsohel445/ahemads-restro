@@ -46,7 +46,12 @@ function toIsoDate(raw: string): string | null {
 
 const num = (raw: string | undefined) => {
   if (!raw) return 0;
-  const n = Number(raw.replace(/[,₹$\s]/g, ''));
+  // Strips thousands separators and currency marks (₹ $ SAR ر.س ﷼).
+  const n = Number(
+    raw.replace(/[,\s₹$\u060c\ufdfc]|SAR|ر\.?س\.?/gi, '').replace(/[٠-٩]/g, (d) =>
+      String(d.charCodeAt(0) - 0x0660),
+    ),
+  );
   return Number.isFinite(n) ? n : 0;
 };
 

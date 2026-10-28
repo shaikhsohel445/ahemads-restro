@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { BranchAccessService } from '../common/services/branch-access.service';
 import { hasWorkerEnv, waitUntil, workerEnv } from '../cloudflare/bindings';
+import { readCookie } from '../cloudflare/write-lock.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 interface RealtimeHubStub {
@@ -48,7 +49,7 @@ export class RealtimeGateway {
     cookieHeader: string | null,
     branchId: string | null,
   ): Promise<VerifiedRealtimeIdentity> {
-    const token = this.extractSessionCookie(cookieHeader);
+    const token = readCookie(cookieHeader, 'nodedr_session');
     if (!token) throw new Error('No session cookie');
     const payload = this.jwt.verify<{ sub: string }>(token);
     const user = await this.prisma.user.findUnique({
@@ -143,18 +144,5 @@ export class RealtimeGateway {
 
   private userRoom(userId: string) {
     return `user:${userId}`;
-  }
-
-  private extractSessionCookie(raw: string | null): string | null {
-    if (!raw) return null;
-    for (const part of raw.split(';')) {
-      const idx = part.indexOf('=');
-      if (idx === -1) continue;
-      const name = part.slice(0, idx).trim();
-      if (name === 'nodedr_session') {
-        return decodeURIComponent(part.slice(idx + 1).trim());
-      }
-    }
-    return null;
   }
 }

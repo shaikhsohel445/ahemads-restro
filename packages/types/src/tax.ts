@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-// Multi-region tax support (2026-09-27). A branch picks a TaxRegime, which
+// Multi-region tax support (2026-09-27; Saudi VAT added for the Cloudflare
+// edition). A branch picks a TaxRegime, which
 // supplies sensible defaults for how the receipt labels tax and whether
 // menu item prices already have tax baked in. See ARCHITECTURE.md and
 // apps/backend/src/modules/orders/pricing.ts for the pricing-math side of
@@ -11,6 +12,7 @@ export const TAX_MODES = ["INCLUSIVE", "EXCLUSIVE"] as const;
 export type TaxMode = (typeof TAX_MODES)[number];
 
 export const TAX_REGIMES = [
+  "SA_VAT",
   "INDIA_GST",
   "US_SALES_TAX",
   "EU_VAT",
@@ -35,9 +37,33 @@ export interface TaxRegimePreset {
   exampleRates: string;
   /** Suggested default country (ISO 3166-1 alpha-2) when this regime is picked. */
   defaultCountry: string;
+  /**
+   * Rate pre-filled for new menu items when the client sends none. Every
+   * item's rate stays editable (zero-rated/exempt items exist); this is a
+   * starting point, not a rule.
+   */
+  defaultRatePercent: number;
+  /** Receipt is a ZATCA simplified tax invoice (bilingual, with TLV QR). */
+  zatcaSimplifiedInvoice: boolean;
 }
 
 export const TAX_REGIME_PRESETS: Record<TaxRegime, TaxRegimePreset> = {
+  // Saudi Arabia: VAT administered by ZATCA. 15% standard rate since
+  // 1 July 2020; consumer prices must be shown VAT-inclusive. Verify the
+  // current rate and any item exemptions with ZATCA or a tax adviser before
+  // going live — the rate is configurable per item for exactly that reason.
+  SA_VAT: {
+    regime: "SA_VAT",
+    displayName: "Saudi Arabia — VAT (ضريبة القيمة المضافة)",
+    defaultMode: "INCLUSIVE",
+    taxLabel: "VAT",
+    taxIdLabel: "VAT No.",
+    splitCgstSgst: false,
+    exampleRates: "15% standard rate (verify with ZATCA before going live)",
+    defaultCountry: "SA",
+    defaultRatePercent: 15,
+    zatcaSimplifiedInvoice: true,
+  },
   INDIA_GST: {
     regime: "INDIA_GST",
     displayName: "India — GST",
@@ -47,6 +73,8 @@ export const TAX_REGIME_PRESETS: Record<TaxRegime, TaxRegimePreset> = {
     splitCgstSgst: true,
     exampleRates: "5% / 12% / 18% (typical restaurant slabs)",
     defaultCountry: "IN",
+    defaultRatePercent: 0,
+    zatcaSimplifiedInvoice: false,
   },
   US_SALES_TAX: {
     regime: "US_SALES_TAX",
@@ -57,6 +85,8 @@ export const TAX_REGIME_PRESETS: Record<TaxRegime, TaxRegimePreset> = {
     splitCgstSgst: false,
     exampleRates: "Varies by state/city — commonly 6–10%",
     defaultCountry: "US",
+    defaultRatePercent: 0,
+    zatcaSimplifiedInvoice: false,
   },
   EU_VAT: {
     regime: "EU_VAT",
@@ -67,6 +97,8 @@ export const TAX_REGIME_PRESETS: Record<TaxRegime, TaxRegimePreset> = {
     splitCgstSgst: false,
     exampleRates: "Reduced rate often applies to dine-in food, e.g. 10% Germany / 10% Italy",
     defaultCountry: "DE",
+    defaultRatePercent: 0,
+    zatcaSimplifiedInvoice: false,
   },
   ES_IVA: {
     regime: "ES_IVA",
@@ -77,6 +109,8 @@ export const TAX_REGIME_PRESETS: Record<TaxRegime, TaxRegimePreset> = {
     splitCgstSgst: false,
     exampleRates: "10% (hospitality reduced rate) / 21% (general rate)",
     defaultCountry: "ES",
+    defaultRatePercent: 0,
+    zatcaSimplifiedInvoice: false,
   },
   CUSTOM: {
     regime: "CUSTOM",
@@ -86,7 +120,9 @@ export const TAX_REGIME_PRESETS: Record<TaxRegime, TaxRegimePreset> = {
     taxIdLabel: "Tax ID",
     splitCgstSgst: false,
     exampleRates: "Set per menu item",
-    defaultCountry: "IN",
+    defaultCountry: "SA",
+    defaultRatePercent: 0,
+    zatcaSimplifiedInvoice: false,
   },
 };
 
