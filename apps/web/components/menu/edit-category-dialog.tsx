@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useUpdateCategory, type MenuCategory } from "@/hooks/use-menu";
 import { ApiError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 
 // Mounted only while a specific category is being edited (see MenuPage),
 // keyed by category.id — same pattern as EditRoleDialog.
@@ -27,6 +28,7 @@ export function EditCategoryDialog({
   category: MenuCategory;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const [name, setName] = useState(category.name);
   const [showOnWebsite, setShowOnWebsite] = useState(category.showOnWebsite);
   const updateCategory = useUpdateCategory(branchId);
@@ -37,11 +39,11 @@ export function EditCategoryDialog({
       { id: category.id, dto: { name, showOnWebsite } },
       {
         onSuccess: () => {
-          toast.success(`"${name}" updated`);
+          toast.success(t("menu.item.updated", { name }));
           onClose();
         },
         onError: (err) =>
-          toast.error(err instanceof ApiError ? err.message : "Could not update category"),
+          toast.error(err instanceof ApiError ? err.message : t("menu.category.updateFailed")),
       },
     );
   };
@@ -51,31 +53,31 @@ export function EditCategoryDialog({
       <DialogContent>
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <DialogTitle>Edit category</DialogTitle>
+            <DialogTitle>{t("menu.category.editTitle")}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-2 py-4">
-            <Label htmlFor="category-edit-name">Name</Label>
+            <Label htmlFor="category-edit-name">{t("common.name")}</Label>
             <Input
               id="category-edit-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Starters"
+              placeholder={t("menu.category.namePlaceholder")}
               required
               autoFocus
             />
           </div>
           <label className="mb-4 flex min-h-12 items-center justify-between gap-4 rounded-lg border border-border px-3 py-2">
             <span className="flex flex-col">
-              <span className="text-sm font-medium text-foreground">Show on website</span>
+              <span className="text-sm font-medium text-foreground">{t("menu.category.showOnWebsite")}</span>
               <span className="text-xs text-muted-foreground">
-                Off hides this category from your website and online/QR ordering. It stays on the POS.
+                {t("menu.category.showOnWebsiteHelp")}
               </span>
             </span>
-            <Switch checked={showOnWebsite} onCheckedChange={setShowOnWebsite} aria-label="Show on website" />
+            <Switch checked={showOnWebsite} onCheckedChange={setShowOnWebsite} aria-label={t("menu.category.showOnWebsite")} />
           </label>
           <DialogFooter>
             <Button type="submit" disabled={updateCategory.isPending}>
-              {updateCategory.isPending ? "Saving…" : "Save changes"}
+              {updateCategory.isPending ? t("common.saving") : t("menu.saveChanges")}
             </Button>
           </DialogFooter>
         </form>

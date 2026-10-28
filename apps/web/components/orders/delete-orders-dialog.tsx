@@ -16,6 +16,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { useDeleteOrders } from "@/hooks/use-orders";
 import { ApiError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 
 // Admin-only, password-gated permanent delete of finished transactions.
 export function DeleteOrdersDialog({
@@ -31,6 +32,7 @@ export function DeleteOrdersDialog({
   onOpenChange: (open: boolean) => void;
   onDeleted: () => void;
 }) {
+  const { t } = useI18n();
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const del = useDeleteOrders(branchId);
@@ -51,13 +53,13 @@ export function DeleteOrdersDialog({
       { orderIds, password },
       {
         onSuccess: (res) => {
-          toast.success(`Deleted ${res.deleted} transaction${res.deleted === 1 ? "" : "s"}`);
+          toast.success(t(res.deleted === 1 ? "orders.delete.doneOne" : "orders.delete.doneMany", { n: res.deleted }));
           close(false);
           onDeleted();
         },
         onError: (err) => {
           setPassword("");
-          setError(err instanceof ApiError ? err.message : "Could not delete transactions");
+          setError(err instanceof ApiError ? err.message : t("orders.delete.failed"));
         },
       },
     );
@@ -70,15 +72,14 @@ export function DeleteOrdersDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ShieldAlert className="h-5 w-5 text-destructive" aria-hidden />
-              Delete {count} transaction{count === 1 ? "" : "s"}?
+              {t(count === 1 ? "orders.delete.titleOne" : "orders.delete.titleMany", { n: count })}
             </DialogTitle>
             <DialogDescription>
-              They are removed from sales history, reports and the dashboard for good. A record of
-              each stays in the Audit Log. Enter your admin password to confirm.
+              {t("orders.delete.description")}
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="delete-orders-password">Admin password</Label>
+            <Label htmlFor="delete-orders-password">{t("orders.delete.password")}</Label>
             <PasswordInput
               id="delete-orders-password"
               
@@ -100,10 +101,10 @@ export function DeleteOrdersDialog({
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => close(false)}>
-              Keep them
+              {t("orders.delete.keep")}
             </Button>
             <Button type="submit" variant="destructive" disabled={del.isPending || !password}>
-              {del.isPending ? "Deleting…" : `Delete ${count}`}
+              {del.isPending ? t("common.deleting") : t("orders.delete.confirm", { n: count })}
             </Button>
           </DialogFooter>
         </form>

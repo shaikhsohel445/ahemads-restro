@@ -1,3 +1,5 @@
+import { currentUiLocale, translate } from "@/lib/i18n/context";
+
 // Haptic + sound feedback for the QR order confirmation moment. Both are
 // best-effort: feature-detected and wrapped so a browser without support
 // (e.g. iOS Safari has no Vibration API) just silently does nothing.
@@ -81,7 +83,10 @@ export function playPaymentReceived(amountText?: string) {
   }
   try {
     if (amountText && "speechSynthesis" in window) {
-      const u = new SpeechSynthesisUtterance(`Payment received. ${amountText}`);
+      const u = new SpeechSynthesisUtterance(
+        translate("customerDisplay.paymentReceivedSpeech", { amount: amountText }),
+      );
+      u.lang = currentUiLocale() === "ar" ? "ar-SA" : currentUiLocale();
       u.rate = 0.95;
       setTimeout(() => window.speechSynthesis.speak(u), 700);
     }

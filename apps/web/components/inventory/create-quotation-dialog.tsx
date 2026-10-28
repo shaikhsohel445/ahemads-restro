@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateQuotation, useIngredients, useSuppliers } from "@/hooks/use-inventory";
 import { ApiError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 
 interface Row {
   ingredientId: string;
@@ -27,6 +28,7 @@ interface Row {
 const emptyRow: Row = { ingredientId: "", quantityQuoted: "", unitPrice: "" };
 
 export function CreateQuotationDialog({ branchId }: { branchId: string | null }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [supplierId, setSupplierId] = useState("");
   const [rows, setRows] = useState<Row[]>([{ ...emptyRow }]);
@@ -57,31 +59,31 @@ export function CreateQuotationDialog({ branchId }: { branchId: string | null })
       },
       {
         onSuccess: (quotation) => {
-          toast.success(`${quotation.quotationNumber} recorded`);
+          toast.success(t("inventory.recordedNamed", { name: quotation.quotationNumber }));
           setOpen(false);
           setSupplierId("");
           setRows([{ ...emptyRow }]);
         },
         onError: (err) =>
-          toast.error(err instanceof ApiError ? err.message : "Could not record quotation"),
+          toast.error(err instanceof ApiError ? err.message : t("inventory.quotation.recordFailed")),
       },
     );
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm">New quotation</Button>} />
+      <DialogTrigger render={<Button size="sm">{t("inventory.quotation.new")}</Button>} />
       <DialogContent className="sm:max-w-lg">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>Record a supplier quotation</DialogTitle>
+            <DialogTitle>{t("inventory.quotation.recordTitle")}</DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col gap-2">
-            <Label>Supplier</Label>
+            <Label>{t("inventory.supplier")}</Label>
             <Select value={supplierId} onValueChange={(v) => setSupplierId(v ?? "")}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a supplier" />
+                <SelectValue placeholder={t("inventory.selectSupplier")} />
               </SelectTrigger>
               <SelectContent>
                 {suppliers?.map((s) => (
@@ -94,7 +96,7 @@ export function CreateQuotationDialog({ branchId }: { branchId: string | null })
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label>Items quoted</Label>
+            <Label>{t("inventory.quotation.itemsQuoted")}</Label>
             <div className="flex flex-col gap-2">
               {rows.map((row, index) => (
                 <div key={index} className="flex items-center gap-2">
@@ -103,12 +105,12 @@ export function CreateQuotationDialog({ branchId }: { branchId: string | null })
                     onValueChange={(v) => updateRow(index, { ingredientId: v ?? "" })}
                   >
                     <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Ingredient" />
+                      <SelectValue placeholder={t("inventory.ingredient")} />
                     </SelectTrigger>
                     <SelectContent>
                       {ingredients?.map((i) => (
                         <SelectItem key={i.id} value={i.id}>
-                          {i.name} ({i.unit})
+                          {i.name} <bdi>({t(`inventory.unit.${i.unit}`)})</bdi>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -117,7 +119,8 @@ export function CreateQuotationDialog({ branchId }: { branchId: string | null })
                     type="number"
                     min="0"
                     step="0.001"
-                    placeholder="Qty"
+                    placeholder={t("common.qty")}
+                    dir="ltr"
                     className="w-20"
                     value={row.quantityQuoted}
                     onChange={(e) => updateRow(index, { quantityQuoted: e.target.value })}
@@ -126,7 +129,8 @@ export function CreateQuotationDialog({ branchId }: { branchId: string | null })
                     type="number"
                     min="0"
                     step="0.01"
-                    placeholder="Price/unit"
+                    placeholder={t("inventory.pricePerUnit")}
+                    dir="ltr"
                     className="w-24"
                     value={row.unitPrice}
                     onChange={(e) => updateRow(index, { unitPrice: e.target.value })}
@@ -135,6 +139,7 @@ export function CreateQuotationDialog({ branchId }: { branchId: string | null })
                     type="button"
                     variant="ghost"
                     size="icon"
+                    aria-label={t("common.remove")}
                     disabled={rows.length === 1}
                     onClick={() => setRows((prev) => prev.filter((_, i) => i !== index))}
                   >
@@ -151,13 +156,13 @@ export function CreateQuotationDialog({ branchId }: { branchId: string | null })
               onClick={() => setRows((prev) => [...prev, { ...emptyRow }])}
             >
               <Plus className="h-4 w-4" />
-              Add item
+              {t("inventory.addItem")}
             </Button>
           </div>
 
           <DialogFooter>
             <Button type="submit" disabled={!canSubmit || createQuotation.isPending}>
-              {createQuotation.isPending ? "Saving…" : "Save quotation"}
+              {createQuotation.isPending ? t("common.saving") : t("inventory.quotation.save")}
             </Button>
           </DialogFooter>
         </form>

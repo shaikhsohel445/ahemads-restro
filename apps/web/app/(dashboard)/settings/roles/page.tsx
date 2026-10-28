@@ -20,27 +20,29 @@ import {
 } from "@/components/ui/table";
 import { useDeleteRole, useRoles, type RoleWithPermissions } from "@/hooks/use-roles";
 import { ApiError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 
 export default function RolesPage() {
+  const { t } = useI18n();
   const { data: roles, isLoading } = useRoles();
   const deleteRole = useDeleteRole();
   const [createOpen, setCreateOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<RoleWithPermissions | null>(null);
 
   const onDelete = (role: RoleWithPermissions) => {
-    if (!confirm(`Delete the "${role.label}" role? This cannot be undone.`)) return;
+    if (!confirm(t("settings.roles.deleteConfirm", { name: role.label }))) return;
     deleteRole.mutate(role.id, {
-      onSuccess: () => toast.success(`${role.label} deleted`),
+      onSuccess: () => toast.success(t("settings.deletedToast", { name: role.label })),
       onError: (err) =>
-        toast.error(err instanceof ApiError ? err.message : "Could not delete role"),
+        toast.error(err instanceof ApiError ? err.message : t("settings.roles.deleteFailed")),
     });
   };
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground">Restaurant, branch, and staff configuration</p>
+        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">{t("settings.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("settings.subtitle")}</p>
       </div>
 
       <SettingsTabs />
@@ -48,14 +50,11 @@ export default function RolesPage() {
       <Card className="flex flex-col gap-4 p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-[18px] font-medium text-foreground">Roles &amp; permissions</h2>
-            <p className="text-sm text-muted-foreground">
-              Seeded roles cover the common staff types. Create a custom role — a display screen,
-              a valet, a host — with exactly the permissions it needs.
-            </p>
+            <h2 className="text-[18px] font-medium text-foreground">{t("settings.roles.title")}</h2>
+            <p className="text-sm text-muted-foreground">{t("settings.roles.description")}</p>
           </div>
           <Button size="sm" onClick={() => setCreateOpen(true)}>
-            Create role
+            {t("settings.roles.create")}
           </Button>
         </div>
 
@@ -69,10 +68,10 @@ export default function RolesPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Role</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Permissions</TableHead>
-                <TableHead className="text-end">Actions</TableHead>
+                <TableHead>{t("settings.staff.role")}</TableHead>
+                <TableHead>{t("common.type")}</TableHead>
+                <TableHead>{t("settings.roles.permissions")}</TableHead>
+                <TableHead className="text-end">{t("common.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -80,15 +79,17 @@ export default function RolesPage() {
                 <TableRow key={role.id}>
                   <TableCell className="font-medium text-foreground">
                     {role.label}
-                    <div className="text-xs font-normal text-muted-foreground">{role.name}</div>
+                    <div className="text-xs font-normal text-muted-foreground">
+                      <bdi>{role.name}</bdi>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Badge variant={role.isSystem ? "secondary" : "outline"} className="font-normal">
-                      {role.isSystem ? "Seeded" : "Custom"}
+                      {role.isSystem ? t("settings.roles.seeded") : t("settings.roles.custom")}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {role.permissions.length} granted
+                    {t("settings.roles.granted", { n: role.permissions.length })}
                   </TableCell>
                   <TableCell className="text-end">
                     {role.isSystem ? (
@@ -96,13 +97,14 @@ export default function RolesPage() {
                     ) : (
                       <div className="flex items-center justify-end gap-1">
                         <Button variant="ghost" size="sm" onClick={() => setEditingRole(role)}>
-                          Edit
+                          {t("common.edit")}
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                           onClick={() => onDelete(role)}
+                          aria-label={t("settings.roles.delete")}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -115,8 +117,8 @@ export default function RolesPage() {
           </Table>
         ) : (
           <div className="flex flex-col items-center gap-2 py-16 text-center">
-            <p className="text-sm font-medium text-foreground">No roles yet</p>
-            <p className="text-sm text-muted-foreground">Create your first custom role above.</p>
+            <p className="text-sm font-medium text-foreground">{t("settings.roles.emptyTitle")}</p>
+            <p className="text-sm text-muted-foreground">{t("settings.roles.emptyDescription")}</p>
           </div>
         )}
       </Card>

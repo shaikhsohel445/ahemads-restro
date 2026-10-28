@@ -8,8 +8,15 @@ import { StatusNote, useNoteToast } from "@/components/ui/status-note";
 import { ReasonDialog } from "@/components/orders/reason-dialog";
 import { useAcceptIncoming, useDeclineIncoming, type IncomingOrder } from "@/hooks/use-kds";
 import { ApiError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 
-const DECLINE_REASONS = ["Closing soon", "Out of stock", "Too busy", "Outside delivery area"];
+// Keys; translated at render time (the chosen text is what gets recorded).
+const DECLINE_REASONS = [
+  "kds.declineReason.closingSoon",
+  "kds.declineReason.outOfStock",
+  "kds.declineReason.tooBusy",
+  "kds.declineReason.outsideArea",
+];
 
 function minutesSince(iso: string) {
   return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60_000));
@@ -19,6 +26,7 @@ function minutesSince(iso: string) {
 // ticket until it is accepted, so it lives here, above the ticket columns,
 // with a big Accept and a deliberate Decline.
 export function IncomingOrderCard({ order, branchId }: { order: IncomingOrder; branchId: string | null }) {
+  const { t } = useI18n();
   const accept = useAcceptIncoming(branchId);
   const decline = useDeclineIncoming(branchId);
   const [declineOpen, setDeclineOpen] = useState(false);
@@ -31,27 +39,27 @@ export function IncomingOrderCard({ order, branchId }: { order: IncomingOrder; b
       <ReasonDialog
         open={declineOpen}
         onOpenChange={setDeclineOpen}
-        title={`Decline order #${order.orderNumber}?`}
-        description="The guest's order is not made and nothing is charged. It stays in History with your reason and name."
-        reasons={DECLINE_REASONS}
-        confirmLabel="Decline order"
-        keepLabel="Go back"
+        title={t("kds.declineTitle", { n: order.orderNumber })}
+        description={t("kds.declineDescription")}
+        reasons={DECLINE_REASONS.map((key) => t(key))}
+        confirmLabel={t("kds.declineOrder")}
+        keepLabel={t("common.back")}
         onSubmit={(reason) => decline.mutateAsync({ orderId: order.id, reason })}
       />
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
-            #{order.orderNumber}
-            {order.channel === "ONLINE" && <Globe className="h-3.5 w-3.5 text-muted-foreground" aria-label="Online order" />}
+            <bdi>#{order.orderNumber}</bdi>
+            {order.channel === "ONLINE" && <Globe className="h-3.5 w-3.5 text-muted-foreground" aria-label={t("kds.onlineOrder")} />}
           </p>
           <p className="text-xs text-muted-foreground">
-            {order.table ? `Table ${order.table.number}` : order.type.replace("_", " ")}
+            {order.table ? t("kds.tableN", { n: order.table.number }) : t(`common.orderType.${order.type}`)}
             {who && ` · ${who}`}
           </p>
         </div>
         <span className="flex items-center gap-1 rounded-full bg-secondary px-2 py-1 text-xs font-medium tabular-nums text-muted-foreground">
           <Clock className="h-3 w-3" aria-hidden />
-          {minutesSince(order.createdAt)}m
+          {t("kds.minutesShort", { n: minutesSince(order.createdAt) })}
         </span>
       </div>
       {order.notes && <p className="rounded-lg bg-warning/10 px-2 py-1.5 text-xs text-warning">{order.notes}</p>}
@@ -77,16 +85,16 @@ export function IncomingOrderCard({ order, branchId }: { order: IncomingOrder; b
           onClick={() =>
             accept.mutate(order.id, {
               onError: (err) =>
-                toast.error(err instanceof ApiError ? err.message : "Could not accept the order. Try again."),
+                toast.error(err instanceof ApiError ? err.message : t("kds.acceptFailed")),
             })
           }
         >
           <Check className="h-5 w-5" aria-hidden />
-          {accept.isPending ? "Accepting…" : "Accept"}
+          {accept.isPending ? t("kds.accepting") : t("kds.accept")}
         </Button>
         <Button variant="destructive" className="h-12 px-4" onClick={() => setDeclineOpen(true)}>
           <X className="h-5 w-5" aria-hidden />
-          Decline
+          {t("kds.decline")}
         </Button>
       </div>
     </Card>

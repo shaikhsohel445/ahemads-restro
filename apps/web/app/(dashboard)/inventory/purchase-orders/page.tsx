@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/table";
 import { useBranch } from "@/hooks/use-branch";
 import { usePurchaseOrders, type PurchaseOrder } from "@/hooks/use-inventory";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDate, formatNumber } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 
 const STATUS_VARIANT: Record<PurchaseOrder["status"], "default" | "secondary" | "outline" | "destructive"> = {
   DRAFT: "secondary",
@@ -27,6 +28,7 @@ const STATUS_VARIANT: Record<PurchaseOrder["status"], "default" | "secondary" | 
 };
 
 export default function PurchaseOrdersPage() {
+  const { t } = useI18n();
   const { branchId } = useBranch();
   const { data: orders, isLoading } = usePurchaseOrders(branchId);
 
@@ -34,9 +36,9 @@ export default function PurchaseOrdersPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[32px] font-semibold tracking-tight text-foreground">Inventory</h1>
+          <h1 className="text-[32px] font-semibold tracking-tight text-foreground">{t("inventory.title")}</h1>
           <p className="text-sm text-muted-foreground">
-            Ingredients, recipe costing, purchase orders, and waste
+            {t("inventory.subtitle")}
           </p>
         </div>
         <CreatePoDialog branchId={branchId} />
@@ -55,12 +57,12 @@ export default function PurchaseOrdersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>PO #</TableHead>
-                <TableHead>Supplier</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-end">Items</TableHead>
-                <TableHead className="text-end">Total</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>{t("inventory.po.number")}</TableHead>
+                <TableHead>{t("inventory.supplier")}</TableHead>
+                <TableHead>{t("common.status")}</TableHead>
+                <TableHead className="text-end">{t("common.items")}</TableHead>
+                <TableHead className="text-end">{t("common.total")}</TableHead>
+                <TableHead>{t("common.createdAt")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -76,12 +78,12 @@ export default function PurchaseOrdersPage() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">{po.supplier.name}</TableCell>
                   <TableCell>
-                    <Badge variant={STATUS_VARIANT[po.status]}>{po.status.replace("_", " ")}</Badge>
+                    <Badge variant={STATUS_VARIANT[po.status]}>{t(`inventory.poStatus.${po.status}`)}</Badge>
                   </TableCell>
-                  <TableCell className="text-end tabular-nums">{po.items.length}</TableCell>
+                  <TableCell className="text-end tabular-nums">{formatNumber(po.items.length)}</TableCell>
                   <TableCell className="text-end tabular-nums">{formatCurrency(po.totalAmount)}</TableCell>
                   <TableCell className="text-muted-foreground">
-                    {new Date(po.createdAt).toLocaleDateString()}
+                    {formatDate(po.createdAt)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -89,9 +91,9 @@ export default function PurchaseOrdersPage() {
           </Table>
         ) : (
           <div className="flex flex-col items-center gap-2 py-16 text-center">
-            <p className="text-sm font-medium text-foreground">No purchase orders yet</p>
+            <p className="text-sm font-medium text-foreground">{t("inventory.po.emptyTitle")}</p>
             <p className="text-sm text-muted-foreground">
-              Create one to start tracking what you&apos;ve ordered from suppliers.
+              {t("inventory.po.emptyDescription")}
             </p>
           </div>
         )}

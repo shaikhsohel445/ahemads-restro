@@ -13,7 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useBranch } from "@/hooks/use-branch";
 import { useCustomer, useDeleteCustomer } from "@/hooks/use-customers";
 import { ApiError } from "@/lib/api";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDate, formatNumber } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 
 export default function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -22,20 +23,21 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const router = useRouter();
   const deleteCustomer = useDeleteCustomer(branchId);
   const [isEditing, setIsEditing] = useState(false);
+  const { t } = useI18n();
 
   if (isLoading || !customer) {
     return <Skeleton className="h-96 rounded-2xl" />;
   }
 
   const onDelete = () => {
-    if (!confirm(`Delete ${customer.name ?? "this customer"}? This cannot be undone.`)) return;
+    if (!confirm(t("customers.confirmDelete", { name: customer.name ?? t("customers.thisCustomer") }))) return;
     deleteCustomer.mutate(customer.id, {
       onSuccess: () => {
-        toast.success(`${customer.name ?? "Customer"} deleted`);
+        toast.success(t("customers.deleted", { name: customer.name ?? t("common.customer") }));
         router.replace("/customers");
       },
       onError: (err) =>
-        toast.error(err instanceof ApiError ? err.message : "Could not delete customer"),
+        toast.error(err instanceof ApiError ? err.message : t("customers.deleteError")),
     });
   };
 
@@ -48,20 +50,20 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="rtl:-scale-x-100 h-3.5 w-3.5" />
-            Customers
+            {t("customers.title")}
           </Link>
           <h1 className="mt-2 text-[32px] font-semibold tracking-tight text-foreground">
-            {customer.name ?? "Unnamed customer"}
+            {customer.name ?? t("customers.unnamed")}
           </h1>
           <p className="text-sm text-muted-foreground">
             {[customer.phone, customer.email, customer.address].filter(Boolean).join(" · ") ||
-              "No contact info on file"}
+              t("customers.noContactOnFile")}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
             <Pencil className="h-3.5 w-3.5" />
-            Edit
+            {t("common.edit")}
           </Button>
           <Button
             variant="outline"
@@ -70,7 +72,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             onClick={onDelete}
           >
             <Trash2 className="h-3.5 w-3.5" />
-            Delete
+            {t("common.delete")}
           </Button>
         </div>
       </div>
@@ -81,9 +83,9 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             <Star className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Loyalty points</p>
+            <p className="text-xs text-muted-foreground">{t("customers.loyaltyPoints")}</p>
             <p className="text-xl font-semibold tabular-nums text-foreground">
-              {customer.loyaltyPoints}
+              {formatNumber(customer.loyaltyPoints)}
             </p>
           </div>
         </Card>
@@ -92,7 +94,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             <Gift className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Store credit</p>
+            <p className="text-xs text-muted-foreground">{t("common.paymentMethod.STORE_CREDIT")}</p>
             <p className="text-xl font-semibold tabular-nums text-foreground">
               {formatCurrency(customer.walletBalance)}
             </p>
@@ -103,7 +105,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             <CreditCard className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Gift cards</p>
+            <p className="text-xs text-muted-foreground">{t("customers.giftCards")}</p>
             <p className="text-xl font-semibold tabular-nums text-foreground">
               {customer.giftCards.length}
             </p>
@@ -114,7 +116,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
       {customer.allergies && (
         <Card className="p-5">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Allergies
+            {t("customers.allergies")}
           </p>
           <p className="mt-1 text-sm text-destructive">{customer.allergies}</p>
         </Card>
@@ -122,11 +124,11 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
 
       {customer.giftCards.length > 0 && (
         <Card className="flex flex-col gap-3 p-5">
-          <h2 className="text-[18px] font-medium text-foreground">Gift cards</h2>
+          <h2 className="text-[18px] font-medium text-foreground">{t("customers.giftCards")}</h2>
           <div className="flex flex-col divide-y divide-border">
             {customer.giftCards.map((gc) => (
               <div key={gc.id} className="flex items-center justify-between py-2 text-sm">
-                <span className="font-mono text-muted-foreground">{gc.code}</span>
+                <span className="font-mono text-muted-foreground" dir="ltr">{gc.code}</span>
                 <span className="font-medium tabular-nums text-foreground">
                   {formatCurrency(gc.balance)} / {formatCurrency(gc.initialValue)}
                 </span>
@@ -137,15 +139,15 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
       )}
 
       <Card className="flex flex-col gap-3 p-5">
-        <h2 className="text-[18px] font-medium text-foreground">Order history</h2>
+        <h2 className="text-[18px] font-medium text-foreground">{t("customers.orderHistory")}</h2>
         {customer.orders.length > 0 ? (
           <div className="flex flex-col divide-y divide-border">
             {customer.orders.map((o) => (
               <div key={o.id} className="flex items-center justify-between py-2.5 text-sm">
                 <div className="flex flex-col">
-                  <span className="font-medium text-foreground">#{o.orderNumber}</span>
+                  <span className="font-medium text-foreground"><bdi>#{o.orderNumber}</bdi></span>
                   <Badge variant="secondary" className="mt-0.5 w-fit text-[11px] font-normal">
-                    {new Date(o.billedAt).toLocaleDateString()}
+                    {formatDate(o.billedAt)}
                   </Badge>
                 </div>
                 <span className="font-medium tabular-nums text-foreground">
@@ -155,7 +157,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             ))}
           </div>
         ) : (
-          <p className="py-4 text-sm text-muted-foreground">No paid orders yet.</p>
+          <p className="py-4 text-sm text-muted-foreground">{t("customers.noOrders")}</p>
         )}
       </Card>
 

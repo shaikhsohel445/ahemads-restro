@@ -12,6 +12,7 @@ import {
 import { ApiError } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { TableShapeIcon } from "./table-shape-icon";
+import { useI18n } from "@/lib/i18n/context";
 
 export function EditableTableTile({
   table,
@@ -22,6 +23,7 @@ export function EditableTableTile({
   branchId: string | null;
   onEdit: () => void;
 }) {
+  const { t } = useI18n();
   const updateLayout = useUpdateTableLayout(branchId);
   const deleteTable = useDeleteTable(branchId);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
@@ -64,16 +66,16 @@ export function EditableTableTile({
           rotation: table.rotation,
         },
       ],
-      { onError: (err) => toast.error(err instanceof ApiError ? err.message : "Could not save position") },
+      { onError: (err) => toast.error(err instanceof ApiError ? err.message : t("tables.positionSaveFailed")) },
     );
     setDragPos(null);
   };
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm(`Delete ${table.name ?? `Table ${table.number}`}?`)) return;
+    if (!confirm(t("tables.deleteConfirm", { table: table.name ?? t("tables.tableN", { n: table.number }) }))) return;
     deleteTable.mutate(table.id, {
-      onError: (err) => toast.error(err instanceof ApiError ? err.message : "Could not delete table"),
+      onError: (err) => toast.error(err instanceof ApiError ? err.message : t("tables.deleteFailed")),
     });
   };
 
@@ -88,7 +90,7 @@ export function EditableTableTile({
       style={{ left: posX, top: posY, width: table.width, height: table.height }}
     >
       <TableShapeIcon shape={table.shape} capacity={table.capacity} className="h-6 w-6" />
-      <span className="text-sm font-semibold">{table.name ?? `T${table.number}`}</span>
+      <span className="text-sm font-semibold">{table.name ?? t("tables.tableShort", { n: table.number })}</span>
       <span className="flex items-center gap-1 text-[11px] opacity-80">
         <Users className="h-3 w-3" />
         {table.capacity}
@@ -98,6 +100,8 @@ export function EditableTableTile({
           variant="secondary"
           size="icon"
           className="h-6 w-6 shadow"
+          aria-label={t("tables.editTable")}
+          title={t("tables.editTable")}
           onClick={(e) => {
             e.stopPropagation();
             onEdit();
@@ -109,6 +113,8 @@ export function EditableTableTile({
           variant="secondary"
           size="icon"
           className="h-6 w-6 text-destructive shadow"
+          aria-label={t("tables.deleteTable")}
+          title={t("tables.deleteTable")}
           onClick={handleDelete}
         >
           <Trash2 className="h-3 w-3" />

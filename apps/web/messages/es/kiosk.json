@@ -1,4 +1,6 @@
 {
+  "app.description": "Autopedido para clientes",
+  "app.name": "Autopedido",
   "basket.empty": "Todavía no has añadido nada",
   "basket.item": "1 artículo",
   "basket.items": "{count} artículos",
@@ -35,6 +37,7 @@
   "load.notFound.title": "Este quiosco no está disponible",
   "load.retry": "Reintentar ahora",
   "menu.add": "Añadir",
+  "menu.addItem": "Añadir {name}",
   "menu.all": "Todo",
   "menu.categories": "Categorías",
   "menu.clearSearch": "Borrar búsqueda",
@@ -63,6 +66,7 @@
   "service.dineIn": "Comer aquí",
   "service.takeaway": "Para llevar",
   "service.title": "¿Dónde vas a comer?",
+  "tax.vat": "IVA",
   "ticket.notPaid": "NO PAGADO",
   "ticket.order": "Pedido",
   "ticket.payAtCounter": "Pague en caja",

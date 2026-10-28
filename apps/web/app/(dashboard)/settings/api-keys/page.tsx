@@ -21,8 +21,11 @@ import {
   type StaffApiKey,
 } from "@/hooks/use-api-keys";
 import { ApiError } from "@/lib/api";
+import { formatDateTime } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 
 export default function ApiKeysPage() {
+  const { t } = useI18n();
   const { data } = useCurrentUser();
   const user = data?.user;
   const canManageIntegrations = hasPermission(user, "settings.manage");
@@ -30,8 +33,8 @@ export default function ApiKeysPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground">Restaurant, branch, and staff configuration</p>
+        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">{t("settings.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("settings.subtitle")}</p>
       </div>
 
       <SettingsTabs />
@@ -43,16 +46,17 @@ export default function ApiKeysPage() {
 }
 
 function StaffApiKeysCard() {
+  const { t } = useI18n();
   const { data: keys, isLoading } = useStaffApiKeys();
   const revokeKey = useRevokeStaffApiKey();
   const [showCreate, setShowCreate] = useState(false);
   const [newToken, setNewToken] = useState<string | null>(null);
 
   const onRevoke = (key: StaffApiKey) => {
-    if (!confirm(`Revoke "${key.name}"? Anything using this key stops working immediately.`)) return;
+    if (!confirm(t("settings.apiKeys.revokePersonalConfirm", { name: key.name }))) return;
     revokeKey.mutate(key.id, {
-      onSuccess: () => toast.success("Key revoked"),
-      onError: (err) => toast.error(err instanceof ApiError ? err.message : "Could not revoke key"),
+      onSuccess: () => toast.success(t("settings.apiKeys.revokedToast")),
+      onError: (err) => toast.error(err instanceof ApiError ? err.message : t("settings.apiKeys.revokeFailed")),
     });
   };
 
@@ -60,25 +64,29 @@ function StaffApiKeysCard() {
     <Card className="flex flex-col gap-4 p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-[18px] font-medium text-foreground">Personal API keys &amp; MCP</h2>
-          <p className="text-sm text-muted-foreground">
-            Personal access tokens that act as you, with your exact permissions. Use one to connect an MCP client
-            (Claude Desktop, etc.) or any script.
-          </p>
+          <h2 className="text-[18px] font-medium text-foreground">{t("settings.apiKeys.personalTitle")}</h2>
+          <p className="text-sm text-muted-foreground">{t("settings.apiKeys.personalDescription")}</p>
         </div>
         <Button size="sm" onClick={() => setShowCreate(true)}>
-          New key
+          {t("settings.apiKeys.newKey")}
         </Button>
       </div>
 
       <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
-        <p className="font-medium text-foreground">MCP server URL</p>
-        <code className="mt-1 block overflow-x-auto rounded bg-background/60 p-2 font-mono text-xs">
+        <p className="font-medium text-foreground">{t("settings.apiKeys.mcpUrl")}</p>
+        <code dir="ltr" className="mt-1 block overflow-x-auto rounded bg-background/60 p-2 font-mono text-xs">
           {typeof window !== "undefined" ? window.location.origin : ""}/api/v1/mcp
         </code>
         <p className="mt-2">
-          Point your MCP client at that URL with header <code className="font-mono">Authorization: Bearer &lt;key&gt;</code>.
-          See <a href="/docs/api" className="underline">API docs</a> for the full tool list.
+          {t("settings.apiKeys.mcpHeaderBefore")}{" "}
+          <code dir="ltr" className="font-mono">
+            Authorization: Bearer &lt;key&gt;
+          </code>
+          {t("settings.apiKeys.mcpHeaderAfter")}{" "}
+          <a href="/docs/api" className="underline">
+            {t("settings.apiKeys.apiDocs")}
+          </a>
+          {t("settings.apiKeys.mcpDocsAfter")}
         </p>
       </div>
 
@@ -88,26 +96,26 @@ function StaffApiKeysCard() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Key</TableHead>
-              <TableHead>Last used</TableHead>
-              <TableHead className="text-end">Actions</TableHead>
+              <TableHead>{t("common.name")}</TableHead>
+              <TableHead>{t("settings.apiKeys.key")}</TableHead>
+              <TableHead>{t("settings.apiKeys.lastUsed")}</TableHead>
+              <TableHead className="text-end">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {keys.map((key) => (
               <TableRow key={key.id}>
                 <TableCell className="font-medium text-foreground">{key.name}</TableCell>
-                <TableCell className="font-mono text-xs text-muted-foreground">…{key.lastFour}</TableCell>
+                <TableCell dir="ltr" className="font-mono text-xs text-muted-foreground">…{key.lastFour}</TableCell>
                 <TableCell className="text-muted-foreground">
-                  {key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleString() : "Never"}
+                  {key.lastUsedAt ? formatDateTime(key.lastUsedAt) : t("settings.backup.never")}
                 </TableCell>
                 <TableCell className="text-end">
                   {key.revokedAt ? (
-                    <Badge variant="outline">Revoked</Badge>
+                    <Badge variant="outline">{t("settings.apiKeys.revoked")}</Badge>
                   ) : (
                     <Button size="sm" variant="destructive" onClick={() => onRevoke(key)}>
-                      Revoke
+                      {t("settings.apiKeys.revoke")}
                     </Button>
                   )}
                 </TableCell>
@@ -116,7 +124,7 @@ function StaffApiKeysCard() {
           </TableBody>
         </Table>
       ) : (
-        <p className="py-6 text-center text-sm text-muted-foreground">No personal API keys yet.</p>
+        <p className="py-6 text-center text-sm text-muted-foreground">{t("settings.apiKeys.emptyPersonal")}</p>
       )}
 
       {showCreate ? (
@@ -134,16 +142,17 @@ function StaffApiKeysCard() {
 }
 
 function IntegrationApiKeysCard() {
+  const { t } = useI18n();
   const { data: keys, isLoading } = useIntegrationApiKeys();
   const revokeKey = useRevokeIntegrationApiKey();
   const [showCreate, setShowCreate] = useState(false);
   const [newToken, setNewToken] = useState<string | null>(null);
 
   const onRevoke = (key: IntegrationApiKey) => {
-    if (!confirm(`Revoke "${key.name}"? Any external website using this key stops working immediately.`)) return;
+    if (!confirm(t("settings.apiKeys.revokeIntegrationConfirm", { name: key.name }))) return;
     revokeKey.mutate(key.id, {
-      onSuccess: () => toast.success("Key revoked"),
-      onError: (err) => toast.error(err instanceof ApiError ? err.message : "Could not revoke key"),
+      onSuccess: () => toast.success(t("settings.apiKeys.revokedToast")),
+      onError: (err) => toast.error(err instanceof ApiError ? err.message : t("settings.apiKeys.revokeFailed")),
     });
   };
 
@@ -151,14 +160,11 @@ function IntegrationApiKeysCard() {
     <Card className="flex flex-col gap-4 p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-[18px] font-medium text-foreground">Integration API keys</h2>
-          <p className="text-sm text-muted-foreground">
-            Credentials for an external website or system to use OrderRestro as a backend — browse the menu, place
-            orders, and book tables for a location. Not tied to any staff account.
-          </p>
+          <h2 className="text-[18px] font-medium text-foreground">{t("settings.apiKeys.integrationTitle")}</h2>
+          <p className="text-sm text-muted-foreground">{t("settings.apiKeys.integrationDescription")}</p>
         </div>
         <Button size="sm" onClick={() => setShowCreate(true)}>
-          New key
+          {t("settings.apiKeys.newKey")}
         </Button>
       </div>
 
@@ -168,34 +174,34 @@ function IntegrationApiKeysCard() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Key</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Permissions</TableHead>
-              <TableHead className="text-end">Actions</TableHead>
+              <TableHead>{t("common.name")}</TableHead>
+              <TableHead>{t("settings.apiKeys.key")}</TableHead>
+              <TableHead>{t("settings.apiKeys.location")}</TableHead>
+              <TableHead>{t("settings.roles.permissions")}</TableHead>
+              <TableHead className="text-end">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {keys.map((key) => (
               <TableRow key={key.id}>
                 <TableCell className="font-medium text-foreground">{key.name}</TableCell>
-                <TableCell className="font-mono text-xs text-muted-foreground">…{key.lastFour}</TableCell>
-                <TableCell className="text-muted-foreground">{key.branch?.name ?? "All locations"}</TableCell>
+                <TableCell dir="ltr" className="font-mono text-xs text-muted-foreground">…{key.lastFour}</TableCell>
+                <TableCell className="text-muted-foreground">{key.branch?.name ?? t("settings.apiKeys.allLocations")}</TableCell>
                 <TableCell className="text-muted-foreground">
                   <div className="flex flex-wrap gap-1">
                     {key.scopes.map((s) => (
                       <Badge key={s} variant="outline" className="text-xs">
-                        {s}
+                        {t(`settings.scope.${s}.label`)}
                       </Badge>
                     ))}
                   </div>
                 </TableCell>
                 <TableCell className="text-end">
                   {key.revokedAt ? (
-                    <Badge variant="outline">Revoked</Badge>
+                    <Badge variant="outline">{t("settings.apiKeys.revoked")}</Badge>
                   ) : (
                     <Button size="sm" variant="destructive" onClick={() => onRevoke(key)}>
-                      Revoke
+                      {t("settings.apiKeys.revoke")}
                     </Button>
                   )}
                 </TableCell>
@@ -204,7 +210,7 @@ function IntegrationApiKeysCard() {
           </TableBody>
         </Table>
       ) : (
-        <p className="py-6 text-center text-sm text-muted-foreground">No integration API keys yet.</p>
+        <p className="py-6 text-center text-sm text-muted-foreground">{t("settings.apiKeys.emptyIntegration")}</p>
       )}
 
       {showCreate ? (

@@ -94,8 +94,8 @@ export function useRestoreBackup() {
   });
 }
 
-// Not a TanStack Query hook — the download endpoint streams a zip, not
-// JSON, so it's a plain browser navigation (`<a href download>`), not a
+// Not a TanStack Query hook — the download endpoint streams a gzip'd NDJSON
+// logical dump of the D1 database (.ndjson.gz), not JSON, so it's a plain browser navigation (`<a href download>`), not a
 // `fetch` + blob round-trip. The httpOnly session cookie rides along
 // automatically on a same-origin navigation, same as every other
 // credentialed request `lib/api.ts` makes.
@@ -103,5 +103,5 @@ export function backupDownloadUrl(id: string): string {
   return `/api/v1/backups/${id}/download`;
 }
 
-// Fresh on-demand backup streamed to the browser (no S3 needed).
+// Fresh on-demand .ndjson.gz backup streamed to the browser (not stored in R2).
 export const LOCAL_BACKUP_URL = "/api/v1/backups/export";

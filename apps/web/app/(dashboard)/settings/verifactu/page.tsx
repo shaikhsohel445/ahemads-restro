@@ -20,20 +20,19 @@ import {
   type VerifactuSettings,
 } from "@/hooks/use-verifactu";
 import { ApiError } from "@/lib/api";
+import { formatCurrency, formatDate } from "@/lib/format";
+import { translate, useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 
-const errMsg = (e: unknown) => (e instanceof ApiError ? e.message : "Something went wrong");
-const euro = (cents: number) => `${(cents / 100).toFixed(2)} €`;
+const errMsg = (e: unknown) => (e instanceof ApiError ? e.message : translate("common.error"));
+// VERI*FACTU is Spain-only, so amounts are always euros.
+const euro = (cents: number) => formatCurrency(cents / 100, "EUR");
 
-const STATUS_LABEL: Record<VerifactuRecordRow["status"], string> = {
-  PENDING: "Waiting to send",
-  ACCEPTED: "Accepted",
-  ACCEPTED_WITH_ERRORS: "Accepted with errors",
-  REJECTED: "Rejected",
-  ERROR: "Will retry",
-};
+// Message key per record status (settings.verifactu.status.<STATUS>).
+const statusKey = (status: VerifactuRecordRow["status"] | string) => `settings.verifactu.status.${status}`;
 
 function SettingsForm({ branchId, s }: { branchId: string; s: VerifactuSettings }) {
+  const { t } = useI18n();
   const { save, certificate } = useVerifactuActions(branchId);
   const [enabled, setEnabled] = useState(s.enabled);
   const [environment, setEnvironment] = useState<VerifactuEnvironment>(s.environment);
@@ -46,16 +45,14 @@ function SettingsForm({ branchId, s }: { branchId: string; s: VerifactuSettings 
   return (
     <Card className="flex max-w-3xl flex-col gap-5 p-6">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">Spain VERI*FACTU</h2>
+        <h2 className="text-lg font-semibold text-foreground">{t("settings.verifactu.title")}</h2>
         <p className="text-sm text-muted-foreground">
-          Every paid sale becomes a simplified invoice in a tamper-evident chain with a QR code on the receipt, and is reported to the
-          Spanish tax agency (AEAT).
+          {t("settings.verifactu.description")}
         </p>
       </div>
 
       <div role="note" className="rounded-xl border border-border bg-muted/40 p-4 text-sm">
-        <strong>Implemented, not certified.</strong> OrderRestro has not been run against the live AEAT portal and NODEDR has not issued
-        its Declaración Responsable. Test with AEAT&rsquo;s pre-production portal and ask your gestor before relying on it.
+        <strong>{t("settings.verifactu.notCertifiedTitle")}</strong> {t("settings.verifactu.notCertifiedBody")}
       </div>
 
       {s.problems.length > 0 && (
@@ -68,31 +65,34 @@ function SettingsForm({ branchId, s }: { branchId: string; s: VerifactuSettings 
 
       <div className="flex items-center justify-between gap-4">
         <div>
-          <Label htmlFor="vf-enabled">Issue VERI*FACTU invoices at this branch</Label>
-          <p className="text-xs text-muted-foreground">Once on, a sale cannot be paid without its record.</p>
+          <Label htmlFor="vf-enabled">{t("settings.verifactu.enable")}</Label>
+          <p className="text-xs text-muted-foreground">{t("settings.verifactu.enableHelp")}</p>
         </div>
         <Switch id="vf-enabled" checked={enabled} onCheckedChange={setEnabled} />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="vf-env">Environment</Label>
+          <Label htmlFor="vf-env">{t("settings.verifactu.environment")}</Label>
           <select
             id="vf-env"
             className="h-9 rounded-lg border border-input bg-background px-3 text-sm"
             value={environment}
             onChange={(e) => setEnvironment(e.target.value as VerifactuEnvironment)}
           >
-            <option value="TEST">Test (AEAT pre-production)</option>
-            <option value="PRODUCTION">Production</option>
+            <option value="TEST">{t("settings.verifactu.envTest")}</option>
+            <option value="PRODUCTION">{t("settings.verifactu.envProduction")}</option>
           </select>
-          <p className="text-xs text-muted-foreground">Test and production keep separate chains.</p>
+          <p className="text-xs text-muted-foreground">{t("settings.verifactu.envHelp")}</p>
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="vf-series">Invoice series</Label>
-          <Input id="vf-series" value={series} maxLength={12} disabled={hasRecords} onChange={(e) => setSeries(e.target.value)} />
+          <Label htmlFor="vf-series">{t("settings.verifactu.series")}</Label>
+          <Input id="vf-series" dir="ltr" value={series} maxLength={12} disabled={hasRecords} onChange={(e) => setSeries(e.target.value)} />
           <p className="text-xs text-muted-foreground">
-            Next number: {s.seriesPrefix}-{String(s.nextNumber).padStart(6, "0")}
+            {t("settings.verifactu.nextNumber")}{" "}
+            <bdi>
+              {s.seriesPrefix}-{String(s.nextNumber).padStart(6, "0")}
+            </bdi>
           </p>
         </div>
       </div>
@@ -103,11 +103,11 @@ function SettingsForm({ branchId, s }: { branchId: string; s: VerifactuSettings 
           onClick={() =>
             save.mutate(
               { enabled, environment, seriesPrefix: series },
-              { onSuccess: () => toast.success("Saved"), onError: (e) => toast.error(errMsg(e)) },
+              { onSuccess: () => toast.success(t("common.saved")), onError: (e) => toast.error(errMsg(e)) },
             )
           }
         >
-          Save
+          {t("common.save")}
         </Button>
       </div>
 
@@ -115,26 +115,28 @@ function SettingsForm({ branchId, s }: { branchId: string; s: VerifactuSettings 
 
       <div className="flex flex-col gap-3">
         <div>
-          <h3 className="font-medium text-foreground">Digital certificate</h3>
+          <h3 className="font-medium text-foreground">{t("settings.verifactu.certTitle")}</h3>
           <p className="text-sm text-muted-foreground">
-            The company&rsquo;s electronic certificate (.p12 or .pfx) is needed to report to AEAT. It is stored encrypted.
+            {t("settings.verifactu.certDescription")}
           </p>
         </div>
         {s.hasCertificate ? (
           <p className="text-sm">
-            Loaded: <span className="font-mono text-xs">{s.certSubject}</span>
-            {s.certExpiresAt && <> · expires {new Date(s.certExpiresAt).toLocaleDateString()}</>}
+            {t("settings.verifactu.certLoaded")} <bdi className="font-mono text-xs">{s.certSubject}</bdi>
+            {s.certExpiresAt && (
+              <> · {t("settings.verifactu.certExpires", { date: formatDate(s.certExpiresAt) })}</>
+            )}
           </p>
         ) : (
-          <p className="text-sm text-muted-foreground">None uploaded yet. Records queue until one is.</p>
+          <p className="text-sm text-muted-foreground">{t("settings.verifactu.certNone")}</p>
         )}
         <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="vf-cert">Certificate file</Label>
+            <Label htmlFor="vf-cert">{t("settings.verifactu.certFile")}</Label>
             <input id="vf-cert" ref={file} type="file" accept=".p12,.pfx" className="text-sm" />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="vf-pass">Certificate password</Label>
+            <Label htmlFor="vf-pass">{t("settings.verifactu.certPassword")}</Label>
             <Input id="vf-pass" type="password" autoComplete="off" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
           <Button
@@ -142,21 +144,21 @@ function SettingsForm({ branchId, s }: { branchId: string; s: VerifactuSettings 
             disabled={certificate.isPending}
             onClick={() => {
               const f = file.current?.files?.[0];
-              if (!f) return toast.error("Choose the certificate file first");
+              if (!f) return toast.error(t("settings.verifactu.certChooseFile"));
               certificate.mutate(
                 { file: f, password },
                 {
                   onSuccess: () => {
                     setPassword("");
                     if (file.current) file.current.value = "";
-                    toast.success("Certificate saved");
+                    toast.success(t("settings.verifactu.certSaved"));
                   },
                   onError: (e) => toast.error(errMsg(e)),
                 },
               );
             }}
           >
-            Upload
+            {t("common.upload")}
           </Button>
         </div>
       </div>
@@ -165,6 +167,7 @@ function SettingsForm({ branchId, s }: { branchId: string; s: VerifactuSettings 
 }
 
 function Records({ branchId, s }: { branchId: string; s: VerifactuSettings }) {
+  const { t } = useI18n();
   const { data, isLoading } = useVerifactuRecords(branchId);
   const { send, verify } = useVerifactuActions(branchId);
   const [result, setResult] = useState<string | null>(null);
@@ -173,11 +176,11 @@ function Records({ branchId, s }: { branchId: string; s: VerifactuSettings }) {
     <Card className="flex flex-col gap-4 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Invoice records</h2>
+          <h2 className="text-lg font-semibold text-foreground">{t("settings.verifactu.recordsTitle")}</h2>
           <p className="text-sm text-muted-foreground">
             {Object.entries(s.counts)
-              .map(([k, n]) => `${n} ${STATUS_LABEL[k as VerifactuRecordRow["status"]]?.toLowerCase() ?? k}`)
-              .join(" · ") || "No records yet."}
+              .map(([k, n]) => `${n} ${t(statusKey(k)) === statusKey(k) ? k : t(statusKey(k))}`)
+              .join(" · ") || t("settings.verifactu.noRecords")}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -190,14 +193,18 @@ function Records({ branchId, s }: { branchId: string; s: VerifactuSettings }) {
                 onSuccess: (r) =>
                   setResult(
                     r.ok
-                      ? `Chain intact: ${r.checked} record${r.checked === 1 ? "" : "s"} checked.`
-                      : `Chain broken at record ${r.brokenAt} (${r.environment.toLowerCase()}): ${r.reason}.`,
+                      ? t("settings.verifactu.chainIntact", { n: r.checked })
+                      : t("settings.verifactu.chainBroken", {
+                          n: r.brokenAt,
+                          env: t(`settings.verifactu.env.${r.environment}`),
+                          reason: r.reason,
+                        }),
                   ),
                 onError: (e) => toast.error(errMsg(e)),
               })
             }
           >
-            Check chain
+            {t("settings.verifactu.checkChain")}
           </Button>
           <Button
             variant="outline"
@@ -205,15 +212,19 @@ function Records({ branchId, s }: { branchId: string; s: VerifactuSettings }) {
             disabled={send.isPending}
             onClick={() =>
               send.mutate(undefined, {
-                onSuccess: (r) => toast.success(r.sent ? `Sent ${r.sent} record${r.sent === 1 ? "" : "s"}` : "Nothing to send right now"),
+                onSuccess: (r) => toast.success(
+                    r.sent
+                      ? t("settings.verifactu.sent", { n: r.sent })
+                      : t("settings.verifactu.nothingToSend"),
+                  ),
                 onError: (e) => toast.error(errMsg(e)),
               })
             }
           >
-            Send now
+            {t("settings.verifactu.sendNow")}
           </Button>
           <Button variant="outline" size="sm" render={<a href={`/api/v1/verifactu/export.xml?branchId=${encodeURIComponent(branchId)}`} />}>
-            Export XML
+            {t("settings.verifactu.exportXml")}
           </Button>
         </div>
       </div>
@@ -225,28 +236,30 @@ function Records({ branchId, s }: { branchId: string; s: VerifactuSettings }) {
       {isLoading ? (
         <Skeleton className="h-24" />
       ) : !data || data.items.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Records appear here as sales are paid.</p>
+        <p className="text-sm text-muted-foreground">{t("settings.verifactu.recordsEmpty")}</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-start text-sm">
             <thead className="text-xs text-muted-foreground">
               <tr>
-                <th className="py-2 pe-4">Invoice</th>
-                <th className="py-2 pe-4">Date</th>
-                <th className="py-2 pe-4 text-end">Total</th>
-                <th className="py-2 pe-4">Status</th>
+                <th className="py-2 pe-4">{t("settings.verifactu.colInvoice")}</th>
+                <th className="py-2 pe-4">{t("common.date")}</th>
+                <th className="py-2 pe-4 text-end">{t("common.total")}</th>
+                <th className="py-2 pe-4">{t("common.status")}</th>
               </tr>
             </thead>
             <tbody>
               {data.items.map((r) => (
                 <tr key={r.id} className="border-t border-border align-top">
                   <td className="py-2 pe-4 font-mono text-xs">
-                    {r.invoiceNumber} <span className="text-muted-foreground">{r.invoiceType}</span>
+                    <bdi>{r.invoiceNumber}</bdi> <span className="text-muted-foreground">{r.invoiceType}</span>
                   </td>
-                  <td className="py-2 pe-4">{r.issueDate}</td>
+                  <td className="py-2 pe-4">
+                    <bdi>{r.issueDate}</bdi>
+                  </td>
                   <td className="py-2 pe-4 text-end tabular-nums">{euro(r.totalCents)}</td>
                   <td className={cn("py-2 pe-4", r.status === "REJECTED" && "text-destructive")}>
-                    {STATUS_LABEL[r.status]}
+                    {t(statusKey(r.status))}
                     {r.errorText && <span className="block text-xs text-muted-foreground">{r.errorCode ? `${r.errorCode}: ` : ""}{r.errorText}</span>}
                   </td>
                 </tr>
@@ -260,6 +273,7 @@ function Records({ branchId, s }: { branchId: string; s: VerifactuSettings }) {
 }
 
 export default function VerifactuPage() {
+  const { t } = useI18n();
   const { branchId } = useBranch();
   const { data, isLoading } = useVerifactuSettings(branchId);
   const country = useSettings(branchId).data?.branch.country;
@@ -267,13 +281,13 @@ export default function VerifactuPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground">Restaurant, branch, and staff configuration</p>
+        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">{t("settings.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("settings.subtitle")}</p>
       </div>
       <SettingsTabs />
       {country && country !== "ES" ? (
         <Card className="max-w-3xl p-6 text-sm">
-          VERI*FACTU applies only to branches in Spain. Set this branch&rsquo;s country to Spain (and its tax regime to Spain &ndash; IVA) under General to use it.
+          {t("settings.verifactu.spainOnly")}
         </Card>
       ) : isLoading || !data || !branchId ? (
         <Skeleton className="h-72 max-w-3xl rounded-xl" />

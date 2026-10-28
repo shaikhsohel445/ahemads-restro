@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AddCustomerDialog } from "@/components/customers/add-customer-dialog";
 import { Input } from "@/components/ui/input";
 import { useCustomers, type Customer } from "@/hooks/use-customers";
+import { useI18n } from "@/lib/i18n/context";
 
 export function CustomerPicker({
   branchId,
@@ -15,6 +16,7 @@ export function CustomerPicker({
   customer: Customer | null;
   onSelect: (customer: Customer | null) => void;
 }) {
+  const { t } = useI18n();
   const [search, setSearch] = useState("");
   const { data: matches } = useCustomers(branchId, search.length >= 2 ? search : undefined);
 
@@ -23,12 +25,13 @@ export function CustomerPicker({
       <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
         <div className="flex items-center gap-2 text-sm">
           <UserRound className="h-4 w-4 text-muted-foreground" />
-          <span className="font-medium text-foreground">{customer.name ?? customer.phone}</span>
-          <span className="text-xs text-muted-foreground">{customer.loyaltyPoints} pts</span>
+          <span className="font-medium text-foreground">{customer.name ?? <bdi dir="ltr">{customer.phone}</bdi>}</span>
+          <span className="text-xs text-muted-foreground">{t("pos.customer.points", { n: customer.loyaltyPoints })}</span>
         </div>
         <button
           type="button"
           onClick={() => onSelect(null)}
+          aria-label={t("pos.customer.detach")}
           className="text-muted-foreground hover:text-destructive"
         >
           <X className="h-4 w-4" />
@@ -40,7 +43,7 @@ export function CustomerPicker({
   return (
     <div className="relative flex items-center gap-2">
       <Input
-        placeholder="Attach customer (name or phone)…"
+        placeholder={t("pos.customer.searchPlaceholder")}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="flex-1"
@@ -58,8 +61,8 @@ export function CustomerPicker({
                 setSearch("");
               }}
             >
-              <span className="font-medium text-foreground">{m.name ?? "Unnamed"}</span>
-              <span className="text-xs text-muted-foreground">{m.phone}</span>
+              <span className="font-medium text-foreground">{m.name ?? t("pos.customer.unnamed")}</span>
+              <bdi dir="ltr" className="text-xs text-muted-foreground">{m.phone}</bdi>
             </button>
           ))}
         </div>

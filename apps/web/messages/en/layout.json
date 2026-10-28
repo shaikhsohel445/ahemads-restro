@@ -1,1 +1,15 @@
-{}
+{
+  "contact.call": "Call",
+  "contact.noPhone": "No phone number on file.",
+  "contact.whatsapp": "WhatsApp",
+  "contactSupport": "Contact support",
+  "navigation": "Navigation",
+  "needsAttention": "Needs attention",
+  "noBranch": "No branch is assigned to your account. Ask an administrator to assign you to one.",
+  "openNavigation": "Open navigation",
+  "primaryNav": "Primary",
+  "redirecting": "Redirecting…",
+  "selectBranch": "Select branch",
+  "toggleTheme": "Toggle theme",
+  "whatBranches": "your branches"
+}

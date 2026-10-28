@@ -27,6 +27,7 @@ import {
 import { useFloors, type RestaurantTable } from "@/hooks/use-tables";
 import { ApiError } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 
 export default function PosPage() {
@@ -38,6 +39,7 @@ export default function PosPage() {
 }
 
 function PosPageInner() {
+  const { t } = useI18n();
   const { branchId, isLoading: branchLoading } = useBranch();
   const { note, clear: clearNote, toast } = useNoteToast();
   const floorsQuery = useFloors(branchId);
@@ -188,9 +190,9 @@ function PosPageInner() {
             setDrafts((d) => clearDraft(d, sentTableId));
             setActiveCustomer(existingOrder.customer);
             setActiveOrder(order);
-            toast.success(`Added to order #${order.orderNumber} — sent to kitchen`);
+            toast.success(t("pos.page.addedToOrder", { number: order.orderNumber }));
           },
-          onError: (err) => toast.error(err instanceof ApiError ? err.message : "Could not add items"),
+          onError: (err) => toast.error(err instanceof ApiError ? err.message : t("pos.page.addFailed")),
         },
       );
       return;
@@ -212,9 +214,9 @@ function PosPageInner() {
           setActiveCustomer(null);
           setActiveOrder(order);
           setCartOpen(true);
-          toast.success(`Order #${order.orderNumber} sent to kitchen`);
+          toast.success(t("pos.page.orderSent", { number: order.orderNumber }));
         },
-        onError: (err) => toast.error(err instanceof ApiError ? err.message : "Could not create order"),
+        onError: (err) => toast.error(err instanceof ApiError ? err.message : t("pos.page.createFailed")),
       },
     );
   };
@@ -261,10 +263,10 @@ function PosPageInner() {
           target="_blank"
           rel="noreferrer"
           className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          title="Opens the customer-facing screen in a new window — drag it to the second monitor"
+          title={t("pos.page.customerDisplayTitle")}
         >
           <MonitorSmartphone className="h-3.5 w-3.5" />
-          Customer display
+          {t("pos.page.customerDisplay")}
         </a>
       </div>
 
@@ -301,7 +303,7 @@ function PosPageInner() {
               className="mb-3 -ms-1 flex items-center gap-1 text-sm font-medium text-muted-foreground lg:hidden"
             >
               <ChevronLeft className="rtl:-scale-x-100 h-4 w-4" />
-              Back to menu
+              {t("pos.page.backToMenu")}
             </button>
             {activeOrder ? (
               <CheckoutPanel
@@ -349,10 +351,10 @@ function PosPageInner() {
           <span className="flex items-center gap-2 text-sm font-semibold">
             <ShoppingCart className="h-5 w-5" />
             {activeOrder
-              ? `Order #${activeOrder.orderNumber} — pay`
+              ? t("pos.page.payOrder", { number: activeOrder.orderNumber })
               : lines.length > 0
-                ? `View cart · ${lines.reduce((n, l) => n + l.quantity, 0)} items`
-                : `Open bill #${existingOrder?.orderNumber} — view`}
+                ? t("pos.page.viewCart", { n: lines.reduce((n, l) => n + l.quantity, 0) })
+                : t("pos.page.viewOpenBill", { number: existingOrder?.orderNumber ?? "" })}
           </span>
           {!activeOrder && lines.length > 0 && (
             <span className="text-sm font-semibold tabular-nums">

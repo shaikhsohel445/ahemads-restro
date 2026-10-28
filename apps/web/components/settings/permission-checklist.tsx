@@ -2,6 +2,25 @@
 
 import { PERMISSIONS } from "@nodedr-restaurant/types";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useI18n } from "@/lib/i18n/context";
+
+type Translate = (key: string, vars?: Record<string, string | number>) => string;
+
+// Translated permission / category names. The catalog's English `label` (and
+// a custom role's server-side label) stays the fallback for any key the
+// message files do not know yet, so a new permission never renders as a raw
+// message key.
+export function permissionLabel(t: Translate, key: string, fallback: string): string {
+  const id = `settings.permission.${key}`;
+  const value = t(id);
+  return value === id ? fallback : value;
+}
+
+export function permissionCategoryLabel(t: Translate, category: string): string {
+  const id = `settings.permissionCategory.${category}`;
+  const value = t(id);
+  return value === id ? category : value;
+}
 
 // Computed once at module load — PERMISSIONS is a static const, no need to
 // re-group on every render.
@@ -25,12 +44,13 @@ export function PermissionChecklist({
   selected: string[];
   onToggle: (key: string) => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex max-h-72 flex-col gap-4 overflow-y-auto rounded-lg border border-border p-3">
       {GROUPED_PERMISSIONS.map(([category, permissions]) => (
         <div key={category} className="flex flex-col gap-2">
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            {category}
+            {permissionCategoryLabel(t, category)}
           </p>
           {permissions.map((permission) => (
             <label
@@ -41,7 +61,7 @@ export function PermissionChecklist({
                 checked={selected.includes(permission.key)}
                 onCheckedChange={() => onToggle(permission.key)}
               />
-              {permission.label}
+              {permissionLabel(t, permission.key, permission.label)}
             </label>
           ))}
         </div>

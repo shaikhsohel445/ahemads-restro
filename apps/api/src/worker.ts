@@ -7,6 +7,7 @@ import type {
 } from '@cloudflare/workers-types';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { setWorkerEnv, type WorkerEnv } from './cloudflare/bindings';
+import { edgeRateLimit } from './cloudflare/rate-limit';
 
 // Durable Object classes must be exported from the Worker's main module.
 export { RealtimeHub } from './realtime/realtime-hub.do';
@@ -101,6 +102,8 @@ export default {
     if (new URL(request.url).pathname === '/api/realtime') {
       return realtimeUpgrade(request, app);
     }
+    const limited = await edgeRateLimit(request, env);
+    if (limited) return limited;
     const handle = () =>
       nodeHandler.fetch(request as never, env as never, ctx as never);
     const { WriteLockService } = await import(

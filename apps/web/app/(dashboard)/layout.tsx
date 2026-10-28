@@ -8,6 +8,7 @@ import { BranchProvider, useBranch } from "@/hooks/use-branch";
 import { useRealtime } from "@/hooks/use-realtime";
 import { useSettings } from "@/hooks/use-settings";
 import { setFormatRegion } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 import { NAV_ITEMS } from "@/components/layout/nav-items";
 import { canOpen, firstAllowedHref } from "@/lib/route-access";
 
@@ -41,6 +42,7 @@ function RegionSync() {
 export default function DashboardGroupLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { t } = useI18n();
   const { data, isLoading, isError } = useCurrentUser();
   const permissions = data?.user.permissions;
   const allowed = !permissions || canOpen(pathname ?? "", permissions, NAV_ITEMS);
@@ -69,7 +71,7 @@ export default function DashboardGroupLayout({ children }: { children: React.Rea
   if (!allowed) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-6 text-center text-sm text-muted-foreground">
-        {fallback ? "Redirecting…" : "Your role has no access to this page. Ask an administrator."}
+        {fallback ? t("layout.redirecting") : t("errors.noPageAccess")}
       </div>
     );
   }

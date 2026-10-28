@@ -1,1 +1,13 @@
-{}
+{
+  "generic": "Something went wrong. Please try again.",
+  "load.forbidden": "Your role is not allowed to see {what}. Ask an administrator to grant access.",
+  "load.generic": "Could not load {what}.",
+  "load.network": "Could not reach the server to load {what}. Check the connection and try again.",
+  "load.retry": "Try again",
+  "load.retrying": "Retrying…",
+  "load.server": "The server had a problem loading {what}. Try again in a moment.",
+  "load.session": "Your session has ended. Sign in again to load {what}.",
+  "network": "Can't reach the server. Check your internet connection and try again.",
+  "noPageAccess": "Your role has no access to this page. Ask an administrator.",
+  "server": "The server is having a problem right now. Please try again in a minute."
+}

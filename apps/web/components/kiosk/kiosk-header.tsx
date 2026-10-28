@@ -1,13 +1,54 @@
 "use client";
 
 import { Globe, X } from "lucide-react";
-import type { Locale } from "@/lib/i18n/locales";
+import { LOCALE_LABELS, localeDir, type Locale } from "@/lib/i18n/locales";
 import { cn } from "@/lib/utils";
+import { KIOSK_LOCALES } from "./kiosk-locales";
 import { TOUCH } from "./kiosk-ui";
 
-// Spanish-first; English is the optional second language. (French and other
-// dashboard languages exist but have no kiosk copy, so they are not offered.)
-export const LOCALES_SHOWN: Locale[] = ["es", "en"];
+export const LOCALES_SHOWN: Locale[] = KIOSK_LOCALES;
+
+/**
+ * Language buttons, each labelled in its own language (and script/direction),
+ * so a guest can find theirs whatever language is currently showing.
+ */
+export function KioskLanguagePicker({
+  locale,
+  onLocale,
+  locales,
+  label,
+  large,
+}: {
+  locale: Locale;
+  onLocale: (l: Locale) => void;
+  locales: Locale[];
+  label: string;
+  large?: boolean;
+}) {
+  return (
+    <div role="group" aria-label={label} className="flex items-center gap-1">
+      <Globe className={cn("me-1 text-muted-foreground", large ? "h-7 w-7" : "h-5 w-5")} aria-hidden />
+      {locales.map((l) => (
+        <button
+          key={l}
+          type="button"
+          lang={l}
+          dir={localeDir(l)}
+          aria-pressed={l === locale}
+          onClick={() => onLocale(l)}
+          className={cn(
+            "touch-manipulation rounded-xl px-3 font-bold focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40",
+            TOUCH,
+            large ? "px-5 text-[1.35rem]" : "text-[1.05rem]",
+            l === locale ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground hover:bg-muted",
+          )}
+        >
+          {LOCALE_LABELS[l]}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export function KioskHeader({
   name,
@@ -49,25 +90,7 @@ export function KioskHeader({
           )}
         </div>
       )}
-      <div role="group" aria-label={languageLabel} className="flex items-center gap-1">
-        <Globe className="me-1 h-5 w-5 text-muted-foreground" aria-hidden />
-        {locales.map((l) => (
-          <button
-            key={l}
-            type="button"
-            lang={l}
-            aria-pressed={l === locale}
-            onClick={() => onLocale(l)}
-            className={cn(
-              "touch-manipulation rounded-xl px-3 text-[1.05rem] font-bold focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40",
-              TOUCH,
-              l === locale ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground hover:bg-muted",
-            )}
-          >
-            {l.toUpperCase()}
-          </button>
-        ))}
-      </div>
+      <KioskLanguagePicker locale={locale} onLocale={onLocale} locales={locales} label={languageLabel} />
       <button
         type="button"
         onClick={onCancel}

@@ -1,1 +1,4 @@
-{}
+{
+  "menu.addItem": "Ajouter {name}",
+  "tax.vat": "TVA"
+}

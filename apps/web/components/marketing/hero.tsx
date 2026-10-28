@@ -1,15 +1,23 @@
 "use client";
 
-import { ArrowRight, Github } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { downloadHref } from "@/lib/downloads";
 import { PosMockup } from "@/components/marketing/pos-mockup";
-
-const words = ["Restaurant", "software", "you", "actually", "own."];
+import { useI18n } from "@/lib/i18n/context";
 
 export function Hero() {
+  const { t } = useI18n();
+  // The headline animates in word by word; the accent phrase is a separate
+  // key so each language can choose which words get the brand color.
+  const lead = t("landing.hero.titleLead").split(" ").filter(Boolean);
+  const accent = t("landing.hero.titleAccent").split(" ").filter(Boolean);
+  const words = [
+    ...lead.map((w) => ({ w, accent: false })),
+    ...accent.map((w) => ({ w, accent: true })),
+  ];
+
   return (
     <section className="relative overflow-hidden px-4 pt-20 pb-24 sm:px-6 sm:pt-28">
       {/* Ambient gradient glow — transform/opacity only, no layout cost */}
@@ -26,19 +34,19 @@ export function Hero() {
           className="mb-6 inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/50 px-3 py-1 text-xs font-medium text-muted-foreground"
         >
           <span className="size-1.5 rounded-full bg-success" />
-          Open source · AGPL-3.0 · self-hosted
+          {t("landing.hero.badge")}
         </motion.div>
 
         <h1 className="flex flex-wrap justify-center gap-x-3 text-4xl font-semibold tracking-tight text-foreground sm:text-6xl">
-          {words.map((word, i) => (
+          {words.map(({ w, accent: isAccent }, i) => (
             <motion.span
-              key={word}
+              key={`${i}-${w}`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
-              className={word === "own." ? "text-primary" : undefined}
+              className={isAccent ? "text-primary" : undefined}
             >
-              {word}
+              {w}
             </motion.span>
           ))}
         </h1>
@@ -49,10 +57,7 @@ export function Hero() {
           transition={{ duration: 0.4, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
           className="mt-6 max-w-2xl text-balance text-lg text-muted-foreground sm:text-xl"
         >
-          POS, kitchen display, tables, reservations, inventory, and CRM — one
-          self-hosted stack that runs on your own LAN. No subscription, no
-          forced cloud dependency, no vendor lock-in. Your orders, your
-          customers&rsquo; data, your server.
+          {t("landing.hero.subtitle")}
         </motion.p>
 
         <motion.div
@@ -62,17 +67,16 @@ export function Hero() {
           className="mt-9 flex flex-col items-center gap-3 sm:flex-row"
         >
           <Button size="lg" className="h-11 px-6 text-[15px]" render={<Link href="/signup" />}>
-            Get started free
+            {t("landing.cta.createAccount")}
             <ArrowRight className="rtl:-scale-x-100 size-4" data-icon="inline-end" />
           </Button>
           <Button
             variant="outline"
             size="lg"
             className="h-11 px-6 text-[15px]"
-            render={<a href={downloadHref("github")} />}
+            render={<a href="#features" />}
           >
-            <Github className="size-4" data-icon="inline-start" />
-            View on GitHub
+            {t("landing.hero.exploreFeatures")}
           </Button>
         </motion.div>
       </div>

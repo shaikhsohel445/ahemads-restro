@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { openEntity } from "@/lib/entity-events";
+import { useI18n } from "@/lib/i18n/context";
 import { normalizeScan } from "@/lib/scan";
 
 const TABS = ["pending", "active", "history"] as const;
@@ -16,6 +17,7 @@ const TABS = ["pending", "active", "history"] as const;
 // manual fallback. This only OPENS the order; it never changes it or marks it
 // paid - payment stays a separate, deliberate action in the order window.
 export function ScanOrderInput({ branchId }: { branchId: string | null }) {
+  const { t } = useI18n();
   const [value, setValue] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -24,11 +26,11 @@ export function ScanOrderInput({ branchId }: { branchId: string | null }) {
     const scan = normalizeScan(value);
     if (scan.kind === "invalid" && scan.reason === "empty") return;
     if (scan.kind === "table") {
-      setMessage("That is a table QR code, not an order ticket.");
+      setMessage(t("orders.scan.tableQr"));
       return;
     }
     if (scan.kind !== "order") {
-      setMessage("Not a recognised order code. Scan the ticket QR or type the order number.");
+      setMessage(t("orders.scan.unrecognized"));
       return;
     }
     if (!branchId) return;
@@ -47,10 +49,10 @@ export function ScanOrderInput({ branchId }: { branchId: string | null }) {
         openEntity("Order", hit.id);
         setValue("");
       } else {
-        setMessage(`No recent order ${scan.orderNumber} found in this branch.`);
+        setMessage(t("orders.scan.notFound", { number: scan.orderNumber }));
       }
     } catch {
-      setMessage("Could not look that order up. Check the connection and try again.");
+      setMessage(t("orders.scan.lookupFailed"));
     } finally {
       setBusy(false);
     }
@@ -65,7 +67,7 @@ export function ScanOrderInput({ branchId }: { branchId: string | null }) {
       }}
     >
       <label htmlFor="scan-order" className="sr-only">
-        Scan or type an order number
+        {t("orders.scan.label")}
       </label>
       <div className="relative">
         <ScanLine className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
@@ -77,7 +79,7 @@ export function ScanOrderInput({ branchId }: { branchId: string | null }) {
             setMessage(null);
           }}
           disabled={busy}
-          placeholder="Scan ticket QR or type order number, then Enter"
+          placeholder={t("orders.scan.placeholder")}
           autoComplete="off"
           autoCapitalize="characters"
           spellCheck={false}

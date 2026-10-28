@@ -162,8 +162,8 @@ export function MenuScreen({
                           <p className="line-clamp-2 text-[0.95rem] leading-snug text-muted-foreground">{item.description}</p>
                         )}
                         <div className="mt-auto flex items-center justify-between gap-3 pt-3">
-                          <span className="text-[1.35rem] font-bold tabular-nums">{fmt(unit(item))}</span>
-                          <KButton onClick={() => add(item)} aria-label={`${t("kiosk.menu.add")} ${item.name}`}>
+                          <span className="text-[1.35rem] font-bold tabular-nums"><bdi>{fmt(unit(item))}</bdi></span>
+                          <KButton onClick={() => add(item)} aria-label={t("kiosk.menu.addItem", { name: item.name })}>
                             <Plus className="h-5 w-5" aria-hidden />
                             {t("kiosk.menu.add")}
                             {qty > 0 && (

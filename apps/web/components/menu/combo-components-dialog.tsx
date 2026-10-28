@@ -22,6 +22,7 @@ import { useComboComponents, useSetComboComponents, type ComboComponent } from "
 import type { MenuItem } from "@/hooks/use-menu";
 import { ApiError } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 
 interface Row {
   componentItemId: string;
@@ -45,6 +46,7 @@ function ComboRowsEditor({
   branchId: string | null;
   onSaved: () => void;
 }) {
+  const { t } = useI18n();
   const [rows, setRows] = useState<Row[]>(() =>
     existing.map((c) => ({ componentItemId: c.componentItemId, quantity: c.quantity })),
   );
@@ -69,11 +71,11 @@ function ComboRowsEditor({
       { components: rows },
       {
         onSuccess: () => {
-          toast.success(`Combo components saved for ${item.name}`);
+          toast.success(t("menu.combo.saved", { name: item.name }));
           onSaved();
         },
         onError: (err) =>
-          toast.error(err instanceof ApiError ? err.message : "Could not save combo components"),
+          toast.error(err instanceof ApiError ? err.message : t("menu.combo.saveFailed")),
       },
     );
   };
@@ -83,8 +85,7 @@ function ComboRowsEditor({
       <div className="flex flex-col gap-3 py-2">
         {rows.length === 0 && (
           <p className="text-sm text-muted-foreground">
-            No components yet — this item sells as a regular menu item. Add components to make it
-            a combo.
+            {t("menu.combo.empty")}
           </p>
         )}
         {rows.map((row, index) => (
@@ -109,6 +110,7 @@ function ComboRowsEditor({
                 variant="outline"
                 size="icon"
                 className="h-8 w-8"
+                aria-label={t("menu.combo.decrease")}
                 onClick={() => updateRow(index, { quantity: Math.max(1, row.quantity - 1) })}
               >
                 <Minus className="h-3 w-3" />
@@ -118,6 +120,7 @@ function ComboRowsEditor({
                 variant="outline"
                 size="icon"
                 className="h-8 w-8"
+                aria-label={t("menu.combo.increase")}
                 onClick={() => updateRow(index, { quantity: row.quantity + 1 })}
               >
                 <Plus className="h-3 w-3" />
@@ -127,6 +130,7 @@ function ComboRowsEditor({
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-muted-foreground hover:text-destructive"
+              aria-label={t("common.remove")}
               onClick={() => removeRow(index)}
             >
               <X className="h-3.5 w-3.5" />
@@ -140,13 +144,13 @@ function ComboRowsEditor({
           disabled={rows.length >= candidates.length}
           onClick={addRow}
         >
-          Add component
+          {t("menu.combo.addComponent")}
         </Button>
       </div>
 
       <DialogFooter>
         <Button disabled={setComponents.isPending} onClick={handleSave}>
-          {setComponents.isPending ? "Saving…" : "Save combo"}
+          {setComponents.isPending ? t("common.saving") : t("menu.combo.save")}
         </Button>
       </DialogFooter>
     </>
@@ -166,13 +170,14 @@ export function ComboComponentsDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { t } = useI18n();
   const { data: existing } = useComboComponents(branchId, item?.id ?? null);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{item?.name} — combo components</DialogTitle>
+          <DialogTitle>{t("menu.combo.title", { name: item?.name ?? "" })}</DialogTitle>
         </DialogHeader>
 
         {item && existing ? (
@@ -185,7 +190,7 @@ export function ComboComponentsDialog({
             onSaved={() => onOpenChange(false)}
           />
         ) : (
-          <p className="py-8 text-center text-sm text-muted-foreground">Loading…</p>
+          <p className="py-8 text-center text-sm text-muted-foreground">{t("common.loading")}</p>
         )}
       </DialogContent>
     </Dialog>

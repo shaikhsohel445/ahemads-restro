@@ -13,6 +13,7 @@ import {
   useUpdateBranchSettings,
   type BranchSettings,
 } from "@/hooks/use-settings";
+import { useI18n } from "@/lib/i18n/context";
 
 // Settings > Customer kiosk. The URL's token is the only credential the public
 // kiosk screen has: it can read the menu and place orders, nothing else.
@@ -23,6 +24,7 @@ export function KioskCard({
   branchId: string | null;
   branch: BranchSettings;
 }) {
+  const { t } = useI18n();
   const setKiosk = useSetKiosk(branchId);
   const update = useUpdateBranchSettings(branchId);
   const [confirmRotate, setConfirmRotate] = useState(false);
@@ -37,40 +39,39 @@ export function KioskCard({
         toast.success(done);
         setConfirmRotate(false);
       },
-      onError: (e) => toast.error(e instanceof Error ? e.message : "Could not update the kiosk"),
+      onError: (e) => toast.error(e instanceof Error ? e.message : t("settings.kiosk.updateFailed")),
     });
   const save = (dto: { kioskDineInEnabled?: boolean; kioskTakeawayEnabled?: boolean }) =>
     update.mutate(dto, {
-      onSuccess: () => toast.success("Saved"),
-      onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save"),
+      onSuccess: () => toast.success(t("common.saved")),
+      onError: (e) => toast.error(e instanceof Error ? e.message : t("settings.saveFailed")),
     });
 
   return (
     <Card className="flex flex-col gap-4 p-6">
       <div>
-        <h2 className="text-[18px] font-medium text-foreground">Customer kiosk</h2>
+        <h2 className="text-[18px] font-medium text-foreground">{t("settings.kiosk.title")}</h2>
         <p className="text-sm text-muted-foreground">
-          A full-screen, self-service ordering page for a customer-facing touchscreen. It shows
-          only the menu and an order basket — no staff screens, no customer records. Orders go
-          straight to the kitchen display; payment is taken separately at the counter.
+          {t("settings.kiosk.description")}
         </p>
       </div>
 
       {!branch.kioskToken ? (
         <div>
-          <Button onClick={() => run("enable", "Kiosk enabled")} disabled={setKiosk.isPending}>
-            Enable kiosk
+          <Button onClick={() => run("enable", t("settings.kiosk.enabledToast"))} disabled={setKiosk.isPending}>
+            {t("settings.kiosk.enable")}
           </Button>
         </div>
       ) : (
         <>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
             <div className="flex min-w-0 flex-1 flex-col gap-2">
-              <Label htmlFor="kiosk-url">Kiosk address (open this on the kiosk)</Label>
+              <Label htmlFor="kiosk-url">{t("settings.kiosk.addressLabel")}</Label>
               <div className="flex gap-2">
                 <input
                   id="kiosk-url"
                   readOnly
+                  dir="ltr"
                   value={url ?? ""}
                   onFocus={(e) => e.currentTarget.select()}
                   className="min-w-0 flex-1 rounded-lg border border-input bg-background px-3 py-2 font-mono text-xs text-foreground"
@@ -78,13 +79,13 @@ export function KioskCard({
                 <Button
                   variant="outline"
                   size="icon"
-                  aria-label="Copy kiosk address"
+                  aria-label={t("settings.kiosk.copyAddress")}
                   onClick={() =>
                     url &&
                     navigator.clipboard
                       .writeText(url)
-                      .then(() => toast.success("Copied"))
-                      .catch(() => toast.error("Copy failed — select the address and copy it"))
+                      .then(() => toast.success(t("common.copied")))
+                      .catch(() => toast.error(t("settings.kiosk.copyFailed")))
                   }
                 >
                   <Copy className="h-4 w-4" />
@@ -92,20 +93,18 @@ export function KioskCard({
                 <Button
                   variant="outline"
                   size="icon"
-                  aria-label="Open kiosk in a new tab"
+                  aria-label={t("settings.kiosk.openNewTab")}
                   onClick={() => url && window.open(url, "_blank", "noopener")}
                 >
                   <ExternalLink className="h-4 w-4" />
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Anyone with this address can place orders, so only open it on the kiosk. Use the
-                HTTPS address (not a plain-HTTP LAN one) so Android can install it and keep the
-                screen awake.
+                {t("settings.kiosk.addressHelp")}
               </p>
             </div>
             {url && (
-              <div className="shrink-0 rounded-lg bg-white p-2" aria-label="QR code of the kiosk address">
+              <div className="shrink-0 rounded-lg bg-white p-2" aria-label={t("settings.kiosk.qrLabel")}>
                 <QRCodeSVG value={url} size={112} marginSize={1} />
               </div>
             )}
@@ -113,9 +112,9 @@ export function KioskCard({
 
           <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-4">
             <div className="flex flex-col gap-0.5">
-              <Label htmlFor="kiosk-dine-in">Offer “Eat here”</Label>
+              <Label htmlFor="kiosk-dine-in">{t("settings.kiosk.offerDineIn")}</Label>
               <p className="text-xs text-muted-foreground">
-                If only one option is on, the kiosk skips the choice screen.
+                {t("settings.kiosk.singleOptionHelp")}
               </p>
             </div>
             <Switch
@@ -126,7 +125,7 @@ export function KioskCard({
             />
           </div>
           <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-4">
-            <Label htmlFor="kiosk-takeaway">Offer “Take away”</Label>
+            <Label htmlFor="kiosk-takeaway">{t("settings.kiosk.offerTakeaway")}</Label>
             <Switch
               id="kiosk-takeaway"
               checked={branch.kioskTakeawayEnabled}
@@ -139,32 +138,32 @@ export function KioskCard({
             {confirmRotate ? (
               <>
                 <span className="text-sm text-foreground">
-                  The current kiosk address will stop working immediately. Continue?
+                  {t("settings.kiosk.rotateConfirm")}
                 </span>
                 <Button
                   variant="destructive"
                   size="sm"
                   disabled={setKiosk.isPending}
-                  onClick={() => run("rotate", "New kiosk address created")}
+                  onClick={() => run("rotate", t("settings.kiosk.rotatedToast"))}
                 >
-                  Yes, replace it
+                  {t("settings.kiosk.rotateYes")}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => setConfirmRotate(false)}>
-                  Cancel
+                  {t("common.cancel")}
                 </Button>
               </>
             ) : (
               <>
                 <Button variant="outline" size="sm" onClick={() => setConfirmRotate(true)}>
-                  <KeyRound className="h-4 w-4" /> Create new address
+                  <KeyRound className="h-4 w-4" /> {t("settings.kiosk.rotate")}
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
                   disabled={setKiosk.isPending}
-                  onClick={() => run("disable", "Kiosk turned off")}
+                  onClick={() => run("disable", t("settings.kiosk.disabledToast"))}
                 >
-                  Turn kiosk off
+                  {t("settings.kiosk.disable")}
                 </Button>
               </>
             )}

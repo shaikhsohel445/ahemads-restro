@@ -5,7 +5,7 @@ import { AuthRedirectGate } from "@/components/marketing/auth-redirect-gate";
 import { ClaimedLanding } from "@/components/marketing/claimed-landing";
 import { Features } from "@/components/marketing/features";
 import { Hero } from "@/components/marketing/hero";
-import { InstallSection } from "@/components/marketing/install-section";
+import { GettingStartedSection } from "@/components/marketing/install-section";
 import { MarketingFooter } from "@/components/marketing/marketing-footer";
 import { MarketingNav } from "@/components/marketing/marketing-nav";
 import { ProductShowcase } from "@/components/marketing/product-showcase";
@@ -21,7 +21,7 @@ export default function MarketingHomePage() {
     return null;
   }
 
-  // This instance already has a restaurant registered — the public root is
+  // This deployment already has a restaurant registered — the public root is
   // now a live business's front door, not an unclaimed install's sales
   // page. Show only what a returning visitor actually needs.
   if (data?.isSetup) {
@@ -47,7 +47,7 @@ export default function MarketingHomePage() {
           <ProductShowcase />
           <Features />
           <SecuritySection />
-          <InstallSection />
+          <GettingStartedSection />
         </main>
         <MarketingFooter />
       </div>

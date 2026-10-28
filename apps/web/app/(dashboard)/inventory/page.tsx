@@ -19,9 +19,11 @@ import {
 } from "@/components/ui/table";
 import { useBranch } from "@/hooks/use-branch";
 import { useIngredients, useTrackingStatus } from "@/hooks/use-inventory";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatNumber } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 
 export default function InventoryPage() {
+  const { t } = useI18n();
   const { branchId } = useBranch();
   const [search, setSearch] = useState("");
   const { data: ingredients, isLoading } = useIngredients(branchId);
@@ -35,9 +37,9 @@ export default function InventoryPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[32px] font-semibold tracking-tight text-foreground">Inventory</h1>
+          <h1 className="text-[32px] font-semibold tracking-tight text-foreground">{t("inventory.title")}</h1>
           <p className="text-sm text-muted-foreground">
-            Ingredients, recipe costing, purchase orders, and waste
+            {t("inventory.subtitle")}
           </p>
         </div>
         <AddIngredientDialog branchId={branchId} />
@@ -50,18 +52,20 @@ export default function InventoryPage() {
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
           <div className="flex flex-col gap-1">
             <p className="font-medium text-foreground">
-              {trackingStatus.problems.length} stock-tracked menu item{trackingStatus.problems.length === 1 ? "" : "s"} will deduct nothing when sold
+              {trackingStatus.problems.length === 1
+                ? t("inventory.trackingProblems.one")
+                : t("inventory.trackingProblems.other", { n: formatNumber(trackingStatus.problems.length) })}
             </p>
             <p className="text-muted-foreground">
-              Add a recipe or pick the stock item (Menu → Edit item → Stock when sold):{" "}
-              {trackingStatus.problems.map((p) => p.name).join(", ")}
+              {t("inventory.trackingProblems.help")}{" "}
+              {trackingStatus.problems.map((p) => p.name).join(t("inventory.listSeparator"))}
             </p>
           </div>
         </div>
       )}
 
       <Input
-        placeholder="Search ingredients…"
+        placeholder={t("inventory.ingredients.search")}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="max-w-sm"
@@ -78,12 +82,12 @@ export default function InventoryPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Ingredient</TableHead>
-                <TableHead>Unit</TableHead>
-                <TableHead className="text-end">Current stock</TableHead>
-                <TableHead className="text-end">Reorder level</TableHead>
-                <TableHead className="text-end">Avg. cost / unit</TableHead>
-                <TableHead className="text-end">Stock value</TableHead>
+                <TableHead>{t("inventory.ingredient")}</TableHead>
+                <TableHead>{t("inventory.unitLabel")}</TableHead>
+                <TableHead className="text-end">{t("inventory.currentStock")}</TableHead>
+                <TableHead className="text-end">{t("inventory.reorderLevel")}</TableHead>
+                <TableHead className="text-end">{t("inventory.avgCostPerUnit")}</TableHead>
+                <TableHead className="text-end">{t("inventory.stockValue")}</TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>
@@ -98,15 +102,17 @@ export default function InventoryPage() {
                         {isLow && (
                           <Badge variant="destructive" className="gap-1">
                             <AlertTriangle className="h-3 w-3" />
-                            Low stock
+                            {t("inventory.lowStock")}
                           </Badge>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{i.unit}</TableCell>
-                    <TableCell className="text-end tabular-nums">{i.currentStock}</TableCell>
+                    <TableCell className="text-muted-foreground">{t(`inventory.unit.${i.unit}`)}</TableCell>
+                    <TableCell className="text-end tabular-nums">
+                      {formatNumber(i.currentStock, { maximumFractionDigits: 3 })}
+                    </TableCell>
                     <TableCell className="text-end tabular-nums text-muted-foreground">
-                      {i.reorderLevel}
+                      {formatNumber(i.reorderLevel, { maximumFractionDigits: 3 })}
                     </TableCell>
                     <TableCell className="text-end tabular-nums">
                       {formatCurrency(i.costPerUnit)}
@@ -124,9 +130,9 @@ export default function InventoryPage() {
           </Table>
         ) : (
           <div className="flex flex-col items-center gap-2 py-16 text-center">
-            <p className="text-sm font-medium text-foreground">No ingredients yet</p>
+            <p className="text-sm font-medium text-foreground">{t("inventory.ingredients.emptyTitle")}</p>
             <p className="text-sm text-muted-foreground">
-              Add your raw materials to start recipe costing and stock tracking.
+              {t("inventory.ingredients.emptyDescription")}
             </p>
           </div>
         )}

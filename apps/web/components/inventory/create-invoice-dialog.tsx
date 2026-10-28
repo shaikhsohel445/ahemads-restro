@@ -16,8 +16,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateSupplierInvoice, useSuppliers } from "@/hooks/use-inventory";
 import { ApiError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 
 export function CreateInvoiceDialog({ branchId }: { branchId: string | null }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [supplierId, setSupplierId] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
@@ -42,7 +44,7 @@ export function CreateInvoiceDialog({ branchId }: { branchId: string | null }) {
       },
       {
         onSuccess: (invoice) => {
-          toast.success(`${invoice.invoiceNumber} added`);
+          toast.success(t("inventory.addedNamed", { name: invoice.invoiceNumber }));
           setOpen(false);
           setSupplierId("");
           setInvoiceNumber("");
@@ -50,25 +52,25 @@ export function CreateInvoiceDialog({ branchId }: { branchId: string | null }) {
           setTotalAmount("");
         },
         onError: (err) =>
-          toast.error(err instanceof ApiError ? err.message : "Could not add supplier invoice"),
+          toast.error(err instanceof ApiError ? err.message : t("inventory.invoice.addFailed")),
       },
     );
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm">New invoice</Button>} />
+      <DialogTrigger render={<Button size="sm">{t("inventory.invoice.new")}</Button>} />
       <DialogContent className="sm:max-w-md">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>Add a vendor invoice</DialogTitle>
+            <DialogTitle>{t("inventory.invoice.addTitle")}</DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col gap-2">
-            <Label>Supplier</Label>
+            <Label>{t("inventory.supplier")}</Label>
             <Select value={supplierId} onValueChange={(v) => setSupplierId(v ?? "")}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a supplier" />
+                <SelectValue placeholder={t("inventory.selectSupplier")} />
               </SelectTrigger>
               <SelectContent>
                 {suppliers?.map((s) => (
@@ -81,35 +83,36 @@ export function CreateInvoiceDialog({ branchId }: { branchId: string | null }) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label>Invoice number</Label>
-            <Input value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} />
+            <Label>{t("inventory.invoice.number")}</Label>
+            <Input value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} dir="ltr" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-2">
-              <Label>Invoice date</Label>
+              <Label>{t("inventory.invoice.date")}</Label>
               <Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
             </div>
             <div className="flex flex-col gap-2">
-              <Label>Due date</Label>
+              <Label>{t("inventory.invoice.dueDate")}</Label>
               <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
             </div>
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label>Total amount</Label>
+            <Label>{t("inventory.invoice.totalAmount")}</Label>
             <Input
               type="number"
               min="0"
               step="0.01"
               value={totalAmount}
               onChange={(e) => setTotalAmount(e.target.value)}
+              dir="ltr"
             />
           </div>
 
           <DialogFooter>
             <Button type="submit" disabled={!canSubmit || createInvoice.isPending}>
-              {createInvoice.isPending ? "Saving…" : "Add invoice"}
+              {createInvoice.isPending ? t("common.saving") : t("inventory.invoice.add")}
             </Button>
           </DialogFooter>
         </form>

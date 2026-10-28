@@ -1,1 +1,12 @@
-{}
+{
+  "enableSound": "Tap anywhere to enable payment sound",
+  "paidAmount": "{amount} paid",
+  "payWithApp": "Scan the code with your banking or payment app",
+  "payWithAppTo": "Pay {payee} by scanning the code with your banking or payment app",
+  "paymentReceivedSpeech": "Payment received. {amount}",
+  "scanToPay": "Scan to pay",
+  "thankYou": "Thank you!",
+  "welcome": "Welcome",
+  "welcomeHint": "Your order will appear here",
+  "yourOrder": "Your order"
+}

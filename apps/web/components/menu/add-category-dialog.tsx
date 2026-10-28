@@ -16,8 +16,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useCreateCategory } from "@/hooks/use-menu";
 import { ApiError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 
 export function AddCategoryDialog({ branchId }: { branchId: string | null }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [showOnWebsite, setShowOnWebsite] = useState(true);
@@ -29,12 +31,12 @@ export function AddCategoryDialog({ branchId }: { branchId: string | null }) {
       { name, sortOrder: 0, isActive: true, showOnWebsite },
       {
         onSuccess: () => {
-          toast.success(`"${name}" category added`);
+          toast.success(t("menu.category.added", { name }));
           setOpen(false);
           setName("");
           setShowOnWebsite(true);
         },
-        onError: (err) => toast.error(err instanceof ApiError ? err.message : "Could not add category"),
+        onError: (err) => toast.error(err instanceof ApiError ? err.message : t("menu.category.addFailed")),
       },
     );
   };
@@ -44,38 +46,38 @@ export function AddCategoryDialog({ branchId }: { branchId: string | null }) {
       <DialogTrigger
         render={
           <Button variant="outline" size="sm">
-            Add category
+            {t("menu.category.add")}
           </Button>
         }
       />
       <DialogContent>
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <DialogTitle>New category</DialogTitle>
+            <DialogTitle>{t("menu.category.newTitle")}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-2 py-4">
-            <Label htmlFor="category-name">Name</Label>
+            <Label htmlFor="category-name">{t("common.name")}</Label>
             <Input
               id="category-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Starters"
+              placeholder={t("menu.category.namePlaceholder")}
               required
               autoFocus
             />
           </div>
           <label className="mb-4 flex min-h-12 items-center justify-between gap-4 rounded-lg border border-border px-3 py-2">
             <span className="flex flex-col">
-              <span className="text-sm font-medium text-foreground">Show on website</span>
+              <span className="text-sm font-medium text-foreground">{t("menu.category.showOnWebsite")}</span>
               <span className="text-xs text-muted-foreground">
-                Off hides this category from your website and online/QR ordering. It stays on the POS.
+                {t("menu.category.showOnWebsiteHelp")}
               </span>
             </span>
-            <Switch checked={showOnWebsite} onCheckedChange={setShowOnWebsite} aria-label="Show on website" />
+            <Switch checked={showOnWebsite} onCheckedChange={setShowOnWebsite} aria-label={t("menu.category.showOnWebsite")} />
           </label>
           <DialogFooter>
             <Button type="submit" disabled={createCategory.isPending}>
-              {createCategory.isPending ? "Adding…" : "Add category"}
+              {createCategory.isPending ? t("menu.item.adding") : t("menu.category.add")}
             </Button>
           </DialogFooter>
         </form>

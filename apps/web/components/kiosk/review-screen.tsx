@@ -39,14 +39,15 @@ export function ReviewScreen({
   onConfirm: () => void;
   onStartOver: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const pending = submit.status === "pending";
   const failed = submit.status === "error" ? submit.kind : null;
   const ambiguous = failed === "network" || failed === "server";
+  const taxLabel = menu.taxLabel || t("kiosk.tax.vat");
   const taxText =
     menu.taxMode === "INCLUSIVE"
-      ? t("kiosk.review.taxIncluded", { tax: menu.taxLabel })
-      : t("kiosk.review.taxAdded", { tax: menu.taxLabel });
+      ? t("kiosk.review.taxIncluded", { tax: taxLabel })
+      : t("kiosk.review.taxAdded", { tax: taxLabel });
 
   return (
     <div className="flex h-full flex-col">
@@ -84,7 +85,8 @@ export function ReviewScreen({
             )}
             {failed && (
               <Banner tone="error" title={t(`kiosk.err.${failed}.title`)}>
-                {failed === "validation" && submit.status === "error" && submit.message
+                {/* The server's reason is English-only, so it is appended for English guests only. */}
+                {failed === "validation" && submit.status === "error" && submit.message && locale === "en"
                   ? `${t("kiosk.err.validation.body")} (${submit.message})`
                   : t(`kiosk.err.${failed}.body`)}
               </Banner>
@@ -158,7 +160,7 @@ export function DoneScreen({
       subtotal: confirmation.subtotal,
       taxAmount: confirmation.taxAmount,
       totalAmount: confirmation.totalAmount,
-      taxLabel: menu.taxLabel,
+      taxLabel: menu.taxLabel || t("kiosk.tax.vat"),
       taxMode: menu.taxMode,
       locale: localeTag,
       currency: confirmation.currency,
@@ -180,14 +182,14 @@ export function DoneScreen({
       <h1 className="text-[3rem] font-bold">{t("kiosk.done.title")}</h1>
       <div role="status" aria-live="polite">
         <p className="text-[1.5rem] text-muted-foreground">{t("kiosk.done.number")}</p>
-        <p data-testid="order-number" className="text-[5.5rem] font-extrabold leading-none tracking-wide text-primary tabular-nums">
+        <p data-testid="order-number" dir="ltr" className="text-[5.5rem] font-extrabold leading-none tracking-wide text-primary tabular-nums">
           {confirmation.orderNumber.split("-").pop()}
         </p>
-        <p className="mt-1 text-[1rem] text-muted-foreground tabular-nums">{confirmation.orderNumber}</p>
+        <p dir="ltr" className="mt-1 text-[1rem] text-muted-foreground tabular-nums">{confirmation.orderNumber}</p>
       </div>
       <p className="text-[1.5rem] font-semibold">{t("kiosk.done.pay")}</p>
       <p className="text-[1.25rem] tabular-nums">
-        {t("kiosk.basket.total")}: <strong>{fmt(confirmation.totalAmount)}</strong>
+        {t("kiosk.basket.total")}: <strong><bdi>{fmt(confirmation.totalAmount)}</bdi></strong>
       </p>
 
       {printState === "unavailable" && (

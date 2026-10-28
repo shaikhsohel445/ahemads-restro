@@ -14,14 +14,11 @@ import { ReasonDialog } from "@/components/orders/reason-dialog";
 import { hasPermission, useCurrentUser } from "@/hooks/use-auth";
 import { useAcceptOrder, useOrder, useRejectOrder } from "@/hooks/use-orders";
 import { formatCurrency } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 
-const CANCEL_SOURCE_LABEL = {
-  STAFF: "Cancelled by staff",
-  CUSTOMER: "Cancelled at the guest's request",
-  KITCHEN_REJECTED: "Rejected by the kitchen",
-  ONLINE_DECLINED: "Declined when it came in",
-} as const;
+// Labels: orders.detail.cancelSource.<SOURCE>, translated at render time.
+const CANCEL_SOURCES = new Set(["STAFF", "CUSTOMER", "KITCHEN_REJECTED", "ONLINE_DECLINED"]);
 
 export function OrderDetailDialog({
   branchId,
@@ -34,6 +31,7 @@ export function OrderDetailDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { t } = useI18n();
   const { data: order, isLoading } = useOrder(branchId, open ? orderId : null);
   const accept = useAcceptOrder(branchId);
   const reject = useRejectOrder(branchId);
@@ -45,7 +43,7 @@ export function OrderDetailDialog({
   const [cancelOpen, setCancelOpen] = useState(false);
   const [declineOpen, setDeclineOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const customerName = order?.guestName ?? order?.customer?.name ?? "Walk-in guest";
+  const customerName = order?.guestName ?? order?.customer?.name ?? t("orders.walkIn");
   const pending = order?.status === "OPEN" && order?.acceptance === "PENDING";
   const canCancel = order?.status === "OPEN" && !pending;
   const run = (fn: () => Promise<unknown>, done: string) =>
@@ -54,12 +52,12 @@ export function OrderDetailDialog({
         toast.success(done);
         onOpenChange(false);
       },
-      (err: unknown) => toast.error(err instanceof Error ? err.message : "Something went wrong"),
+      (err: unknown) => toast.error(err instanceof Error ? err.message : t("common.error")),
     );
   const phone = order?.customer?.phone ?? null;
   const waHref = phone
     ? `https://wa.me/${phone.replace(/[^\d]/g, "")}?text=${encodeURIComponent(
-        `Hi, this is regarding your order #${order?.orderNumber}.`,
+        t("orders.detail.whatsappText", { number: order?.orderNumber ?? "" }),
       )}`
     : null;
 
@@ -68,7 +66,13 @@ export function OrderDetailDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {order ? `Order #${order.orderNumber}` : "Order details"}
+            {order ? (
+              <span>
+                {t("common.order")} <bdi>#{order.orderNumber}</bdi>
+              </span>
+            ) : (
+              t("orders.detail.title")
+            )}
             {order && <ChannelBadge channel={order.channel} />}
           </DialogTitle>
         </DialogHeader>
@@ -85,16 +89,20 @@ export function OrderDetailDialog({
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <TypeBadge type={order.type} />
               <Badge variant="secondary" className="font-normal">
-                {pending ? "Awaiting acceptance" : order.acceptance === "REJECTED" ? "Rejected" : order.status}
+                {pending
+                  ? t("orders.detail.awaiting")
+                  : order.acceptance === "REJECTED"
+                    ? t("orders.rejected")
+                    : t(`common.orderStatus.${order.status}`)}
               </Badge>
               {order.table && (
-                <span>Table {order.table.name ?? order.table.number}</span>
+                <span>{order.table.name ?? t("orders.edit.tableN", { n: order.table.number })}</span>
               )}
             </div>
 
             <div className="flex flex-col gap-1">
               <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Items
+                {t("common.items")}
               </div>
               <div className="flex flex-col divide-y divide-border rounded-lg border border-border">
                 {order.items.map((item) => (
@@ -119,32 +127,32 @@ export function OrderDetailDialog({
 
             <div className="flex flex-col gap-1 rounded-lg bg-secondary/40 px-3 py-2">
               <div className="flex items-center justify-between text-muted-foreground">
-                <span>Subtotal</span>
+                <span>{t("common.subtotal")}</span>
                 <span className="tabular-nums">{formatCurrency(order.subtotal)}</span>
               </div>
               <div className="flex items-center justify-between text-muted-foreground">
-                <span>Tax</span>
+                <span>{t("common.vat")}</span>
                 <span className="tabular-nums">{formatCurrency(order.taxAmount)}</span>
               </div>
               <div className="flex items-center justify-between font-medium text-foreground">
-                <span>Total</span>
+                <span>{t("common.total")}</span>
                 <span className="tabular-nums">{formatCurrency(order.totalAmount)}</span>
               </div>
             </div>
 
             <div className="flex flex-col gap-2">
               <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Customer
+                {t("common.customer")}
               </div>
               <span className="font-medium text-foreground">{customerName}</span>
               {phone ? (
                 <>
                   <span className="flex items-center gap-2 text-muted-foreground">
-                    <Phone className="h-4 w-4" /> {phone}
+                    <Phone className="h-4 w-4" /> <bdi dir="ltr">{phone}</bdi>
                   </span>
                   <div className="flex gap-2">
                     <a href={`tel:${phone}`} className={cn(buttonVariants({ size: "sm" }), "flex-1")}>
-                      <Phone className="me-1.5 h-4 w-4" /> Call
+                      <Phone className="me-1.5 h-4 w-4" /> {t("orders.detail.call")}
                     </a>
                     <a
                       href={waHref ?? "#"}
@@ -157,13 +165,13 @@ export function OrderDetailDialog({
                   </div>
                 </>
               ) : (
-                <p className="text-xs text-muted-foreground">No phone number on file.</p>
+                <p className="text-xs text-muted-foreground">{t("orders.detail.noPhone")}</p>
               )}
             </div>
 
             {order.notes && (
               <p className="rounded-lg bg-secondary/40 px-3 py-2 text-xs text-muted-foreground">
-                Note: {order.notes}
+                {t("orders.detail.note", { note: order.notes })}
               </p>
             )}
 
@@ -172,45 +180,45 @@ export function OrderDetailDialog({
                 <Button
                   className="h-11 flex-1"
                   disabled={accept.isPending}
-                  onClick={() => run(() => accept.mutateAsync(order.id), "Order accepted — sent to the kitchen")}
+                  onClick={() => run(() => accept.mutateAsync(order.id), t("orders.detail.accepted"))}
                 >
-                  <Check className="me-1.5 h-4 w-4" /> Accept order
+                  <Check className="me-1.5 h-4 w-4" /> {t("orders.detail.accept")}
                 </Button>
                 <Button variant="destructive" className="h-11 flex-1" onClick={() => setDeclineOpen(true)}>
-                  <X className="me-1.5 h-4 w-4" /> Decline
+                  <X className="me-1.5 h-4 w-4" /> {t("orders.detail.decline")}
                 </Button>
               </div>
             )}
             {pending && !canAnswer && (
               <p className="rounded-lg bg-secondary/40 px-3 py-2 text-xs text-muted-foreground">
-                Waiting for someone with permission to accept or decline orders.
+                {t("orders.detail.waitingPermission")}
               </p>
             )}
             {order.status === "CANCELLED" && (
               <p className="rounded-lg bg-secondary/40 px-3 py-2 text-xs text-muted-foreground">
-                {CANCEL_SOURCE_LABEL[order.cancelSource ?? "STAFF"]}
+                {t(`orders.detail.cancelSource.${CANCEL_SOURCES.has(order.cancelSource ?? "") ? order.cancelSource : "STAFF"}`)}
                 {order.cancelReason ? `: ${order.cancelReason}` : ""}
               </p>
             )}
             {order.status === "PAID" && (
               <p className="rounded-lg bg-secondary/40 px-3 py-2 text-xs text-muted-foreground">
-                This bill is paid. To correct it, issue a refund from the Dashboard — paid bills are never edited in place.
+                {t("orders.detail.paidHint")}
               </p>
             )}
             {canCancel && (
               <div className="flex gap-2">
                 {canEditRole && (
                   <Button variant="outline" className="flex-1" onClick={() => setEditOpen(true)}>
-                    <Pencil className="me-1.5 h-4 w-4" /> Edit bill
+                    <Pencil className="me-1.5 h-4 w-4" /> {t("orders.edit.title")}
                   </Button>
                 )}
                 {canCancelRole ? (
                   <Button variant="destructive" className="flex-1" onClick={() => setCancelOpen(true)}>
-                    <X className="me-1.5 h-4 w-4" /> Cancel order
+                    <X className="me-1.5 h-4 w-4" /> {t("orders.cancel.confirm")}
                   </Button>
                 ) : (
                   <p className="flex-1 self-center text-xs text-muted-foreground">
-                    Cancelling needs a manager — ask one to cancel this order.
+                    {t("orders.detail.needsManager")}
                   </p>
                 )}
               </div>
@@ -228,14 +236,19 @@ export function OrderDetailDialog({
                 <ReasonDialog
                   open={declineOpen}
                   onOpenChange={setDeclineOpen}
-                  title={`Decline order #${order.orderNumber}?`}
-                  description="The guest's order is not made. It stays in History with your reason and name, and nothing is charged."
-                  reasons={["Closing soon", "Out of stock", "Too busy", "Outside delivery area"]}
-                  confirmLabel="Decline order"
-                  keepLabel="Go back"
+                  title={t("orders.detail.declineTitle", { number: order.orderNumber })}
+                  description={t("orders.detail.declineDescription")}
+                  reasons={[
+                    t("orders.detail.declineReason.closingSoon"),
+                    t("orders.cancel.reason.outOfStock"),
+                    t("orders.detail.declineReason.tooBusy"),
+                    t("orders.detail.declineReason.outsideArea"),
+                  ]}
+                  confirmLabel={t("orders.detail.declineConfirm")}
+                  keepLabel={t("orders.detail.goBack")}
                   onSubmit={(reason) =>
                     reject.mutateAsync({ orderId: order.id, reason }).then(() => {
-                      toast.success("Order declined");
+                      toast.success(t("orders.detail.declined"));
                       onOpenChange(false);
                     })
                   }

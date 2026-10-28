@@ -16,8 +16,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateFloor } from "@/hooks/use-tables";
 import { ApiError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 
 export function AddFloorDialog({ branchId }: { branchId: string | null }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const createFloor = useCreateFloor(branchId);
@@ -26,11 +28,11 @@ export function AddFloorDialog({ branchId }: { branchId: string | null }) {
     e.preventDefault();
     createFloor.mutate(name, {
       onSuccess: () => {
-        toast.success(`"${name}" floor added`);
+        toast.success(t("tables.floorAdded", { name }));
         setOpen(false);
         setName("");
       },
-      onError: (err) => toast.error(err instanceof ApiError ? err.message : "Could not add floor"),
+      onError: (err) => toast.error(err instanceof ApiError ? err.message : t("tables.floorAddFailed")),
     });
   };
 
@@ -40,29 +42,29 @@ export function AddFloorDialog({ branchId }: { branchId: string | null }) {
         render={
           <Button variant="outline" size="sm">
             <Plus className="h-4 w-4" />
-            Add floor
+            {t("tables.addFloor")}
           </Button>
         }
       />
       <DialogContent>
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <DialogTitle>New floor</DialogTitle>
+            <DialogTitle>{t("tables.newFloor")}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-2 py-4">
-            <Label htmlFor="floor-name">Name</Label>
+            <Label htmlFor="floor-name">{t("common.name")}</Label>
             <Input
               id="floor-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Rooftop"
+              placeholder={t("tables.floorNamePlaceholder")}
               required
               autoFocus
             />
           </div>
           <DialogFooter>
             <Button type="submit" disabled={createFloor.isPending}>
-              {createFloor.isPending ? "Adding…" : "Add floor"}
+              {createFloor.isPending ? t("tables.adding") : t("tables.addFloor")}
             </Button>
           </DialogFooter>
         </form>

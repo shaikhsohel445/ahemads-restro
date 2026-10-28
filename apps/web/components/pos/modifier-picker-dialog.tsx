@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatCurrency } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { Portion, PortionKind } from "@/components/pos/cart-line";
@@ -58,7 +59,9 @@ function ModifierPickerBody({
   allowCustom: boolean;
   onConfirm: (modifierIds: string[], modifierLabel: string, portion?: Portion) => void;
 }) {
+  const { t } = useI18n();
   const hasPortions = item.halfPrice != null;
+  const portionName = (kind: PortionKind) => t(`pos.portion.${kind}`);
   const [portionKind, setPortionKind] = useState<PortionKind>("FULL");
   const [customLabel, setCustomLabel] = useState("");
   // Editable price per portion, pre-filled from the menu; staff can overwrite any of them.
@@ -91,7 +94,7 @@ function ModifierPickerBody({
     if (hasPortions) {
       const price = Number(customPrice);
       if (customPrice.trim() === "" || !Number.isFinite(price) || price < 0) {
-        toast.error(`Enter a price for the ${portionKind.toLowerCase()} portion`);
+        toast.error(t("pos.modifiers.enterPortionPrice", { portion: portionName(portionKind) }));
         return;
       }
       portion =
@@ -103,7 +106,7 @@ function ModifierPickerBody({
       const count = selected[group.id]?.size ?? 0;
       const min = Math.max(group.minSelect, group.isRequired ? 1 : 0);
       if (count < min) {
-        toast.error(`Choose at least ${min} option(s) for ${group.name}`);
+        toast.error(t("pos.modifiers.chooseAtLeast", { n: min, group: group.name }));
         return;
       }
     }
@@ -124,13 +127,13 @@ function ModifierPickerBody({
       <div className="flex flex-col gap-5 py-2">
         {hasPortions && (
           <div className="flex flex-col gap-2">
-            <h3 className="text-sm font-medium text-foreground">Portion</h3>
+            <h3 className="text-sm font-medium text-foreground">{t("pos.modifiers.portion")}</h3>
             <div className={cn("grid gap-2", allowCustom ? "grid-cols-3" : "grid-cols-2")}>
               {(
                 [
-                  { kind: "HALF", label: "Half", price: item.halfPrice },
-                  { kind: "FULL", label: "Full", price: item.price },
-                  ...(allowCustom ? [{ kind: "CUSTOM", label: "Custom", price: null }] : []),
+                  { kind: "HALF", label: portionName("HALF"), price: item.halfPrice },
+                  { kind: "FULL", label: portionName("FULL"), price: item.price },
+                  ...(allowCustom ? [{ kind: "CUSTOM", label: portionName("CUSTOM"), price: null }] : []),
                 ] as { kind: PortionKind; label: string; price?: string | null }[]
               ).map((opt) => (
                 <button
@@ -157,11 +160,11 @@ function ModifierPickerBody({
             <div className={cn("grid gap-2", portionKind === "CUSTOM" ? "grid-cols-[1fr_7rem]" : "grid-cols-1")}>
               {portionKind === "CUSTOM" && (
                 <Input
-                  placeholder="Label, e.g. Quarter"
+                  placeholder={t("pos.modifiers.customLabelPlaceholder")}
                   maxLength={40}
                   value={customLabel}
                   onChange={(e) => setCustomLabel(e.target.value)}
-                  aria-label="Custom portion label"
+                  aria-label={t("pos.modifiers.customLabel")}
                 />
               )}
               <Input
@@ -169,10 +172,11 @@ function ModifierPickerBody({
                 inputMode="decimal"
                 min="0"
                 step="0.01"
-                placeholder="Price"
+                dir="ltr"
+                placeholder={t("common.price")}
                 value={customPrice}
                 onChange={(e) => setPrices((p) => ({ ...p, [portionKind]: e.target.value }))}
-                aria-label={`${portionKind.toLowerCase()} portion price`}
+                aria-label={t("pos.modifiers.portionPrice", { portion: portionName(portionKind) })}
               />
             </div>
           </div>
@@ -182,7 +186,7 @@ function ModifierPickerBody({
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-medium text-foreground">{group.name}</h3>
               <span className="text-xs text-muted-foreground">
-                {group.maxSelect === 1 ? "Choose 1" : `Choose up to ${group.maxSelect}`}
+                {group.maxSelect === 1 ? t("pos.modifiers.chooseOne") : t("pos.modifiers.chooseUpTo", { n: group.maxSelect })}
               </span>
             </div>
             <div className="flex flex-col gap-1.5">
@@ -215,7 +219,7 @@ function ModifierPickerBody({
       </div>
 
       <DialogFooter>
-        <Button onClick={handleConfirm}>Add to cart</Button>
+        <Button onClick={handleConfirm}>{t("pos.modifiers.addToCart")}</Button>
       </DialogFooter>
     </>
   );

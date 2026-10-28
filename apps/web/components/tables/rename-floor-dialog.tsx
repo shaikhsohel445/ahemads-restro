@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useUpdateFloor } from "@/hooks/use-tables";
 import { ApiError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 
 export function RenameFloorDialog({
   branchId,
@@ -26,6 +27,7 @@ export function RenameFloorDialog({
   floorId: string;
   currentName: string;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(currentName);
   const updateFloor = useUpdateFloor(branchId);
@@ -36,10 +38,10 @@ export function RenameFloorDialog({
       { id: floorId, name },
       {
         onSuccess: () => {
-          toast.success("Floor renamed");
+          toast.success(t("tables.floorRenamed"));
           setOpen(false);
         },
-        onError: (err) => toast.error(err instanceof ApiError ? err.message : "Could not rename floor"),
+        onError: (err) => toast.error(err instanceof ApiError ? err.message : t("tables.floorRenameFailed")),
       },
     );
   };
@@ -54,7 +56,7 @@ export function RenameFloorDialog({
     >
       <DialogTrigger
         render={
-          <Button variant="ghost" size="icon" className="h-6 w-6">
+          <Button variant="ghost" size="icon" className="h-6 w-6" aria-label={t("tables.renameFloor")} title={t("tables.renameFloor")}>
             <Pencil className="h-3 w-3" />
           </Button>
         }
@@ -62,10 +64,10 @@ export function RenameFloorDialog({
       <DialogContent>
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <DialogTitle>Rename floor</DialogTitle>
+            <DialogTitle>{t("tables.renameFloor")}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-2 py-4">
-            <Label htmlFor="rename-floor">Name</Label>
+            <Label htmlFor="rename-floor">{t("common.name")}</Label>
             <Input
               id="rename-floor"
               value={name}
@@ -76,7 +78,7 @@ export function RenameFloorDialog({
           </div>
           <DialogFooter>
             <Button type="submit" disabled={updateFloor.isPending}>
-              {updateFloor.isPending ? "Saving…" : "Save"}
+              {updateFloor.isPending ? t("common.saving") : t("common.save")}
             </Button>
           </DialogFooter>
         </form>

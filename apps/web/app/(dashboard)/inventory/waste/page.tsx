@@ -15,9 +15,11 @@ import {
 } from "@/components/ui/table";
 import { useBranch } from "@/hooks/use-branch";
 import { useWasteLogs } from "@/hooks/use-inventory";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDate, formatNumber } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 
 export default function WastePage() {
+  const { t } = useI18n();
   const { branchId } = useBranch();
   const { data: logs, isLoading } = useWasteLogs(branchId);
 
@@ -30,9 +32,9 @@ export default function WastePage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[32px] font-semibold tracking-tight text-foreground">Inventory</h1>
+          <h1 className="text-[32px] font-semibold tracking-tight text-foreground">{t("inventory.title")}</h1>
           <p className="text-sm text-muted-foreground">
-            Ingredients, recipe costing, purchase orders, and waste
+            {t("inventory.subtitle")}
           </p>
         </div>
         <LogWasteDialog branchId={branchId} />
@@ -43,7 +45,7 @@ export default function WastePage() {
       {typeof totalCost === "number" && logs && logs.length > 0 && (
         <Card className="flex items-center gap-3 p-5">
           <div>
-            <p className="text-xs text-muted-foreground">Total cost of waste on record</p>
+            <p className="text-xs text-muted-foreground">{t("inventory.waste.totalCost")}</p>
             <p className="text-xl font-semibold tabular-nums text-destructive">
               {formatCurrency(totalCost)}
             </p>
@@ -62,12 +64,12 @@ export default function WastePage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Ingredient</TableHead>
-                <TableHead className="text-end">Quantity</TableHead>
-                <TableHead>Reason</TableHead>
-                <TableHead className="text-end">Cost</TableHead>
-                <TableHead>Logged by</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead>{t("inventory.ingredient")}</TableHead>
+                <TableHead className="text-end">{t("common.quantity")}</TableHead>
+                <TableHead>{t("inventory.reason")}</TableHead>
+                <TableHead className="text-end">{t("inventory.cost")}</TableHead>
+                <TableHead>{t("inventory.waste.loggedBy")}</TableHead>
+                <TableHead>{t("common.date")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -75,17 +77,20 @@ export default function WastePage() {
                 <TableRow key={log.id}>
                   <TableCell className="font-medium text-foreground">{log.ingredient.name}</TableCell>
                   <TableCell className="text-end tabular-nums">
-                    {log.quantity} {log.ingredient.unit}
+                    <bdi>
+                      {formatNumber(log.quantity, { maximumFractionDigits: 3 })}{" "}
+                      {t(`inventory.unit.${log.ingredient.unit}`)}
+                    </bdi>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{log.reason.replace("_", " ")}</Badge>
+                    <Badge variant="outline">{t(`inventory.wasteReason.${log.reason}`)}</Badge>
                   </TableCell>
                   <TableCell className="text-end tabular-nums text-destructive">
                     {formatCurrency(Number(log.quantity) * Number(log.unitCostAtWaste))}
                   </TableCell>
                   <TableCell className="text-muted-foreground">{log.createdBy.name}</TableCell>
                   <TableCell className="text-muted-foreground">
-                    {new Date(log.createdAt).toLocaleDateString()}
+                    {formatDate(log.createdAt)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -93,9 +98,9 @@ export default function WastePage() {
           </Table>
         ) : (
           <div className="flex flex-col items-center gap-2 py-16 text-center">
-            <p className="text-sm font-medium text-foreground">No waste logged</p>
+            <p className="text-sm font-medium text-foreground">{t("inventory.waste.emptyTitle")}</p>
             <p className="text-sm text-muted-foreground">
-              Log spoiled, damaged, or expired stock to track cost of waste.
+              {t("inventory.waste.emptyDescription")}
             </p>
           </div>
         )}

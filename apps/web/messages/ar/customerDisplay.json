@@ -1,1 +1,12 @@
-{}
+{
+  "enableSound": "المس أي مكان لتفعيل صوت الدفع",
+  "paidAmount": "تم دفع {amount}",
+  "payWithApp": "امسح الرمز باستخدام تطبيق البنك أو تطبيق الدفع",
+  "payWithAppTo": "ادفع إلى {payee} بمسح الرمز باستخدام تطبيق البنك أو تطبيق الدفع",
+  "paymentReceivedSpeech": "تم استلام الدفع. {amount}",
+  "scanToPay": "امسح للدفع",
+  "thankYou": "شكرًا لك!",
+  "welcome": "أهلًا وسهلًا",
+  "welcomeHint": "سيظهر طلبك هنا",
+  "yourOrder": "طلبك"
+}

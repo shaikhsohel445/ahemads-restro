@@ -1,52 +1,36 @@
-import { FileCheck2, Lock, ScanEye, ServerCog } from "lucide-react";
+"use client";
+
+import { Building2, FileCheck2, KeyRound, Lock, ScrollText, ServerCog } from "lucide-react";
 import Link from "next/link";
 import { Reveal, RevealGroup, RevealItem } from "@/components/marketing/reveal";
-
-const points = [
-  {
-    icon: Lock,
-    title: "Hardened by default",
-    description:
-      "bcrypt password hashing, rate-limited login/PIN, httpOnly session cookies, and strict tenant isolation on every query.",
-  },
-  {
-    icon: ServerCog,
-    title: "Server-authoritative money",
-    description:
-      "Prices, tax, discounts, and totals are always recomputed server-side — checkout and refunds are race-condition safe under concurrent requests.",
-  },
-  {
-    icon: ScanEye,
-    title: "Your data stays on your server",
-    description:
-      "Self-hosted on your own LAN or VPS — no restaurant or customer data is ever sent to a third-party cloud you don't control.",
-  },
-  {
-    icon: FileCheck2,
-    title: "Documented compliance posture",
-    description:
-      "Written accessibility and India data-protection notes — not a marketing claim, an actual document you can read.",
-  },
-];
+import { useI18n } from "@/lib/i18n/context";
 
 export function SecuritySection() {
+  const { t } = useI18n();
+
+  const points = [
+    { id: "signin", icon: Lock, title: t("landing.security.signin.title"), description: t("landing.security.signin.description") },
+    { id: "rbac", icon: KeyRound, title: t("landing.security.rbac.title"), description: t("landing.security.rbac.description") },
+    { id: "isolation", icon: Building2, title: t("landing.security.isolation.title"), description: t("landing.security.isolation.description") },
+    { id: "audit", icon: ScrollText, title: t("landing.security.audit.title"), description: t("landing.security.audit.description") },
+    { id: "money", icon: ServerCog, title: t("landing.security.money.title"), description: t("landing.security.money.description") },
+    { id: "docs", icon: FileCheck2, title: t("landing.security.docs.title"), description: t("landing.security.docs.description") },
+  ];
+
   return (
     <section id="security" className="border-y border-border/60 bg-muted/30 px-4 py-24 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <Reveal className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            Security isn&rsquo;t a checkbox here
+            {t("landing.security.heading")}
           </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Every module went through a real audit pass before this page did.
-            Read the details, don&rsquo;t just take our word for it.
-          </p>
+          <p className="mt-4 text-lg text-muted-foreground">{t("landing.security.subheading")}</p>
         </Reveal>
 
-        <RevealGroup className="mt-14 grid gap-5 sm:grid-cols-2">
+        <RevealGroup className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {points.map((p) => (
             <RevealItem
-              key={p.title}
+              key={p.id}
               className="flex gap-4 rounded-2xl border border-border/60 bg-card p-6"
             >
               <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -67,14 +51,14 @@ export function SecuritySection() {
             href="/docs/accessibility"
             className="text-sm font-medium text-primary underline underline-offset-4"
           >
-            Read the accessibility statement
+            {t("landing.security.readAccessibility")}
           </Link>
-          <span className="text-sm text-muted-foreground">·</span>
+          <span aria-hidden className="text-sm text-muted-foreground">·</span>
           <Link
             href="/docs/compliance-india"
             className="text-sm font-medium text-primary underline underline-offset-4"
           >
-            Read the India compliance notes
+            {t("landing.security.readCompliance")}
           </Link>
         </Reveal>
       </div>

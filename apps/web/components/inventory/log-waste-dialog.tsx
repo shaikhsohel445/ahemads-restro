@@ -17,17 +17,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIngredients, useLogWaste } from "@/hooks/use-inventory";
 import { ApiError } from "@/lib/api";
+import { formatNumber } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 
-const REASONS: { value: WasteReason; label: string }[] = [
-  { value: "EXPIRED", label: "Expired" },
-  { value: "SPOILED", label: "Spoiled" },
-  { value: "DAMAGED", label: "Damaged" },
-  { value: "PREP_ERROR", label: "Prep error" },
-  { value: "OVER_PRODUCTION", label: "Over-production" },
-  { value: "OTHER", label: "Other" },
-];
+// Labels: inventory.wasteReason.<REASON>, translated at render time.
+const REASONS: WasteReason[] = ["EXPIRED", "SPOILED", "DAMAGED", "PREP_ERROR", "OVER_PRODUCTION", "OTHER"];
 
 export function LogWasteDialog({ branchId }: { branchId: string | null }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [ingredientId, setIngredientId] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -45,42 +42,49 @@ export function LogWasteDialog({ branchId }: { branchId: string | null }) {
       { ingredientId, quantity: Number(quantity), reason, notes: notes || undefined },
       {
         onSuccess: () => {
-          toast.success("Waste logged and stock updated");
+          toast.success(t("inventory.waste.logged"));
           setOpen(false);
           setIngredientId("");
           setQuantity("");
           setNotes("");
         },
-        onError: (err) => toast.error(err instanceof ApiError ? err.message : "Could not log waste"),
+        onError: (err) => toast.error(err instanceof ApiError ? err.message : t("inventory.waste.logFailed")),
       },
     );
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm">Log waste</Button>} />
+      <DialogTrigger render={<Button size="sm">{t("inventory.waste.log")}</Button>} />
       <DialogContent className="sm:max-w-sm">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>Log waste</DialogTitle>
+            <DialogTitle>{t("inventory.waste.log")}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-2">
-            <Label>Ingredient</Label>
+            <Label>{t("inventory.ingredient")}</Label>
             <Select value={ingredientId} onValueChange={(v) => setIngredientId(v ?? "")}>
               <SelectTrigger>
-                <SelectValue placeholder="Select an ingredient" />
+                <SelectValue placeholder={t("inventory.selectIngredient")} />
               </SelectTrigger>
               <SelectContent>
                 {ingredients?.map((i) => (
                   <SelectItem key={i.id} value={i.id}>
-                    {i.name} ({i.currentStock} {i.unit} in stock)
+                    {t("inventory.ingredientWithStock", {
+                      name: i.name,
+                      qty: formatNumber(i.currentStock, { maximumFractionDigits: 3 }),
+                      unit: t(`inventory.unit.${i.unit}`),
+                    })}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="w-qty">Quantity{selected ? ` (${selected.unit})` : ""}</Label>
+            <Label htmlFor="w-qty">
+              {t("common.quantity")}
+              {selected ? <bdi>{` (${t(`inventory.unit.${selected.unit}`)})`}</bdi> : ""}
+            </Label>
             <Input
               id="w-qty"
               type="number"
@@ -88,31 +92,32 @@ export function LogWasteDialog({ branchId }: { branchId: string | null }) {
               step="0.001"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
+              dir="ltr"
               required
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label>Reason</Label>
+            <Label>{t("inventory.reason")}</Label>
             <Select value={reason} onValueChange={(v) => setReason(v as WasteReason)}>
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue>{(v: WasteReason) => t(`inventory.wasteReason.${v}`)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {REASONS.map((r) => (
-                  <SelectItem key={r.value} value={r.value}>
-                    {r.label}
+                  <SelectItem key={r} value={r}>
+                    {t(`inventory.wasteReason.${r}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="w-notes">Notes (optional)</Label>
+            <Label htmlFor="w-notes">{t("inventory.notesOptional")}</Label>
             <Input id="w-notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
           <DialogFooter>
             <Button type="submit" disabled={logWaste.isPending}>
-              {logWaste.isPending ? "Logging…" : "Log waste"}
+              {logWaste.isPending ? t("inventory.waste.logging") : t("inventory.waste.log")}
             </Button>
           </DialogFooter>
         </form>

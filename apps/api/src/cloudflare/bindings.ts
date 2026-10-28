@@ -1,7 +1,6 @@
 import type {
   D1Database,
   DurableObjectNamespace,
-  KVNamespace,
   Queue,
   R2Bucket,
 } from '@cloudflare/workers-types';
@@ -13,7 +12,8 @@ export interface WorkerEnv {
   DB: D1Database;
   UPLOADS: R2Bucket;
   BACKUPS: R2Bucket;
-  CACHE: KVNamespace;
+  AUTH_RATE_LIMITER?: unknown;
+  PUBLIC_RATE_LIMITER?: unknown;
   REALTIME: DurableObjectNamespace;
   WRITE_LOCK: DurableObjectNamespace;
   JOBS?: Queue;

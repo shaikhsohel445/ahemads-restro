@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useIngredients, useCreatePurchaseOrder, useSuppliers } from "@/hooks/use-inventory";
 import { ApiError } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 
 interface Row {
   ingredientId: string;
@@ -29,6 +30,7 @@ interface Row {
 const emptyRow: Row = { ingredientId: "", quantityOrdered: "", unitCost: "" };
 
 export function CreatePoDialog({ branchId }: { branchId: string | null }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [supplierId, setSupplierId] = useState("");
@@ -65,32 +67,32 @@ export function CreatePoDialog({ branchId }: { branchId: string | null }) {
       },
       {
         onSuccess: (po) => {
-          toast.success(`${po.poNumber} created`);
+          toast.success(t("inventory.createdNamed", { name: po.poNumber }));
           setOpen(false);
           setSupplierId("");
           setRows([{ ...emptyRow }]);
           router.push(`/inventory/purchase-orders/${po.id}`);
         },
         onError: (err) =>
-          toast.error(err instanceof ApiError ? err.message : "Could not create purchase order"),
+          toast.error(err instanceof ApiError ? err.message : t("inventory.po.createFailed")),
       },
     );
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm">New purchase order</Button>} />
+      <DialogTrigger render={<Button size="sm">{t("inventory.po.new")}</Button>} />
       <DialogContent className="sm:max-w-lg">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>New purchase order</DialogTitle>
+            <DialogTitle>{t("inventory.po.new")}</DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col gap-2">
-            <Label>Supplier</Label>
+            <Label>{t("inventory.supplier")}</Label>
             <Select value={supplierId} onValueChange={(v) => setSupplierId(v ?? "")}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a supplier" />
+                <SelectValue placeholder={t("inventory.selectSupplier")} />
               </SelectTrigger>
               <SelectContent>
                 {suppliers?.map((s) => (
@@ -103,7 +105,7 @@ export function CreatePoDialog({ branchId }: { branchId: string | null }) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label>Items</Label>
+            <Label>{t("common.items")}</Label>
             <div className="flex flex-col gap-2">
               {rows.map((row, index) => (
                 <div key={index} className="flex items-center gap-2">
@@ -112,12 +114,12 @@ export function CreatePoDialog({ branchId }: { branchId: string | null }) {
                     onValueChange={(v) => updateRow(index, { ingredientId: v ?? "" })}
                   >
                     <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Ingredient" />
+                      <SelectValue placeholder={t("inventory.ingredient")} />
                     </SelectTrigger>
                     <SelectContent>
                       {ingredients?.map((i) => (
                         <SelectItem key={i.id} value={i.id}>
-                          {i.name} ({i.unit})
+                          {i.name} <bdi>({t(`inventory.unit.${i.unit}`)})</bdi>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -126,7 +128,8 @@ export function CreatePoDialog({ branchId }: { branchId: string | null }) {
                     type="number"
                     min="0"
                     step="0.001"
-                    placeholder="Qty"
+                    placeholder={t("common.qty")}
+                    dir="ltr"
                     className="w-20"
                     value={row.quantityOrdered}
                     onChange={(e) => updateRow(index, { quantityOrdered: e.target.value })}
@@ -135,7 +138,8 @@ export function CreatePoDialog({ branchId }: { branchId: string | null }) {
                     type="number"
                     min="0"
                     step="0.01"
-                    placeholder="Cost/unit"
+                    placeholder={t("inventory.costPerUnit")}
+                    dir="ltr"
                     className="w-24"
                     value={row.unitCost}
                     onChange={(e) => updateRow(index, { unitCost: e.target.value })}
@@ -144,6 +148,7 @@ export function CreatePoDialog({ branchId }: { branchId: string | null }) {
                     type="button"
                     variant="ghost"
                     size="icon"
+                    aria-label={t("common.remove")}
                     disabled={rows.length === 1}
                     onClick={() => setRows((prev) => prev.filter((_, i) => i !== index))}
                   >
@@ -160,18 +165,18 @@ export function CreatePoDialog({ branchId }: { branchId: string | null }) {
               onClick={() => setRows((prev) => [...prev, { ...emptyRow }])}
             >
               <Plus className="h-4 w-4" />
-              Add item
+              {t("inventory.addItem")}
             </Button>
           </div>
 
           <div className="flex items-center justify-between border-t border-border pt-3 text-sm">
-            <span className="text-muted-foreground">Total</span>
+            <span className="text-muted-foreground">{t("common.total")}</span>
             <span className="font-semibold text-foreground">{formatCurrency(total)}</span>
           </div>
 
           <DialogFooter>
             <Button type="submit" disabled={!canSubmit || createPo.isPending}>
-              {createPo.isPending ? "Creating…" : "Create purchase order"}
+              {createPo.isPending ? t("inventory.creating") : t("inventory.po.create")}
             </Button>
           </DialogFooter>
         </form>

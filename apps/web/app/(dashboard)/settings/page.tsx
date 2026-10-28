@@ -4,9 +4,11 @@ import { ImagePlus, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import {
+  DEFAULT_REGION,
   RESTAURANT_NAME_MAX_LENGTH,
   TAX_REGIME_PRESETS,
   TAX_REGIMES,
+  isSaudiVatNumber,
   type TaxMode,
   type TaxRegime,
 } from "@nodedr-restaurant/types";
@@ -37,16 +39,29 @@ import {
   type RestaurantSettings,
 } from "@/hooks/use-settings";
 import { ApiError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
+
+// Currencies offered in the picker. SAR is the default for the Saudi
+// edition; a restaurant already on a currency outside this list keeps it
+// (it is added to the options at render time).
+const CURRENCIES = ["SAR", "AED", "BHD", "KWD", "OMR", "QAR", "EGP", "JOD", "USD", "EUR", "GBP", "INR"];
+
+// Saudi VAT first, then the rest in the shared order.
+const ORDERED_TAX_REGIMES: TaxRegime[] = [
+  "SA_VAT",
+  ...TAX_REGIMES.filter((regime) => regime !== "SA_VAT"),
+];
 
 export default function SettingsPage() {
+  const { t } = useI18n();
   const { branchId } = useBranch();
   const { data, isLoading } = useSettings(branchId);
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground">Restaurant, branch, and staff configuration</p>
+        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">{t("settings.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("settings.subtitle")}</p>
       </div>
 
       <SettingsTabs />
@@ -83,29 +98,24 @@ function OnlineOrdersCard({
   branchId: string | null;
   branch: { autoConfirmOrders: boolean; autoConfirmReservations: boolean };
 }) {
+  const { t } = useI18n();
   const update = useUpdateBranchSettings(branchId);
   const save = (dto: { autoConfirmOrders?: boolean; autoConfirmReservations?: boolean }) =>
     update.mutate(dto, {
-      onSuccess: () => toast.success("Saved"),
-      onError: (err) => toast.error(err instanceof Error ? err.message : "Could not save"),
+      onSuccess: () => toast.success(t("common.saved")),
+      onError: (err) => toast.error(err instanceof Error ? err.message : t("settings.saveFailed")),
     });
 
   return (
     <Card className="flex flex-col gap-4 p-6">
       <div>
-        <h2 className="text-[18px] font-medium text-foreground">Online orders &amp; table bookings</h2>
-        <p className="text-sm text-muted-foreground">
-          Choose whether orders and bookings from your website are accepted automatically or wait for
-          you to accept them. You can always cancel an order or booking from its window.
-        </p>
+        <h2 className="text-[18px] font-medium text-foreground">{t("settings.online.title")}</h2>
+        <p className="text-sm text-muted-foreground">{t("settings.online.description")}</p>
       </div>
       <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-4">
         <div className="flex flex-col gap-0.5">
-          <Label htmlFor="auto-confirm-orders">Auto-confirm online orders</Label>
-          <p className="text-xs text-muted-foreground">
-            Off = each new order rings, then waits for you to Accept or Reject before it reaches the
-            kitchen. On = sent to the kitchen straight away.
-          </p>
+          <Label htmlFor="auto-confirm-orders">{t("settings.online.autoOrders")}</Label>
+          <p className="text-xs text-muted-foreground">{t("settings.online.autoOrdersHelp")}</p>
         </div>
         <Switch
           id="auto-confirm-orders"
@@ -116,10 +126,8 @@ function OnlineOrdersCard({
       </div>
       <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-4">
         <div className="flex flex-col gap-0.5">
-          <Label htmlFor="auto-confirm-bookings">Auto-confirm table bookings</Label>
-          <p className="text-xs text-muted-foreground">
-            Off = new bookings wait for you to Accept. On = confirmed automatically.
-          </p>
+          <Label htmlFor="auto-confirm-bookings">{t("settings.online.autoBookings")}</Label>
+          <p className="text-xs text-muted-foreground">{t("settings.online.autoBookingsHelp")}</p>
         </div>
         <Switch
           id="auto-confirm-bookings"
@@ -133,24 +141,19 @@ function OnlineOrdersCard({
 }
 
 function NotificationSettingsCard() {
+  const { t } = useI18n();
   const [muted, toggleMuted] = useNotificationMute();
 
   return (
     <Card className="flex flex-col gap-4 p-6">
       <div>
-        <h2 className="text-[18px] font-medium text-foreground">Notifications</h2>
-        <p className="text-sm text-muted-foreground">
-          New orders, table reservations, and kitchen tickets on this device.
-        </p>
+        <h2 className="text-[18px] font-medium text-foreground">{t("settings.notifications.title")}</h2>
+        <p className="text-sm text-muted-foreground">{t("settings.notifications.description")}</p>
       </div>
       <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-4">
         <div className="flex flex-col gap-0.5">
-          <Label htmlFor="notification-sound">Notification sound</Label>
-          <p className="text-xs text-muted-foreground">
-            Plays a chime for new orders, reservations, and kitchen display
-            tickets. This only affects this device/browser — mute the
-            kitchen display separately from the office if needed.
-          </p>
+          <Label htmlFor="notification-sound">{t("settings.notifications.sound")}</Label>
+          <p className="text-xs text-muted-foreground">{t("settings.notifications.soundHelp")}</p>
         </div>
         <Switch
           id="notification-sound"
@@ -171,11 +174,12 @@ function GeneralSettingsForm({
   branch: BranchSettings;
   branchId: string | null;
 }) {
+  const { t } = useI18n();
   const [name, setName] = useState(restaurant.name);
   const [legalName, setLegalName] = useState(restaurant.legalName ?? "");
   const [logoUrl, setLogoUrl] = useState<string | null>(restaurant.logoUrl);
-  const [currency, setCurrency] = useState(restaurant.currency);
-  const [timezone, setTimezone] = useState(restaurant.timezone);
+  const [currency, setCurrency] = useState(restaurant.currency || DEFAULT_REGION.currency);
+  const [timezone, setTimezone] = useState(restaurant.timezone || DEFAULT_REGION.timezone);
   const [upiVpa, setUpiVpa] = useState(restaurant.upiVpa ?? "");
   const [upiPayeeName, setUpiPayeeName] = useState(restaurant.upiPayeeName ?? "");
   const [loyaltyPointValue, setLoyaltyPointValue] = useState(restaurant.loyaltyPointValue);
@@ -196,6 +200,9 @@ function GeneralSettingsForm({
   const [taxId, setTaxId] = useState(branch.taxId ?? "");
 
   const preset = TAX_REGIME_PRESETS[taxRegime];
+  const isSaudiVat = taxRegime === "SA_VAT";
+  const vatNumberInvalid = isSaudiVat && taxId.trim() !== "" && !isSaudiVatNumber(taxId);
+  const currencyOptions = CURRENCIES.includes(currency) ? CURRENCIES : [currency, ...CURRENCIES];
 
   const updateRestaurant = useUpdateRestaurantSettings(branchId);
   const updateBranch = useUpdateBranchSettings(branchId);
@@ -215,8 +222,8 @@ function GeneralSettingsForm({
         loyaltyEarnPerCurrency: Number(loyaltyEarnPerCurrency) || 1,
       },
       {
-        onSuccess: () => toast.success("Restaurant details saved"),
-        onError: (err) => toast.error(err instanceof ApiError ? err.message : "Could not save"),
+        onSuccess: () => toast.success(t("settings.restaurant.savedToast")),
+        onError: (err) => toast.error(err instanceof ApiError ? err.message : t("settings.saveFailed")),
       },
     );
   };
@@ -236,8 +243,8 @@ function GeneralSettingsForm({
         taxId: taxId || null,
       },
       {
-        onSuccess: () => toast.success("Branch details saved"),
-        onError: (err) => toast.error(err instanceof ApiError ? err.message : "Could not save"),
+        onSuccess: () => toast.success(t("settings.branch.savedToast")),
+        onError: (err) => toast.error(err instanceof ApiError ? err.message : t("settings.saveFailed")),
       },
     );
   };
@@ -255,10 +262,10 @@ function GeneralSettingsForm({
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <Card className="flex flex-col gap-4 p-6">
-        <h2 className="text-[18px] font-medium text-foreground">Restaurant</h2>
+        <h2 className="text-[18px] font-medium text-foreground">{t("settings.restaurant.title")}</h2>
         <form onSubmit={onSubmitRestaurant} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label>Logo</Label>
+            <Label>{t("settings.restaurant.logo")}</Label>
             <div className="flex items-center gap-4">
               <input
                 ref={logoInputRef}
@@ -271,7 +278,7 @@ function GeneralSettingsForm({
                   uploadLogo.mutate(file, {
                     onSuccess: (res) => setLogoUrl(res.url),
                     onError: (err) =>
-                      toast.error(err instanceof ApiError ? err.message : "Could not upload logo"),
+                      toast.error(err instanceof ApiError ? err.message : t("settings.restaurant.logoUploadFailed")),
                   });
                 }}
               />
@@ -286,7 +293,7 @@ function GeneralSettingsForm({
                       if (logoInputRef.current) logoInputRef.current.value = "";
                     }}
                     className="absolute end-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-background/80 text-foreground"
-                    aria-label="Remove logo"
+                    aria-label={t("settings.restaurant.removeLogo")}
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -300,18 +307,17 @@ function GeneralSettingsForm({
                 >
                   <ImagePlus className="h-4 w-4" />
                   <span className="text-[10px]">
-                    {uploadLogo.isPending ? "Uploading…" : "Upload"}
+                    {uploadLogo.isPending ? t("settings.uploading") : t("common.upload")}
                   </span>
                 </button>
               )}
               <p className="text-xs text-muted-foreground">
-                Shows in the app sidebar and login screen instead of the OrderRestro mark.
-                Square, at least 256×256px, PNG with a transparent background works best.
+                {t("settings.restaurant.logoHelp")}
               </p>
             </div>
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="r-name">Name</Label>
+            <Label htmlFor="r-name">{t("common.name")}</Label>
             <Input
               id="r-name"
               value={name}
@@ -324,35 +330,48 @@ function GeneralSettingsForm({
             </p>
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="r-legal">Legal name</Label>
+            <Label htmlFor="r-legal">{t("settings.restaurant.legalName")}</Label>
             <Input id="r-legal" value={legalName} onChange={(e) => setLegalName(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="r-currency">Currency</Label>
-              <Input
-                id="r-currency"
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value.toUpperCase())}
-                maxLength={3}
-                required
-              />
+              <Label htmlFor="r-currency">{t("settings.restaurant.currency")}</Label>
+              <Select value={currency} onValueChange={(v) => v && setCurrency(v)}>
+                <SelectTrigger id="r-currency">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencyOptions.map((code) => (
+                    <SelectItem key={code} value={code}>
+                      {t(`settings.currency.${code}`) === `settings.currency.${code}`
+                        ? code
+                        : `${code} — ${t(`settings.currency.${code}`)}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="r-timezone">Timezone</Label>
-              <Input id="r-timezone" value={timezone} onChange={(e) => setTimezone(e.target.value)} required />
+              <Label htmlFor="r-timezone">{t("settings.restaurant.timezone")}</Label>
+              <Input
+                id="r-timezone"
+                dir="ltr"
+                value={timezone}
+                onChange={(e) => setTimezone(e.target.value)}
+                placeholder={DEFAULT_REGION.timezone}
+                required
+              />
+              <p className="text-xs text-muted-foreground">{t("settings.restaurant.timezoneHelp")}</p>
             </div>
           </div>
 
           <div className="flex flex-col gap-2 border-t border-border pt-4">
-            <h3 className="text-sm font-medium text-foreground">Loyalty program</h3>
-            <p className="text-xs text-muted-foreground">
-              How customers earn and redeem points at checkout.
-            </p>
+            <h3 className="text-sm font-medium text-foreground">{t("settings.loyalty.title")}</h3>
+            <p className="text-xs text-muted-foreground">{t("settings.loyalty.description")}</p>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="r-loyalty-earn">Earn 1 point per</Label>
+              <Label htmlFor="r-loyalty-earn">{t("settings.loyalty.earnPer")}</Label>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">{currency}</span>
                 <Input
@@ -367,7 +386,7 @@ function GeneralSettingsForm({
               </div>
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="r-loyalty-value">1 point redeems for</Label>
+              <Label htmlFor="r-loyalty-value">{t("settings.loyalty.redeemsFor")}</Label>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">{currency}</span>
                 <Input
@@ -385,20 +404,21 @@ function GeneralSettingsForm({
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="r-upi">UPI id (for QR payments)</Label>
+              <Label htmlFor="r-upi">{t("settings.upi.id")}</Label>
               <Input
                 id="r-upi"
                 value={upiVpa}
                 onChange={(e) => setUpiVpa(e.target.value)}
                 placeholder="yourshop@okbank"
                 autoComplete="off"
+                dir="ltr"
               />
               <p className="text-xs text-muted-foreground">
-                Shown as a scannable QR at checkout and on the customer display, with the exact bill amount filled in.
+                {t("settings.upi.help")}
               </p>
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="r-upi-name">UPI payee name</Label>
+              <Label htmlFor="r-upi-name">{t("settings.upi.payeeName")}</Label>
               <Input
                 id="r-upi-name"
                 value={upiPayeeName}
@@ -410,88 +430,111 @@ function GeneralSettingsForm({
           </div>
 
           <Button type="submit" disabled={updateRestaurant.isPending} className="self-start">
-            {updateRestaurant.isPending ? "Saving…" : "Save restaurant"}
+            {updateRestaurant.isPending ? t("common.saving") : t("settings.restaurant.save")}
           </Button>
         </form>
       </Card>
 
       <Card className="flex flex-col gap-4 p-6">
-        <h2 className="text-[18px] font-medium text-foreground">This branch</h2>
+        <h2 className="text-[18px] font-medium text-foreground">{t("settings.branch.title")}</h2>
         <form onSubmit={onSubmitBranch} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="b-name">Branch name</Label>
+            <Label htmlFor="b-name">{t("settings.branch.name")}</Label>
             <Input id="b-name" value={branchName} onChange={(e) => setBranchName(e.target.value)} required />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="b-address">Address</Label>
+            <Label htmlFor="b-address">{t("common.address")}</Label>
             <Input id="b-address" value={address} onChange={(e) => setAddress(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="b-phone">Phone</Label>
-              <Input id="b-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <Label htmlFor="b-phone">{t("common.phone")}</Label>
+              <Input id="b-phone" dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="b-gst">GST number (legacy)</Label>
-              <Input id="b-gst" value={gstNumber} onChange={(e) => setGstNumber(e.target.value)} />
+              <Label htmlFor="b-gst">{t("settings.branch.gstLegacy")}</Label>
+              <Input id="b-gst" dir="ltr" value={gstNumber} onChange={(e) => setGstNumber(e.target.value)} />
             </div>
           </div>
 
           <div className="flex flex-col gap-2 border-t border-border pt-4">
-            <h3 className="text-sm font-medium text-foreground">Tax</h3>
-            <p className="text-xs text-muted-foreground">
-              Picks how menu prices and receipts handle tax for this branch.
-            </p>
+            <h3 className="text-sm font-medium text-foreground">{t("common.tax")}</h3>
+            <p className="text-xs text-muted-foreground">{t("settings.tax.description")}</p>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="b-tax-regime">Region / regime</Label>
+              <Label htmlFor="b-tax-regime">{t("settings.tax.regime")}</Label>
               <Select value={taxRegime} onValueChange={onRegimeChange}>
                 <SelectTrigger id="b-tax-regime">
-                  <SelectValue />
+                  <SelectValue>
+                    {(value: TaxRegime | null) => (value ? t(`settings.taxRegime.${value}.name`) : "")}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {TAX_REGIMES.map((regime) => (
+                  {ORDERED_TAX_REGIMES.map((regime) => (
                     <SelectItem key={regime} value={regime}>
-                      {TAX_REGIME_PRESETS[regime].displayName}
+                      {t(`settings.taxRegime.${regime}.name`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="b-tax-mode">Menu prices are</Label>
+              <Label htmlFor="b-tax-mode">{t("settings.tax.pricesAre")}</Label>
               <Select value={taxMode} onValueChange={(v) => setTaxMode(v as TaxMode)}>
                 <SelectTrigger id="b-tax-mode">
-                  <SelectValue />
+                  <SelectValue>
+                    {(value: TaxMode | null) => (value ? t(`settings.taxMode.${value}`) : "")}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="INCLUSIVE">Tax-inclusive</SelectItem>
-                  <SelectItem value="EXCLUSIVE">Tax-exclusive (tax added at checkout)</SelectItem>
+                  <SelectItem value="INCLUSIVE">{t("settings.taxMode.INCLUSIVE")}</SelectItem>
+                  <SelectItem value="EXCLUSIVE">{t("settings.taxMode.EXCLUSIVE")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            {preset.exampleRates} — set the exact rate per menu item under Menu.
+            {t("settings.tax.ratesHint", { rates: t(`settings.taxRegime.${taxRegime}.rates`) })}
           </p>
+          {preset.zatcaSimplifiedInvoice && (
+            <div className="flex flex-col gap-1 rounded-lg bg-secondary px-3 py-2 text-xs text-muted-foreground">
+              <p>{t("settings.tax.zatcaInvoiceNote")}</p>
+              <p>{t("settings.tax.zatcaPhase2Note")}</p>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="b-country">Country code</Label>
+              <Label htmlFor="b-country">{t("settings.branch.countryCode")}</Label>
               <Input
                 id="b-country"
+                dir="ltr"
                 value={country}
                 onChange={(e) => setCountry(e.target.value.toUpperCase())}
                 maxLength={2}
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="b-tax-id">{TAX_REGIME_PRESETS[taxRegime].taxIdLabel}</Label>
-              <Input id="b-tax-id" value={taxId} onChange={(e) => setTaxId(e.target.value)} />
+              <Label htmlFor="b-tax-id">{t(`settings.taxRegime.${taxRegime}.taxIdLabel`)}</Label>
+              <Input
+                id="b-tax-id"
+                dir="ltr"
+                value={taxId}
+                onChange={(e) => setTaxId(e.target.value)}
+                inputMode={isSaudiVat ? "numeric" : undefined}
+                maxLength={isSaudiVat ? 15 : undefined}
+                placeholder={isSaudiVat ? "3XXXXXXXXXXXXX3" : undefined}
+                aria-invalid={vatNumberInvalid || undefined}
+              />
+              {isSaudiVat && (
+                <p className={vatNumberInvalid ? "text-xs text-warning" : "text-xs text-muted-foreground"}>
+                  {vatNumberInvalid ? t("settings.tax.vatNumberInvalid") : t("settings.tax.vatNumberHelp")}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="b-tax-label">Receipt label override (optional)</Label>
+            <Label htmlFor="b-tax-label">{t("settings.tax.labelOverride")}</Label>
             <Input
               id="b-tax-label"
               value={taxLabel}
@@ -501,7 +544,7 @@ function GeneralSettingsForm({
           </div>
 
           <Button type="submit" disabled={updateBranch.isPending} className="self-start">
-            {updateBranch.isPending ? "Saving…" : "Save branch"}
+            {updateBranch.isPending ? t("common.saving") : t("settings.branch.save")}
           </Button>
         </form>
       </Card>

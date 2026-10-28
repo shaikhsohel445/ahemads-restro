@@ -1,1 +1,13 @@
-{}
+{
+  "bellUnread": "Notifications, {n} unread",
+  "daysAgo": "{n}d ago",
+  "emptyBody": "New orders and ready tickets will show up here.",
+  "emptyTitle": "No notifications yet",
+  "hoursAgo": "{n}h ago",
+  "justNow": "just now",
+  "markAllRead": "Mark all notifications read",
+  "minutesAgo": "{n}m ago",
+  "mute": "Mute notification sound on this device",
+  "title": "Notifications",
+  "unmute": "Unmute notification sound on this device"
+}

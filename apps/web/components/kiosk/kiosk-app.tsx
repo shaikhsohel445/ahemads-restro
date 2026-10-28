@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { formatCurrency } from "@/lib/format";
+import { intlLocaleTag } from "@/lib/i18n/locales";
 import { KioskApiError, kioskApi } from "@/lib/kiosk-api";
 import { toOrderItems } from "@/lib/kiosk-basket";
 import { initialKioskState, isBasketLocked, kioskReducer } from "@/lib/kiosk-flow";
@@ -15,6 +16,7 @@ import { DoneScreen, ReviewScreen } from "./review-screen";
 import { useIdle, useKioskServiceWorker, useOnline, useScreenAwake } from "./use-kiosk-device";
 import { ServiceScreen, WelcomeScreen, type MenuLoad } from "./welcome-screen";
 import { LOCALES_SHOWN, KioskHeader } from "./kiosk-header";
+import { KIOSK_DEFAULT_LOCALE } from "./kiosk-locales";
 
 const IDLE_MS = 60_000;
 const IDLE_WARN_SECONDS = 15;
@@ -51,9 +53,10 @@ export function KioskApp({ token }: { token: string }) {
         : { status: "unreachable" }
       : { status: "loading" };
 
-  const localeTag = locale === "es" ? "es-ES" : "en-GB";
+  // Arabic keeps Latin digits (see intlLocaleTag), as Saudi receipts do.
+  const localeTag = intlLocaleTag(locale, menu?.country || "SA");
   const fmt = useCallback(
-    (n: number | string) => formatCurrency(n, menu?.currency ?? "EUR", localeTag),
+    (n: number | string) => formatCurrency(n, menu?.currency ?? "SAR", localeTag),
     [menu?.currency, localeTag],
   );
 
@@ -96,7 +99,7 @@ export function KioskApp({ token }: { token: string }) {
     dispatch({ type: "RESET" });
     setIdleWarn(null);
     setConfirmCancel(false);
-    setLocale("es");
+    setLocale(KIOSK_DEFAULT_LOCALE);
     void menuQuery.refetch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setLocale]);

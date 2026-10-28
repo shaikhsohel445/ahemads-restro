@@ -15,8 +15,10 @@ import { Label } from "@/components/ui/label";
 import { hasPermission, useCurrentUser } from "@/hooks/use-auth";
 import { useCancelOrder } from "@/hooks/use-orders";
 import { ApiError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 
-const REASONS = ["Guest left", "Wrong order", "Duplicate order", "Out of stock"];
+// Quick-pick reasons: orders.cancel.reason.<key>, translated at render time.
+const REASONS = ["guestLeft", "wrongOrder", "duplicate", "outOfStock"];
 
 // Replaces the browser confirm(): that dialog is silently suppressed on
 // kiosk/PWA tablets, which made "Cancel order" look like it did nothing.
@@ -35,6 +37,7 @@ export function CancelOrderDialog({
   onOpenChange: (open: boolean) => void;
   onCancelled?: () => void;
 }) {
+  const { t } = useI18n();
   const [reason, setReason] = useState("");
   const [byGuest, setByGuest] = useState(false);
   // Set once the server says cooking has begun; the next press then confirms.
@@ -65,7 +68,7 @@ export function CancelOrderDialog({
             setStartedWarning(err.message);
             return;
           }
-          setError(err instanceof ApiError ? err.message : "Could not cancel the order. Try again.");
+          setError(err instanceof ApiError ? err.message : t("orders.cancel.failed"));
         },
       },
     );
@@ -85,14 +88,15 @@ export function CancelOrderDialog({
       <DialogContent className="sm:max-w-md">
         <form onSubmit={submit} className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>Cancel order #{orderNumber}?</DialogTitle>
+            <DialogTitle>
+              {t("orders.cancel.title")} <bdi>#{orderNumber}</bdi>
+            </DialogTitle>
             <DialogDescription>
-              The kitchen tickets are withdrawn and the table is freed. Nothing has been paid or taken
-              from stock yet. The order stays in History with your reason and name.
+              {t("orders.cancel.description")}
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="cancel-reason">Reason</Label>
+            <Label htmlFor="cancel-reason">{t("orders.reason")}</Label>
             <Input
               id="cancel-reason"
               value={reason}
@@ -100,14 +104,17 @@ export function CancelOrderDialog({
               maxLength={200}
               required
               autoFocus
-              placeholder="Why is this order cancelled?"
+              placeholder={t("orders.cancel.reasonPlaceholder")}
             />
             <div className="flex flex-wrap gap-1.5">
-              {REASONS.map((r) => (
-                <Button key={r} type="button" variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => setReason(r)}>
-                  {r}
-                </Button>
-              ))}
+              {REASONS.map((r) => {
+                const text = t(`orders.cancel.reason.${r}`);
+                return (
+                  <Button key={r} type="button" variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => setReason(text)}>
+                    {text}
+                  </Button>
+                );
+              })}
             </div>
           </div>
           <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm text-foreground">
@@ -117,7 +124,7 @@ export function CancelOrderDialog({
               checked={byGuest}
               onChange={(e) => setByGuest(e.target.checked)}
             />
-            The guest asked to cancel
+            {t("orders.cancel.byGuest")}
           </label>
           {startedWarning && (
             <p role="alert" className="rounded-lg bg-warning/10 px-3 py-2 text-sm text-warning">
@@ -131,7 +138,7 @@ export function CancelOrderDialog({
           )}
           <DialogFooter>
             <Button type="button" variant="outline" className="h-11" onClick={() => onOpenChange(false)}>
-              Keep order
+              {t("orders.cancel.keep")}
             </Button>
             <Button
               type="submit"
@@ -139,7 +146,7 @@ export function CancelOrderDialog({
               className="h-11"
               disabled={cancel.isPending || reason.trim().length === 0}
             >
-              {cancel.isPending ? "Cancelling…" : startedWarning ? "Cancel anyway" : "Cancel order"}
+              {cancel.isPending ? t("orders.cancel.cancelling") : startedWarning ? t("orders.cancel.anyway") : t("orders.cancel.confirm")}
             </Button>
           </DialogFooter>
         </form>

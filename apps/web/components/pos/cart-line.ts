@@ -1,3 +1,5 @@
+import { translate } from "@/lib/i18n/context";
+
 export interface CartLine {
   key: string;
   menuItemId: string;
@@ -20,9 +22,9 @@ export interface Portion {
 
 export function portionText(p?: Portion): string {
   if (!p) return "";
-  if (p.kind === "HALF") return "Half";
-  if (p.kind === "FULL") return "Full";
-  return p.customLabel || "Custom";
+  if (p.kind === "HALF") return translate("pos.portion.HALF");
+  if (p.kind === "FULL") return translate("pos.portion.FULL");
+  return p.customLabel || translate("pos.portion.CUSTOM");
 }
 
 export function cartLineKey(menuItemId: string, modifierIds: string[], portion?: Portion): string {

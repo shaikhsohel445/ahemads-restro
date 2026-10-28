@@ -23,6 +23,7 @@ import {
 import { useFloors } from "@/hooks/use-tables";
 import { ApiError } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 
 const KITCHEN_STARTED = new Set(["PREPARING", "READY", "SERVED"]);
 
@@ -40,6 +41,7 @@ export function EditBillDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { t } = useI18n();
   const { data: order, isLoading } = useOrder(branchId, open ? orderId : null);
   const { data: floors } = useFloors(branchId);
   const updateOrder = useUpdateOrder(branchId);
@@ -53,7 +55,7 @@ export function EditBillDialog({
   const [guestName, setGuestName] = useState<string | null>(null);
 
   const fail = (err: unknown) =>
-    setError(err instanceof ApiError ? err.message : "That change could not be saved.");
+    setError(err instanceof ApiError ? err.message : t("orders.edit.saveFailed"));
   const editable = order?.status === "OPEN";
   const startedItems = new Set(
     (order?.kots ?? [])
@@ -67,7 +69,9 @@ export function EditBillDialog({
   );
   const freeTables = (floors ?? [])
     .flatMap((f) => f.tables)
-    .filter((t) => t.id !== order?.tableId && t.status === "AVAILABLE");
+    .filter((tb) => tb.id !== order?.tableId && tb.status === "AVAILABLE");
+  const tableName = (tb: { name?: string | null; number: number | string }) =>
+    tb.name ?? t("orders.edit.tableN", { n: tb.number });
 
   return (
     <Dialog
@@ -82,9 +86,11 @@ export function EditBillDialog({
     >
       <DialogContent className="max-h-[90dvh] overflow-x-hidden overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Edit bill {order ? `#${order.orderNumber}` : ""}</DialogTitle>
+          <DialogTitle>
+            {t("orders.edit.title")} {order ? <bdi>#{order.orderNumber}</bdi> : null}
+          </DialogTitle>
           <DialogDescription>
-            Totals and tax update automatically. Every change is recorded in the audit log.
+            {t("orders.edit.description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -93,8 +99,8 @@ export function EditBillDialog({
         ) : !editable ? (
           <p className="rounded-lg bg-secondary/60 px-3 py-2 text-sm text-muted-foreground">
             {order.status === "PAID"
-              ? "This bill is paid, so it can't be edited. Use Refund to correct it."
-              : "Only open bills can be edited."}
+              ? t("orders.edit.paidLocked")
+              : t("orders.edit.onlyOpen")}
           </p>
         ) : (
           <div className="flex min-w-0 flex-col gap-5">
@@ -114,7 +120,7 @@ export function EditBillDialog({
                           </p>
                         )}
                         {locked && (
-                          <p className="text-xs text-warning">Kitchen has started this — can&apos;t change it</p>
+                          <p className="text-xs text-warning">{t("orders.edit.kitchenStarted")}</p>
                         )}
                       </div>
                       <div className="flex shrink-0 items-center gap-1">
@@ -124,7 +130,7 @@ export function EditBillDialog({
                           variant="outline"
                           size="icon"
                           className="h-8 w-8"
-                          aria-label={`One fewer ${item.nameSnapshot}`}
+                          aria-label={t("orders.edit.oneFewer", { name: item.nameSnapshot })}
                           disabled={locked || item.quantity <= 1 || updateItem.isPending}
                           onClick={() => {
                             setError(null);
@@ -141,7 +147,7 @@ export function EditBillDialog({
                           variant="outline"
                           size="icon"
                           className="h-8 w-8 text-destructive"
-                          aria-label={`Remove ${item.nameSnapshot}`}
+                          aria-label={t("orders.edit.removeItemLabel", { name: item.nameSnapshot })}
                           disabled={locked || order.items.length < 2}
                           onClick={() => {
                             setError(null);
@@ -162,7 +168,7 @@ export function EditBillDialog({
                             { orderId, itemId: item.id, reason: reason.trim() },
                             {
                               onSuccess: () => {
-                                toast.success(`${item.nameSnapshot} removed from the bill`);
+                                toast.success(t("orders.edit.removed", { name: item.nameSnapshot }));
                                 setRemoving(null);
                               },
                               onError: fail,
@@ -171,7 +177,7 @@ export function EditBillDialog({
                         }}
                       >
                         <Label htmlFor={`rm-${item.id}`} className="text-xs">
-                          Remove {item.quantity}× {item.nameSnapshot}? Reason
+                          {t("orders.edit.removeReason", { qty: item.quantity, name: item.nameSnapshot })}
                         </Label>
                         <Input
                           id={`rm-${item.id}`}
@@ -180,11 +186,11 @@ export function EditBillDialog({
                           maxLength={200}
                           required
                           autoFocus
-                          placeholder="e.g. guest changed their mind"
+                          placeholder={t("orders.edit.removePlaceholder")}
                         />
                         <div className="flex justify-end gap-2">
                           <Button type="button" size="sm" variant="outline" onClick={() => setRemoving(null)}>
-                            Keep
+                            {t("orders.edit.keep")}
                           </Button>
                           <Button
                             type="submit"
@@ -192,7 +198,7 @@ export function EditBillDialog({
                             variant="destructive"
                             disabled={removeItem.isPending || reason.trim().length === 0}
                           >
-                            {removeItem.isPending ? "Removing…" : "Remove item"}
+                            {removeItem.isPending ? t("orders.edit.removing") : t("orders.edit.removeItem")}
                           </Button>
                         </div>
                       </form>
@@ -202,18 +208,17 @@ export function EditBillDialog({
               })}
             </div>
             <p className="text-xs text-muted-foreground">
-              To add more food, use <span className="font-medium text-foreground">Add another round</span> so the
-              kitchen gets a new ticket.
+              {t("orders.edit.addRoundHint")}
             </p>
 
             <div className="flex items-center justify-between rounded-lg bg-secondary/40 px-3 py-2 text-sm">
-              <span className="text-muted-foreground">Total (incl. {formatCurrency(order.taxAmount)} tax)</span>
+              <span className="text-muted-foreground">{t("orders.edit.totalInclTax", { tax: formatCurrency(order.taxAmount) })}</span>
               <span className="font-semibold tabular-nums">{formatCurrency(order.totalAmount)}</span>
             </div>
 
             {order.type === "DINE_IN" && (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="move-table">Move to another table</Label>
+                <Label htmlFor="move-table">{t("orders.edit.moveTable")}</Label>
                 <select
                   id="move-table"
                   className="h-10 w-full min-w-0 truncate rounded-lg border border-input bg-background px-3 text-sm"
@@ -226,7 +231,7 @@ export function EditBillDialog({
                     updateOrder.mutate(
                       { orderId, dto: { tableId } },
                       {
-                        onSuccess: () => toast.success("Bill moved — both tables updated"),
+                        onSuccess: () => toast.success(t("orders.edit.moved")),
                         onError: fail,
                       },
                     );
@@ -234,12 +239,14 @@ export function EditBillDialog({
                 >
                   <option value="">
                     {freeTables.length === 0
-                      ? "No free table available"
-                      : `Currently ${order.table ? (order.table.name ?? `Table ${order.table.number}`) : "no table"} — choose a free table`}
+                      ? t("orders.edit.noFreeTable")
+                      : t("orders.edit.currentTable", {
+                          table: order.table ? tableName(order.table) : t("orders.edit.noTable"),
+                        })}
                   </option>
-                  {freeTables.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name ?? `Table ${t.number}`}
+                  {freeTables.map((tb) => (
+                    <option key={tb.id} value={tb.id}>
+                      {tableName(tb)}
                     </option>
                   ))}
                 </select>
@@ -259,12 +266,12 @@ export function EditBillDialog({
                       notes: (notes ?? order.notes ?? "").trim() || null,
                     },
                   },
-                  { onSuccess: () => toast.success("Bill details saved"), onError: fail },
+                  { onSuccess: () => toast.success(t("orders.edit.detailsSaved")), onError: fail },
                 );
               }}
             >
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="bill-guest">Guest name</Label>
+                <Label htmlFor="bill-guest">{t("orders.edit.guestName")}</Label>
                 <Input
                   id="bill-guest"
                   value={guestName ?? order.guestName ?? ""}
@@ -273,7 +280,7 @@ export function EditBillDialog({
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="bill-notes">Note</Label>
+                <Label htmlFor="bill-notes">{t("common.note")}</Label>
                 <Input
                   id="bill-notes"
                   value={notes ?? order.notes ?? ""}
@@ -282,7 +289,7 @@ export function EditBillDialog({
                 />
               </div>
               <Button type="submit" variant="outline" disabled={updateOrder.isPending}>
-                {updateOrder.isPending ? "Saving…" : "Save details"}
+                {updateOrder.isPending ? t("common.saving") : t("orders.edit.saveDetails")}
               </Button>
             </form>
 

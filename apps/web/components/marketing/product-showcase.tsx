@@ -5,18 +5,27 @@ import Image from "next/image";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Reveal } from "@/components/marketing/reveal";
+import { useI18n } from "@/lib/i18n/context";
 
 const views = [
-  { id: "dashboard", label: "Dashboard", src: "/screenshots/dashboard-light.png" },
-  { id: "pos", label: "POS", src: "/screenshots/pos-light.png" },
-  { id: "kds", label: "Kitchen display", src: "/screenshots/kds-light.png" },
-  { id: "tables", label: "Tables", src: "/screenshots/tables-light.png" },
+  { id: "dashboard", src: "/screenshots/dashboard-light.png" },
+  { id: "pos", src: "/screenshots/pos-light.png" },
+  { id: "kds", src: "/screenshots/kds-light.png" },
+  { id: "tables", src: "/screenshots/tables-light.png" },
 ] as const;
 
 // Real product screenshots (docs/screenshots/*.png, the same images the
 // repo README uses) — not mockups. A crossfade, not a hard cut, when
-// switching tabs.
+// switching tabs. The images themselves are English, left-to-right UI
+// captures; only the surrounding labels are translated.
 export function ProductShowcase() {
+  const { t } = useI18n();
+  const labels: Record<(typeof views)[number]["id"], string> = {
+    dashboard: t("landing.showcase.tab.dashboard"),
+    pos: t("landing.showcase.tab.pos"),
+    kds: t("landing.showcase.tab.kds"),
+    tables: t("landing.showcase.tab.tables"),
+  };
   const [active, setActive] = useState<(typeof views)[number]["id"]>("dashboard");
   const current = views.find((v) => v.id === active)!;
 
@@ -24,17 +33,15 @@ export function ProductShowcase() {
     <section className="mx-auto max-w-6xl px-4 py-24 sm:px-6">
       <Reveal className="mx-auto max-w-2xl text-center">
         <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-          See it in action
+          {t("landing.showcase.heading")}
         </h2>
-        <p className="mt-4 text-lg text-muted-foreground">
-          The actual app — no staged demo data, no Photoshop.
-        </p>
+        <p className="mt-4 text-lg text-muted-foreground">{t("landing.showcase.subheading")}</p>
       </Reveal>
 
       <Reveal delay={0.1} className="mt-8 flex justify-center">
         <div
           role="tablist"
-          aria-label="Product views"
+          aria-label={t("landing.showcase.tabsLabel")}
           className="inline-flex gap-1 rounded-xl border border-border/60 bg-muted/40 p-1"
         >
           {views.map((v) => (
@@ -51,7 +58,7 @@ export function ProductShowcase() {
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {v.label}
+              {labels[v.id]}
             </button>
           ))}
         </div>
@@ -76,7 +83,7 @@ export function ProductShowcase() {
               >
                 <Image
                   src={current.src}
-                  alt={`${current.label} screen`}
+                  alt={t("landing.showcase.alt", { screen: labels[current.id] })}
                   fill
                   sizes="(min-width: 1024px) 1024px, 100vw"
                   className="object-cover object-top"

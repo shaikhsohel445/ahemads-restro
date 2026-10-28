@@ -15,6 +15,7 @@ export interface TicketData {
   totalAmount: string;
   taxLabel: string;
   taxMode: "INCLUSIVE" | "EXCLUSIVE";
+  /** BCP 47 tag (e.g. "ar-SA-u-nu-latn"); also sets the ticket's lang/dir. */
   locale: string;
   currency: string;
   /** Pre-rendered <svg> for the order QR (optional). */
@@ -37,7 +38,11 @@ export function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
+const RTL_LANGS = new Set(["ar", "fa", "he", "ur"]);
+
 export function buildTicketHtml(t: TicketData): string {
+  const lang = t.locale.split("-")[0].toLowerCase();
+  const dir = RTL_LANGS.has(lang) ? "rtl" : "ltr";
   const money = (v: string) =>
     new Intl.NumberFormat(t.locale, { style: "currency", currency: t.currency }).format(Number(v));
   const date = new Intl.DateTimeFormat(t.locale, { dateStyle: "short", timeStyle: "short" }).format(
@@ -46,22 +51,24 @@ export function buildTicketHtml(t: TicketData): string {
   const rows = t.items
     .map(
       (i) =>
-        `<tr><td class="q">${i.quantity}×</td><td>${escapeHtml(i.name)}</td><td class="r">${escapeHtml(money(i.lineTotal))}</td></tr>`,
+        `<tr><td class="q">${i.quantity}×</td><td>${escapeHtml(i.name)}</td><td class="r"><bdi>${escapeHtml(money(i.lineTotal))}</bdi></td></tr>`,
     )
     .join("");
   const taxRow =
     Number(t.taxAmount) > 0
       ? `<div class="row small"><span>${escapeHtml(
           t.taxMode === "INCLUSIVE" ? `${t.labels.taxIncluded} ${t.taxLabel}` : t.taxLabel,
-        )}</span><span>${escapeHtml(money(t.taxAmount))}</span></div>`
+        )}</span><span><bdi>${escapeHtml(money(t.taxAmount))}</bdi></span></div>`
       : "";
-  return `<!doctype html><html lang="${escapeHtml(t.locale.slice(0, 2))}"><head><meta charset="utf-8">
+  return `<!doctype html><html lang="${escapeHtml(lang)}" dir="${dir}"><head><meta charset="utf-8">
 <title>${escapeHtml(t.labels.order)} ${escapeHtml(t.orderNumber)}</title>
 <style>
   @page { size: 80mm auto; margin: 0; }
   * { box-sizing: border-box; }
   html, body { width: 80mm; margin: 0; padding: 0; background: #fff; color: #000; }
-  body { padding: 4mm; font: 13px/1.35 -apple-system, Roboto, Arial, sans-serif; }
+  body { padding: 4mm; font: 13px/1.35 -apple-system, Roboto, Arial, "IBM Plex Sans Arabic", "Noto Sans Arabic", Tahoma, sans-serif; }
+  html[dir="rtl"] body { font-family: "IBM Plex Sans Arabic", "Noto Sans Arabic", Tahoma, sans-serif; }
+  bdi { unicode-bidi: isolate; }
   h1 { font-size: 16px; margin: 0 0 2px; text-align: center; }
   .c { text-align: center; }
   .num { font-size: 30px; font-weight: 700; text-align: center; letter-spacing: 1px; margin: 6px 0; }
@@ -70,7 +77,7 @@ export function buildTicketHtml(t: TicketData): string {
   table { width: 100%; border-collapse: collapse; }
   td { padding: 1px 0; vertical-align: top; }
   td.q { width: 9mm; white-space: nowrap; }
-  td.r { text-align: right; white-space: nowrap; padding-left: 4px; }
+  td.r { text-align: end; white-space: nowrap; padding-inline-start: 4px; }
   .row { display: flex; justify-content: space-between; }
   .total { font-size: 16px; font-weight: 700; }
   .qr { text-align: center; margin-top: 6px; }
@@ -78,13 +85,13 @@ export function buildTicketHtml(t: TicketData): string {
   .warn { text-align: center; font-weight: 700; margin-top: 6px; }
 </style></head><body>
 <h1>${escapeHtml(t.restaurantName)}</h1>
-<div class="c small">${escapeHtml(date)} · ${escapeHtml(t.serviceLabel)}</div>
-<div class="num">${escapeHtml(t.labels.order)} ${escapeHtml(t.orderNumber)}</div>
+<div class="c small"><bdi>${escapeHtml(date)}</bdi> · ${escapeHtml(t.serviceLabel)}</div>
+<div class="num">${escapeHtml(t.labels.order)} <bdi dir="ltr">${escapeHtml(t.orderNumber)}</bdi></div>
 <hr>
 <table>${rows}</table>
 <hr>
 ${taxRow}
-<div class="row total"><span>${escapeHtml(t.labels.total)}</span><span>${escapeHtml(money(t.totalAmount))}</span></div>
+<div class="row total"><span>${escapeHtml(t.labels.total)}</span><span><bdi>${escapeHtml(money(t.totalAmount))}</bdi></span></div>
 <hr>
 <div class="warn">${escapeHtml(t.labels.notPaid)}</div>
 <div class="c small">${escapeHtml(t.labels.payAtCounter)}</div>

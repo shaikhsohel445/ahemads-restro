@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { Clock } from "lucide-react";
+import { useI18n } from "@/lib/i18n/context";
 
-function formatElapsed(ms: number): string {
+function formatElapsed(ms: number, t: (key: string, vars?: Record<string, string | number>) => string): string {
   const totalMinutes = Math.max(0, Math.floor(ms / 60_000));
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m`;
+  if (hours > 0) return t("tables.elapsedHm", { h: hours, m: minutes });
+  return t("tables.elapsedM", { m: minutes });
 }
 
 /**
@@ -20,6 +21,7 @@ function formatElapsed(ms: number): string {
  * needlessly often.
  */
 export function ElapsedTimer({ since, className }: { since: string; className?: string }) {
+  const { t } = useI18n();
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -32,7 +34,7 @@ export function ElapsedTimer({ since, className }: { since: string; className?: 
   return (
     <span className={className}>
       <Clock className="h-3 w-3" />
-      {formatElapsed(elapsed)}
+      <bdi>{formatElapsed(elapsed, t)}</bdi>
     </span>
   );
 }

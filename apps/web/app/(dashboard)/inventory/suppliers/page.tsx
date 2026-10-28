@@ -9,8 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBranch } from "@/hooks/use-branch";
 import { useSuppliers } from "@/hooks/use-inventory";
+import { useI18n } from "@/lib/i18n/context";
 
 export default function SuppliersPage() {
+  const { t } = useI18n();
   const { branchId } = useBranch();
   const [search, setSearch] = useState("");
   const { data: suppliers, isLoading } = useSuppliers(branchId);
@@ -21,9 +23,9 @@ export default function SuppliersPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[32px] font-semibold tracking-tight text-foreground">Inventory</h1>
+          <h1 className="text-[32px] font-semibold tracking-tight text-foreground">{t("inventory.title")}</h1>
           <p className="text-sm text-muted-foreground">
-            Ingredients, recipe costing, purchase orders, and waste
+            {t("inventory.subtitle")}
           </p>
         </div>
         <AddSupplierDialog branchId={branchId} />
@@ -32,7 +34,7 @@ export default function SuppliersPage() {
       <InventoryTabs />
 
       <Input
-        placeholder="Search suppliers…"
+        placeholder={t("inventory.suppliers.search")}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="max-w-sm"
@@ -51,20 +53,20 @@ export default function SuppliersPage() {
               <div className="flex flex-col">
                 <span className="text-sm font-medium text-foreground">{s.name}</span>
                 <span className="text-xs text-muted-foreground">
-                  {s.contactName || "No contact person on file"}
+                  {s.contactName || t("inventory.suppliers.noContact")}
                 </span>
               </div>
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 {s.phone && (
                   <span className="flex items-center gap-1">
                     <Phone className="h-3.5 w-3.5" />
-                    {s.phone}
+                    <bdi dir="ltr">{s.phone}</bdi>
                   </span>
                 )}
                 {s.email && (
                   <span className="flex items-center gap-1">
                     <Mail className="h-3.5 w-3.5" />
-                    {s.email}
+                    <bdi>{s.email}</bdi>
                   </span>
                 )}
               </div>
@@ -72,9 +74,9 @@ export default function SuppliersPage() {
           ))
         ) : (
           <div className="flex flex-col items-center gap-2 py-16 text-center">
-            <p className="text-sm font-medium text-foreground">No suppliers yet</p>
+            <p className="text-sm font-medium text-foreground">{t("inventory.suppliers.emptyTitle")}</p>
             <p className="text-sm text-muted-foreground">
-              Add a supplier before creating your first purchase order.
+              {t("inventory.suppliers.emptyDescription")}
             </p>
           </div>
         )}

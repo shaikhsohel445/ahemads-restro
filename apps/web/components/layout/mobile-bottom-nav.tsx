@@ -40,7 +40,7 @@ export function MobileBottomNav({
 
   return (
     <nav
-      aria-label="Primary"
+      aria-label={t("layout.primaryNav")}
       className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
     >
       {primary.map((item) => {
@@ -60,7 +60,7 @@ export function MobileBottomNav({
             <Icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
             <span className="max-w-full truncate px-1">{t(item.labelKey)}</span>
             {badges.nav[item.href] && !isActive ? (
-              <span className="absolute top-2 left-1/2 ms-2 h-2.5 w-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_2px_rgba(245,158,11,0.7)]" />
+              <span className="absolute top-2 start-1/2 ms-2 h-2.5 w-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_2px_rgba(245,158,11,0.7)]" />
             ) : null}
           </Link>
         );
@@ -71,7 +71,7 @@ export function MobileBottomNav({
         className={cn(itemClass, "h-16 text-muted-foreground active:text-foreground")}
       >
         <MoreHorizontal className="h-5 w-5" />
-        <span>More</span>
+        <span>{t("common.more")}</span>
       </button>
     </nav>
   );

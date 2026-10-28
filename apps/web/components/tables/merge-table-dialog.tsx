@@ -12,6 +12,7 @@ import { useMergeOrder, useOpenOrders } from "@/hooks/use-orders";
 import type { RestaurantTable } from "@/hooks/use-tables";
 import { ApiError } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 
 export function MergeTableDialog({
   branchId,
@@ -26,7 +27,9 @@ export function MergeTableDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { t } = useI18n();
   const { data: openOrders } = useOpenOrders(branchId);
+  const tableLabel = table.name ?? t("tables.tableN", { n: table.number });
   const merge = useMergeOrder(branchId);
 
   const thisOrder = openOrders?.find((o) => o.tableId === table.id);
@@ -41,11 +44,11 @@ export function MergeTableDialog({
       { targetOrderId: thisOrder.id, sourceOrderId: otherOrder.id },
       {
         onSuccess: () => {
-          toast.success(`Merged into ${table.name ?? `Table ${table.number}`}`);
+          toast.success(t("tables.mergedInto", { table: tableLabel }));
           onOpenChange(false);
         },
         onError: (err) =>
-          toast.error(err instanceof ApiError ? err.message : "Could not merge orders"),
+          toast.error(err instanceof ApiError ? err.message : t("tables.mergeFailed")),
       },
     );
   };
@@ -55,31 +58,31 @@ export function MergeTableDialog({
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>
-            Merge into {table.name ?? `Table ${table.number}`}
+            {t("tables.mergeIntoTitle", { table: tableLabel })}
           </DialogTitle>
         </DialogHeader>
 
         {!thisOrder ? (
           <p className="py-4 text-sm text-muted-foreground">
-            This table has no open order to merge into.
+            {t("tables.mergeNoOrder")}
           </p>
         ) : otherOccupiedTables.length === 0 ? (
           <p className="py-4 text-sm text-muted-foreground">
-            No other tables have an open order right now.
+            {t("tables.mergeNoOthers")}
           </p>
         ) : (
           <div className="flex flex-col gap-2 py-2">
-            {otherOccupiedTables.map((t) => {
-              const order = openOrders?.find((o) => o.tableId === t.id);
+            {otherOccupiedTables.map((other) => {
+              const order = openOrders?.find((o) => o.tableId === other.id);
               return (
                 <Button
-                  key={t.id}
+                  key={other.id}
                   variant="outline"
                   className="justify-between"
                   disabled={merge.isPending}
-                  onClick={() => handleMerge(t.id)}
+                  onClick={() => handleMerge(other.id)}
                 >
-                  <span>{t.name ?? `Table ${t.number}`}</span>
+                  <span>{other.name ?? t("tables.tableN", { n: other.number })}</span>
                   <span className="text-muted-foreground">
                     {order && formatCurrency(order.totalAmount)}
                   </span>

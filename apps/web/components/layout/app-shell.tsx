@@ -8,6 +8,7 @@ import { EntityDialogHost } from "@/components/layout/entity-dialog-host";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { useBranch } from "@/hooks/use-branch";
 import { useSettings } from "@/hooks/use-settings";
+import { useI18n } from "@/lib/i18n/context";
 import { BrandFooter } from "./brand-footer";
 import { BranchSwitcher } from "./branch-switcher";
 import { LanguageSwitcher } from "./language-switcher";
@@ -61,6 +62,7 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { t } = useI18n();
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -81,7 +83,7 @@ export function AppShell({
       {/* Mobile drawer */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="w-72 bg-sidebar p-0">
-          <SheetTitle className="sr-only">Navigation</SheetTitle>
+          <SheetTitle className="sr-only">{t("layout.navigation")}</SheetTitle>
           <div className="flex h-16 items-center gap-2 px-5">
             <RestaurantBrand />
           </div>
@@ -101,7 +103,7 @@ export function AppShell({
             type="button"
             onClick={() => setMobileOpen(true)}
             className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary lg:hidden"
-            aria-label="Open navigation"
+            aria-label={t("layout.openNavigation")}
           >
             <Menu className="h-5 w-5" />
           </button>

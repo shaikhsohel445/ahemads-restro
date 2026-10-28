@@ -1,6 +1,10 @@
+"use client";
+
 import { LifeBuoy } from "lucide-react";
+import { useI18n } from "@/lib/i18n/context";
 
 export function BrandFooter() {
+  const { t } = useI18n();
   return (
     <div className="flex flex-col gap-2 border-t border-sidebar-border px-4 py-3">
       <a
@@ -10,7 +14,7 @@ export function BrandFooter() {
         className="flex items-center justify-center gap-1.5 rounded-lg border border-sidebar-border px-3 py-1.5 text-xs font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
       >
         <LifeBuoy className="h-3.5 w-3.5" />
-        Contact support
+        {t("layout.contactSupport")}
       </a>
       <a
         href="https://orderrestro.nodedr.com/"

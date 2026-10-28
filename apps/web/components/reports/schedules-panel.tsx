@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { api, ApiError } from "@/lib/api";
+import { formatDateTime } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 
 interface Schedule {
   id: string;
@@ -19,7 +21,11 @@ interface Schedule {
   lastError: string | null;
 }
 
-const WHEN = { DAILY: "every day · yesterday", WEEKLY: "Mondays · previous 7 days", MONTHLY: "1st of the month · previous month" };
+const WHEN_KEYS = {
+  DAILY: "reports.schedules.when.DAILY",
+  WEEKLY: "reports.schedules.when.WEEKLY",
+  MONTHLY: "reports.schedules.when.MONTHLY",
+};
 
 export function SchedulesPanel({
   branchId,
@@ -31,6 +37,7 @@ export function SchedulesPanel({
   titles: Record<string, string>;
 }) {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const [frequency, setFrequency] = useState<Schedule["frequency"]>("WEEKLY");
   const [format, setFormat] = useState("xlsx");
   const [recipients, setRecipients] = useState("");
@@ -40,7 +47,7 @@ export function SchedulesPanel({
     enabled: !!branchId,
   });
   const refresh = () => qc.invalidateQueries({ queryKey: ["report-schedules"] });
-  const msg = (e: unknown) => (e instanceof ApiError ? e.message : "Something went wrong");
+  const msg = (e: unknown) => (e instanceof ApiError ? e.message : t("common.error"));
 
   const create = useMutation({
     mutationFn: () =>
@@ -53,7 +60,7 @@ export function SchedulesPanel({
     onSuccess: () => {
       setRecipients("");
       refresh();
-      toast.success("Schedule created");
+      toast.success(t("reports.schedules.created"));
     },
     onError: (e) => toast.error(msg(e)),
   });
@@ -69,7 +76,7 @@ export function SchedulesPanel({
     mutationFn: (id: string) => api.post(`/report-schedules/${id}/send?branchId=${branchId}`),
     onSuccess: () => {
       refresh();
-      toast.success("Report emailed");
+      toast.success(t("reports.schedules.emailed"));
     },
     onError: (e) => toast.error(msg(e)),
   });
@@ -78,42 +85,42 @@ export function SchedulesPanel({
   return (
     <Card className="flex flex-col gap-4 p-4 print:hidden">
       <div>
-        <h3 className="font-medium text-foreground">Email this report on a schedule</h3>
+        <h3 className="font-medium text-foreground">{t("reports.schedules.title")}</h3>
         <p className="text-xs text-muted-foreground">
-          Sent through your own SMTP server at 06:00 branch time.
-          {data && !data.emailConfigured && " Email is not set up on this server yet (SMTP_URL and SMTP_FROM)."}
+          {t("reports.schedules.help")}
+          {data && !data.emailConfigured && <> {t("reports.schedules.notConfigured")} (<code>EMAIL_API_KEY</code>, <code>EMAIL_FROM</code>)</>}
         </p>
       </div>
       <div className="flex flex-wrap items-end gap-3">
-        <select aria-label="Frequency" className={sel} value={frequency} onChange={(e) => setFrequency(e.target.value as Schedule["frequency"])}>
-          <option value="DAILY">Daily</option>
-          <option value="WEEKLY">Weekly</option>
-          <option value="MONTHLY">Monthly</option>
+        <select aria-label={t("reports.schedules.frequency")} className={sel} value={frequency} onChange={(e) => setFrequency(e.target.value as Schedule["frequency"])}>
+          <option value="DAILY">{t("reports.schedules.freq.DAILY")}</option>
+          <option value="WEEKLY">{t("reports.schedules.freq.WEEKLY")}</option>
+          <option value="MONTHLY">{t("reports.schedules.freq.MONTHLY")}</option>
         </select>
-        <select aria-label="File format" className={sel} value={format} onChange={(e) => setFormat(e.target.value)}>
+        <select aria-label={t("reports.schedules.fileFormat")} className={sel} value={format} onChange={(e) => setFormat(e.target.value)}>
           <option value="xlsx">Excel (.xlsx)</option>
           <option value="pdf">PDF</option>
           <option value="csv">CSV</option>
         </select>
-        <Input aria-label="Recipients" className="min-w-64 flex-1" placeholder="owner@cafe.com, accountant@firm.com" value={recipients} onChange={(e) => setRecipients(e.target.value)} />
-        <Button disabled={!recipients.trim() || create.isPending} onClick={() => create.mutate()}>Schedule</Button>
+        <Input aria-label={t("reports.schedules.recipients")} dir="ltr" className="min-w-64 flex-1" placeholder={t("reports.schedules.recipientsPlaceholder")} value={recipients} onChange={(e) => setRecipients(e.target.value)} />
+        <Button disabled={!recipients.trim() || create.isPending} onClick={() => create.mutate()}>{t("reports.schedules.schedule")}</Button>
       </div>
       {data && data.schedules.length > 0 && (
         <ul className="flex flex-col divide-y divide-border">
           {data.schedules.map((s) => (
             <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
               <div>
-                <p className="font-medium text-foreground">{titles[s.reportKey] ?? s.reportKey} <span className="font-normal text-muted-foreground">· {s.format.toUpperCase()} · {WHEN[s.frequency]}</span></p>
+                <p className="font-medium text-foreground">{titles[s.reportKey] ?? s.reportKey} <span className="font-normal text-muted-foreground">· {s.format.toUpperCase()} · {t(WHEN_KEYS[s.frequency])}</span></p>
                 <p className="text-xs text-muted-foreground">
-                  To {s.recipients.join(", ")}
-                  {s.lastSentAt ? ` · last sent ${s.lastSentAt.slice(0, 16).replace("T", " ")}` : ""}
+                  {t("reports.schedules.to")} <bdi>{s.recipients.join(", ")}</bdi>
+                  {s.lastSentAt ? ` · ${t("reports.schedules.lastSent", { date: formatDateTime(s.lastSentAt) })}` : ""}
                   {s.lastError ? ` · ${s.lastError}` : ""}
                 </p>
               </div>
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" disabled={sendNow.isPending} onClick={() => sendNow.mutate(s.id)}>Send now</Button>
-                <Button size="sm" variant="outline" onClick={() => toggle.mutate({ id: s.id, isActive: !s.isActive })}>{s.isActive ? "Pause" : "Resume"}</Button>
-                <Button size="sm" variant="outline" onClick={() => remove.mutate(s.id)}>Delete</Button>
+                <Button size="sm" variant="outline" disabled={sendNow.isPending} onClick={() => sendNow.mutate(s.id)}>{t("reports.schedules.sendNow")}</Button>
+                <Button size="sm" variant="outline" onClick={() => toggle.mutate({ id: s.id, isActive: !s.isActive })}>{s.isActive ? t("reports.schedules.pause") : t("reports.schedules.resume")}</Button>
+                <Button size="sm" variant="outline" onClick={() => remove.mutate(s.id)}>{t("common.delete")}</Button>
               </div>
             </li>
           ))}

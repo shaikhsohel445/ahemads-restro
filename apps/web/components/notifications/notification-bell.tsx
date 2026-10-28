@@ -22,20 +22,21 @@ import {
 import { openEntity } from "@/lib/entity-events";
 import { playNotificationFeedback } from "@/lib/notification-feedback";
 import { connectRealtime } from "@/lib/realtime-socket";
+import { useI18n } from "@/lib/i18n/context";
 
 // How many alerts the live socket already rang for but the refresh has not
 // listed yet (module-level: only one bell is ever mounted).
 const socketAnnounce = { pending: 0 };
 
-function timeAgo(iso: string): string {
+function timeAgo(iso: string, t: (key: string, vars?: Record<string, number>) => string): string {
   const seconds = Math.round((Date.now() - new Date(iso).getTime()) / 1000);
-  if (seconds < 60) return "just now";
+  if (seconds < 60) return t("notifications.justNow");
   const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 60) return t("notifications.minutesAgo", { n: minutes });
   const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t("notifications.hoursAgo", { n: hours });
   const days = Math.round(hours / 24);
-  return `${days}d ago`;
+  return t("notifications.daysAgo", { n: days });
 }
 
 // Bell + unread badge for the dashboard topbar (mounted once in AppShell so
@@ -47,6 +48,7 @@ function timeAgo(iso: string): string {
 // receives is genuinely meant for the logged-in user.
 export function NotificationBell() {
   const { branchId } = useBranch();
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const { data } = useNotifications();
   const markRead = useMarkNotificationRead();
@@ -126,8 +128,8 @@ export function NotificationBell() {
             className="relative flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary"
             aria-label={
               unreadCount > 0
-                ? `Notifications, ${unreadCount} unread`
-                : "Notifications"
+                ? t("notifications.bellUnread", { n: unreadCount })
+                : t("notifications.title")
             }
           >
             <Bell className="h-[18px] w-[18px]" />
@@ -142,7 +144,7 @@ export function NotificationBell() {
       <DropdownMenuContent align="end" className="w-80 sm:w-96">
         <div className="flex items-center justify-between gap-2 px-1.5 py-1">
           <span className="text-xs font-medium text-muted-foreground">
-            Notifications
+            {t("notifications.title")}
           </span>
           <div className="flex items-center gap-1">
             <button
@@ -154,8 +156,8 @@ export function NotificationBell() {
               className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary"
               aria-label={
                 muted
-                  ? "Unmute notification sound on this device"
-                  : "Mute notification sound on this device"
+                  ? t("notifications.unmute")
+                  : t("notifications.mute")
               }
               aria-pressed={muted}
             >
@@ -173,7 +175,7 @@ export function NotificationBell() {
                   markAllRead.mutate();
                 }}
                 className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary"
-                aria-label="Mark all notifications read"
+                aria-label={t("notifications.markAllRead")}
               >
                 <CheckCheck className="h-3.5 w-3.5" />
               </button>
@@ -185,10 +187,10 @@ export function NotificationBell() {
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center gap-1 px-3 py-8 text-center">
             <p className="text-sm font-medium text-foreground">
-              No notifications yet
+              {t("notifications.emptyTitle")}
             </p>
             <p className="text-xs text-muted-foreground">
-              New orders and ready tickets will show up here.
+              {t("notifications.emptyBody")}
             </p>
           </div>
         ) : (
@@ -216,7 +218,7 @@ export function NotificationBell() {
                     {notification.title}
                   </span>
                   <span className="ms-auto shrink-0 text-[11px] text-muted-foreground">
-                    {timeAgo(notification.createdAt)}
+                    {timeAgo(notification.createdAt, t)}
                   </span>
                 </div>
                 <p className="ps-0 text-xs text-muted-foreground">

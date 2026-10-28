@@ -38,8 +38,9 @@
     { "binding": "UPLOADS", "bucket_name": "orderrestro-uploads-dev" },
     { "binding": "BACKUPS", "bucket_name": "orderrestro-backups-dev" }
   ],
-  "kv_namespaces": [
-    { "binding": "CACHE", "id": "00000000000000000000000000000000" }
+  "ratelimits": [
+    { "name": "AUTH_RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } },
+    { "name": "PUBLIC_RATE_LIMITER", "namespace_id": "1002", "simple": { "limit": 30, "period": 60 } }
   ],
   "durable_objects": {
     "bindings": [
@@ -76,8 +77,9 @@
         { "binding": "UPLOADS", "bucket_name": "orderrestro-uploads-staging" },
         { "binding": "BACKUPS", "bucket_name": "orderrestro-backups-staging" }
       ],
-      "kv_namespaces": [
-        { "binding": "CACHE", "id": "REPLACE_WITH_STAGING_KV_ID" }
+      "ratelimits": [
+        { "name": "AUTH_RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } },
+        { "name": "PUBLIC_RATE_LIMITER", "namespace_id": "1002", "simple": { "limit": 30, "period": 60 } }
       ],
       "durable_objects": {
         "bindings": [
@@ -112,8 +114,9 @@
         { "binding": "UPLOADS", "bucket_name": "orderrestro-uploads-production" },
         { "binding": "BACKUPS", "bucket_name": "orderrestro-backups-production" }
       ],
-      "kv_namespaces": [
-        { "binding": "CACHE", "id": "REPLACE_WITH_PRODUCTION_KV_ID" }
+      "ratelimits": [
+        { "name": "AUTH_RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } },
+        { "name": "PUBLIC_RATE_LIMITER", "namespace_id": "1002", "simple": { "limit": 30, "period": 60 } }
       ],
       "durable_objects": {
         "bindings": [

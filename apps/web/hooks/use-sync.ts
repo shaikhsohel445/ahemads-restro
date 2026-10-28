@@ -5,13 +5,19 @@ import { api } from "@/lib/api";
 
 export interface SyncStatus {
   enabled: boolean;
-  role: "client" | "server";
+  /**
+   * "unavailable" on the Cloudflare edition: server sync does not exist
+   * there (the API answers 501 to every action and `lastError` holds the
+   * reason), so the settings screen shows an explanation instead of setup.
+   */
+  role: "client" | "server" | "unavailable";
   serverUrl: string | null;
   hasKey: boolean;
   lastSyncAt: string | null;
   lastError: string | null;
   pendingChanges: number;
   conflicts: { tbl: string; pk: string; error: string; at: string }[];
+  unavailable?: boolean;
 }
 
 export interface SyncConnection {

@@ -12,7 +12,7 @@ export function AnimatedCounter({ value }: { value: number }) {
   const inView = useInView(ref, { once: true, margin: "-10% 0px" });
   const prefersReducedMotion = useReducedMotion();
   const motionValue = useMotionValue(0);
-  const rounded = useTransform(motionValue, (latest) => Math.round(latest).toLocaleString("en-IN"));
+  const rounded = useTransform(motionValue, (latest) => Math.round(latest).toLocaleString("en"));
 
   useEffect(() => {
     if (!inView) return;

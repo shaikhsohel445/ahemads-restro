@@ -20,23 +20,22 @@ import {
 } from "@/hooks/use-orders";
 import { formatCurrency } from "@/lib/format";
 import { openEntity } from "@/lib/entity-events";
+import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 
-const TABS: { key: OrderTab; label: string }[] = [
-  { key: "pending", label: "New (to accept)" },
-  { key: "active", label: "In progress" },
-  { key: "history", label: "History" },
-];
+// Labels: orders.tab.<key>, translated at render time.
+const TABS: { key: OrderTab }[] = [{ key: "pending" }, { key: "active" }, { key: "history" }];
 
 // One chip = one filter. Online/Offline filter by channel, the rest by how
 // the order is fulfilled.
-const FILTERS: { key: string; label: string; channel?: OrderChannel; type?: string }[] = [
-  { key: "all", label: "All" },
-  { key: "online", label: "Online", channel: "ONLINE" },
-  { key: "offline", label: "Offline", channel: "STAFF" },
-  { key: "takeaway", label: "Takeaway", type: "TAKEAWAY" },
-  { key: "delivery", label: "Delivery", type: "DELIVERY" },
-  { key: "dinein", label: "Dine-in", type: "DINE_IN" },
+// Labels: orders.filter.<key>, translated at render time.
+const FILTERS: { key: string; channel?: OrderChannel; type?: string }[] = [
+  { key: "all" },
+  { key: "online", channel: "ONLINE" },
+  { key: "offline", channel: "STAFF" },
+  { key: "takeaway", type: "TAKEAWAY" },
+  { key: "delivery", type: "DELIVERY" },
+  { key: "dinein", type: "DINE_IN" },
 ];
 
 const chip = (on: boolean) =>
@@ -47,15 +46,16 @@ const chip = (on: boolean) =>
       : "border-border text-muted-foreground hover:bg-secondary",
   );
 
-function timeAgo(iso: string) {
+function timeAgo(iso: string, t: (key: string, vars?: Record<string, string | number>) => string) {
   const m = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
+  if (m < 1) return t("orders.ago.now");
+  if (m < 60) return t("orders.ago.minutes", { n: m });
   const h = Math.round(m / 60);
-  return h < 24 ? `${h}h ago` : `${Math.round(h / 24)}d ago`;
+  return h < 24 ? t("orders.ago.hours", { n: h }) : t("orders.ago.days", { n: Math.round(h / 24) });
 }
 
 export default function OrdersPage() {
+  const { t } = useI18n();
   const { branchId } = useBranch();
   const [tab, setTab] = useState<OrderTab>("pending");
   const [filterKey, setFilterKey] = useState("all");
@@ -88,22 +88,22 @@ export default function OrdersPage() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">Orders</h1>
+        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">{t("common.orders")}</h1>
         <p className="text-sm text-muted-foreground">
-          Accept new online orders and manage everything in progress
+          {t("orders.subtitle")}
         </p>
       </div>
 
       <ScanOrderInput branchId={branchId} />
 
       <div className="flex flex-wrap gap-2">
-        {TABS.map((t) => (
-          <button key={t.key} type="button" onClick={() => {
-              setTab(t.key);
+        {TABS.map((tb) => (
+          <button key={tb.key} type="button" onClick={() => {
+              setTab(tb.key);
               setSelected(new Set());
-            }} className={chip(tab === t.key)}>
-            {t.label}
-            {t.key === "pending" && pendingCount > 0 && (
+            }} className={chip(tab === tb.key)}>
+            {t(`orders.tab.${tb.key}`)}
+            {tb.key === "pending" && pendingCount > 0 && (
               <span className="ms-2 rounded-full bg-destructive px-1.5 text-xs text-white">
                 {pendingCount}
               </span>
@@ -120,15 +120,15 @@ export default function OrdersPage() {
             onClick={() => setFilterKey(f.key)}
             className={cn(chip(filterKey === f.key), "py-1 text-xs")}
           >
-            {f.label}
+            {t(`orders.filter.${f.key}`)}
           </button>
         ))}
       </div>
 
       {selectable && finished.length > 0 && (
         <label className="flex w-fit cursor-pointer items-center gap-2 text-sm text-muted-foreground">
-          <Checkbox checked={allSelected} onCheckedChange={toggleAll} aria-label="Select all transactions" />
-          Select all {finished.length}
+          <Checkbox checked={allSelected} onCheckedChange={toggleAll} aria-label={t("orders.selectAllLabel")} />
+          {t("orders.selectAll", { n: finished.length })}
         </label>
       )}
 
@@ -152,10 +152,10 @@ export default function OrdersPage() {
         ) : (
           <div className="flex flex-col items-center gap-1 py-16 text-center">
             <p className="text-sm font-medium text-foreground">
-              {tab === "pending" ? "No orders waiting for you" : "No orders here"}
+              {tab === "pending" ? t("orders.emptyPending") : t("orders.empty")}
             </p>
             <p className="text-sm text-muted-foreground">
-              New online orders appear here with a sound alert.
+              {t("orders.emptyHint")}
             </p>
           </div>
         )}
@@ -176,7 +176,7 @@ export default function OrdersPage() {
           )}
         >
           <span className="text-sm font-medium tabular-nums text-foreground" aria-live="polite">
-            {visibleSelected.length} selected
+            {t("orders.selected", { n: visibleSelected.length })}
           </span>
           <Button
             type="button"
@@ -185,7 +185,7 @@ export default function OrdersPage() {
             tabIndex={visibleSelected.length > 0 ? 0 : -1}
             onClick={() => setSelected(new Set())}
           >
-            <X className="h-4 w-4" aria-hidden /> Clear
+            <X className="h-4 w-4" aria-hidden /> {t("common.clear")}
           </Button>
           <Button
             type="button"
@@ -194,7 +194,7 @@ export default function OrdersPage() {
             tabIndex={visibleSelected.length > 0 ? 0 : -1}
             onClick={() => setConfirmOpen(true)}
           >
-            <Trash2 className="h-4 w-4" aria-hidden /> Delete
+            <Trash2 className="h-4 w-4" aria-hidden /> {t("common.delete")}
           </Button>
         </div>
       </div>
@@ -221,7 +221,8 @@ function OrderRow({
   selected: boolean;
   onToggle: () => void;
 }) {
-  const name = order.guestName ?? order.customer?.name ?? "Walk-in guest";
+  const { t } = useI18n();
+  const name = order.guestName ?? order.customer?.name ?? t("orders.walkIn");
   const summary = order.items.map((i) => `${i.quantity}× ${i.nameSnapshot}`).join(", ");
   const rejected = order.acceptance === "REJECTED";
   return (
@@ -236,7 +237,7 @@ function OrderRow({
           <Checkbox
             checked={selected}
             onCheckedChange={onToggle}
-            aria-label={`Select transaction #${order.orderNumber}`}
+            aria-label={t("orders.selectOne", { number: order.orderNumber })}
           />
         </div>
       )}
@@ -247,16 +248,16 @@ function OrderRow({
     >
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-semibold text-foreground">#{order.orderNumber}</span>
+          <bdi className="text-sm font-semibold text-foreground">#{order.orderNumber}</bdi>
           <span className="text-sm text-foreground">{name}</span>
           <ChannelBadge channel={order.channel} />
           <TypeBadge type={order.type} />
           {order.acceptance === "PENDING" && (
-            <Badge className="font-normal">Needs action</Badge>
+            <Badge className="font-normal">{t("orders.needsAction")}</Badge>
           )}
-          {rejected && <Badge variant="secondary" className="font-normal">Rejected</Badge>}
+          {rejected && <Badge variant="secondary" className="font-normal">{t("orders.rejected")}</Badge>}
           {!rejected && order.status === "CANCELLED" && (
-            <Badge variant="secondary" className="font-normal">Cancelled</Badge>
+            <Badge variant="secondary" className="font-normal">{t("common.orderStatus.CANCELLED")}</Badge>
           )}
         </div>
         <span className="truncate text-xs text-muted-foreground">{summary}</span>
@@ -266,7 +267,7 @@ function OrderRow({
           {formatCurrency(order.totalAmount)}
         </span>
         <span className="flex items-center gap-1 text-xs text-muted-foreground">
-          <Clock className="h-3 w-3" /> {timeAgo(order.createdAt)}
+          <Clock className="h-3 w-3" /> {timeAgo(order.createdAt, t)}
         </span>
       </div>
     </button>

@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ResponsiveTabs } from "@/components/ui/nav-picker";
 import { useCategories, useMenuItems, type MenuItem } from "@/hooks/use-menu";
 import { formatCurrency } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 
 export function ProductGrid({
@@ -16,6 +17,7 @@ export function ProductGrid({
   branchId: string | null;
   onSelect: (item: MenuItem) => void;
 }) {
+  const { t } = useI18n();
   const { data: categories } = useCategories(branchId);
   const [activeCategoryId, setActiveCategoryId] = useState<string | undefined>(undefined);
   const [search, setSearch] = useState("");
@@ -26,7 +28,7 @@ export function ProductGrid({
   return (
     <div className="flex h-full flex-col gap-4">
       <Input
-        placeholder="Search menu…"
+        placeholder={t("pos.menu.search")}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="h-11"
@@ -36,21 +38,21 @@ export function ProductGrid({
         <ResponsiveTabs
           mobileOnly
           className="lg:hidden"
-          label="Category"
+          label={t("common.category")}
           value={activeCategoryId ?? "all"}
           onChange={(id) => setActiveCategoryId(id === "all" ? undefined : id)}
           desktopListClassName="justify-start lg:h-auto lg:flex-wrap"
-          items={[{ id: "all", label: "All" }, ...categories.map((c) => ({ id: c.id, label: c.name, hint: `${c._count.items} items` }))]}
+          items={[{ id: "all", label: t("common.all") }, ...categories.map((c) => ({ id: c.id, label: c.name, hint: t("pos.menu.itemsCount", { n: c._count.items }) }))]}
         />
       )}
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row lg:gap-5">
       {categories && categories.length > 0 && (
         <nav
-          aria-label="Category"
+          aria-label={t("common.category")}
           className="hidden w-52 shrink-0 flex-col gap-1 overflow-y-auto border-e border-border pe-3 lg:flex xl:w-60"
         >
-          {[{ id: undefined as string | undefined, name: "All", count: undefined as number | undefined }, ...categories.map((c) => ({ id: c.id as string | undefined, name: c.name, count: c._count.items as number | undefined }))].map((c) => {
+          {[{ id: undefined as string | undefined, name: t("common.all"), count: undefined as number | undefined }, ...categories.map((c) => ({ id: c.id as string | undefined, name: c.name, count: c._count.items as number | undefined }))].map((c) => {
             const active = c.id === activeCategoryId;
             return (
               <button
@@ -78,9 +80,9 @@ export function ProductGrid({
       )}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       {isError && !items ? (
-        <QueryError error={error} what="the menu" onRetry={() => void refetch()} retrying={isFetching} />
+        <QueryError error={error} what={t("pos.menu.what")} onRetry={() => void refetch()} retrying={isFetching} />
       ) : (
-      <div className="grid flex-1 auto-rows-min grid-cols-2 gap-3 overflow-y-auto pb-4 sm:grid-cols-3 lg:grid-cols-3 lg:gap-4 xl:grid-cols-4 2xl:grid-cols-5">
+      <div className="grid flex-1 auto-rows-min grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-3 overflow-y-auto pb-4 lg:gap-4">
         {isLoading &&
           Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}
         {filtered?.map((item) => (
@@ -99,7 +101,7 @@ export function ProductGrid({
               </span>
               {item.halfPrice != null && (
                 <span className="hidden text-[11px] tabular-nums text-muted-foreground lg:inline">
-                  Half {formatCurrency(item.halfPrice)}
+                  {t("pos.menu.halfPrice", { price: formatCurrency(item.halfPrice) })}
                 </span>
               )}
             </span>
@@ -107,7 +109,7 @@ export function ProductGrid({
         ))}
         {filtered?.length === 0 && !isLoading && (
           <p className="col-span-full py-10 text-center text-sm text-muted-foreground">
-            {search ? <>No items match &quot;{search}&quot;</> : "No items in this category yet"}
+            {search ? t("pos.menu.noMatch", { search }) : t("pos.menu.emptyCategory")}
           </p>
         )}
       </div>

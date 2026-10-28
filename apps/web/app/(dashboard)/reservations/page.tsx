@@ -18,7 +18,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useBranch } from "@/hooks/use-branch";
 import { useReservations, useUpdateReservationStatus, type Reservation } from "@/hooks/use-reservations";
 import { useFloors } from "@/hooks/use-tables";
+import { formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/context";
 
 const STATUS_STYLES: Record<ReservationStatusDto, string> = {
   RESERVED: "bg-secondary text-muted-foreground",
@@ -39,6 +41,7 @@ const STATUS_FLOW: ReservationStatusDto[] = [
 ];
 
 export default function ReservationsPage() {
+  const { t } = useI18n();
   const { branchId } = useBranch();
   const { data: reservations, isLoading } = useReservations(branchId);
   const { data: floors } = useFloors(branchId);
@@ -53,9 +56,9 @@ export default function ReservationsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[32px] font-semibold tracking-tight text-foreground">
-            Reservations
+            {t("reservations.title")}
           </h1>
-          <p className="text-sm text-muted-foreground">Upcoming bookings across all floors</p>
+          <p className="text-sm text-muted-foreground">{t("reservations.subtitle")}</p>
         </div>
         <AddReservationDialog branchId={branchId} tables={tables} />
       </div>
@@ -70,9 +73,9 @@ export default function ReservationsPage() {
       <div className="flex flex-wrap gap-2">
         {(
           [
-            ["all", "All"],
-            ["ONLINE", "Online"],
-            ["STAFF", "Offline / walk-in"],
+            ["all", "common.all"],
+            ["ONLINE", "reservations.channel.online"],
+            ["STAFF", "reservations.channel.staff"],
           ] as const
         ).map(([key, label]) => (
           <button
@@ -86,7 +89,7 @@ export default function ReservationsPage() {
                 : "border-border text-muted-foreground hover:bg-secondary",
             )}
           >
-            {label}
+            {t(label)}
           </button>
         ))}
       </div>
@@ -105,7 +108,7 @@ export default function ReservationsPage() {
                 type="button"
                 onClick={() => setSelected(r)}
                 className="flex flex-col text-start transition hover:opacity-80"
-                title="Manage booking"
+                title={t("reservations.manage")}
               >
                 <span className="flex items-center gap-2 text-sm font-medium text-foreground">
                   {r.customerName}
@@ -113,14 +116,14 @@ export default function ReservationsPage() {
                 </span>
                 <span className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Users className="h-3 w-3" />
-                  {r.guestCount} guests
-                  {r.table && <> · {r.table.name ?? `Table ${r.table.number}`}</>}
-                  {r.phone && <> · {r.phone}</>}
+                  {t("reservations.guestsCount", { n: r.guestCount })}
+                  {r.table && <> · {r.table.name ?? t("reservations.tableN", { n: r.table.number })}</>}
+                  {r.phone && <> · <bdi dir="ltr">{r.phone}</bdi></>}
                 </span>
               </button>
               <div className="flex items-center gap-3">
                 <span className="text-sm tabular-nums text-muted-foreground">
-                  {new Date(r.reservedAt).toLocaleString(undefined, {
+                  {formatDateTime(r.reservedAt, {
                     month: "short",
                     day: "numeric",
                     hour: "numeric",
@@ -133,7 +136,8 @@ export default function ReservationsPage() {
                       variant="secondary"
                       size="icon-sm"
                       className="text-success hover:bg-success/10"
-                      title="Accept reservation"
+                      title={t("reservations.accept")}
+                      aria-label={t("reservations.accept")}
                       onClick={() => updateStatus.mutate({ id: r.id, status: "CONFIRMED" })}
                     >
                       <Check className="h-4 w-4" />
@@ -142,7 +146,8 @@ export default function ReservationsPage() {
                       variant="secondary"
                       size="icon-sm"
                       className="text-destructive hover:bg-destructive/10"
-                      title="Reject reservation"
+                      title={t("reservations.reject")}
+                      aria-label={t("reservations.reject")}
                       onClick={() => updateStatus.mutate({ id: r.id, status: "CANCELLED" })}
                     >
                       <X className="h-4 w-4" />
@@ -156,7 +161,7 @@ export default function ReservationsPage() {
                       STATUS_STYLES[r.status],
                     )}
                   >
-                    {r.status.replace("_", " ")}
+                    {t(`common.reservationStatus.${r.status}`)}
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     {STATUS_FLOW.map((status) => (
@@ -165,7 +170,7 @@ export default function ReservationsPage() {
                         disabled={status === r.status}
                         onClick={() => updateStatus.mutate({ id: r.id, status })}
                       >
-                        {status.replace("_", " ")}
+                        {t(`common.reservationStatus.${status}`)}
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>
@@ -175,9 +180,9 @@ export default function ReservationsPage() {
           ))
         ) : (
           <div className="flex flex-col items-center gap-2 py-16 text-center">
-            <p className="text-sm font-medium text-foreground">No reservations yet</p>
+            <p className="text-sm font-medium text-foreground">{t("reservations.empty")}</p>
             <p className="text-sm text-muted-foreground">
-              Add a booking to hold a table for a guest.
+              {t("reservations.emptyHint")}
             </p>
           </div>
         )}

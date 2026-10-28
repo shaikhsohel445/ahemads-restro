@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCreateReservation } from "@/hooks/use-reservations";
 import type { RestaurantTable } from "@/hooks/use-tables";
 import { ApiError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 
 function defaultDateTimeLocal() {
   const d = new Date(Date.now() + 60 * 60 * 1000);
@@ -38,6 +39,7 @@ export function AddReservationDialog({
   branchId: string | null;
   tables: RestaurantTable[];
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [phone, setPhone] = useState("");
@@ -71,27 +73,27 @@ export function AddReservationDialog({
       },
       {
         onSuccess: () => {
-          toast.success(`Reservation added for ${customerName}`);
+          toast.success(t("reservations.added", { name: customerName }));
           setOpen(false);
           reset();
         },
         onError: (err) =>
-          toast.error(err instanceof ApiError ? err.message : "Could not add reservation"),
+          toast.error(err instanceof ApiError ? err.message : t("reservations.addFailed")),
       },
     );
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm">New reservation</Button>} />
+      <DialogTrigger render={<Button size="sm">{t("reservations.new")}</Button>} />
       <DialogContent className="sm:max-w-md">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>New reservation</DialogTitle>
+            <DialogTitle>{t("reservations.new")}</DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="r-name">Customer name</Label>
+            <Label htmlFor="r-name">{t("reservations.customerName")}</Label>
             <Input
               id="r-name"
               value={customerName}
@@ -103,11 +105,11 @@ export function AddReservationDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="r-phone">Phone</Label>
-              <Input id="r-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <Label htmlFor="r-phone">{t("common.phone")}</Label>
+              <Input id="r-phone" type="tel" dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="r-guests">Guests</Label>
+              <Label htmlFor="r-guests">{t("common.guests")}</Label>
               <Input
                 id="r-guests"
                 type="number"
@@ -120,7 +122,7 @@ export function AddReservationDialog({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="r-when">Date & time</Label>
+            <Label htmlFor="r-when">{t("reservations.dateTime")}</Label>
             <Input
               id="r-when"
               type="datetime-local"
@@ -131,15 +133,21 @@ export function AddReservationDialog({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label>Table (optional)</Label>
+            <Label>{t("reservations.tableOptional")}</Label>
             <Select value={tableId} onValueChange={(v) => setTableId(v ?? "")}>
               <SelectTrigger>
-                <SelectValue placeholder="No table assigned yet" />
+                <SelectValue placeholder={t("reservations.noTableYet")}>
+                  {(value: string | null) => {
+                    const table = tables.find((x) => x.id === value);
+                    if (!table) return t("reservations.noTableYet");
+                    return table.name ?? t("reservations.tableN", { n: table.number });
+                  }}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                {tables.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>
-                    {t.name ?? `Table ${t.number}`}
+                {tables.map((table) => (
+                  <SelectItem key={table.id} value={table.id}>
+                    {table.name ?? t("reservations.tableN", { n: table.number })}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -147,7 +155,7 @@ export function AddReservationDialog({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="r-notes">Special requests</Label>
+            <Label htmlFor="r-notes">{t("reservations.specialRequests")}</Label>
             <Textarea
               id="r-notes"
               value={specialRequests}
@@ -158,7 +166,7 @@ export function AddReservationDialog({
 
           <DialogFooter>
             <Button type="submit" disabled={createReservation.isPending}>
-              {createReservation.isPending ? "Saving…" : "Save reservation"}
+              {createReservation.isPending ? t("common.saving") : t("reservations.save")}
             </Button>
           </DialogFooter>
         </form>

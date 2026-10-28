@@ -1,8 +1,12 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
+import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 
 // Online = guest ordered via website/QR; Offline = entered by staff.
 export function ChannelBadge({ channel }: { channel: "STAFF" | "ONLINE" }) {
+  const { t } = useI18n();
   const online = channel === "ONLINE";
   return (
     <Badge
@@ -12,25 +16,19 @@ export function ChannelBadge({ channel }: { channel: "STAFF" | "ONLINE" }) {
         online ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground",
       )}
     >
-      {online ? "Online" : "Offline"}
+      {online ? t("orders.filter.online") : t("orders.filter.offline")}
     </Badge>
   );
 }
 
-export const ORDER_TYPE_LABEL: Record<string, string> = {
-  DINE_IN: "Dine-in",
-  TAKEAWAY: "Takeaway",
-  DELIVERY: "Delivery",
-  DRIVE_THRU: "Drive-thru",
-  QR_ORDER: "QR order",
-  KIOSK: "Kiosk",
-  PHONE: "Phone",
-};
+// Labels come from common.orderType.<TYPE>.
+const KNOWN_TYPES = new Set(["DINE_IN", "TAKEAWAY", "DELIVERY", "DRIVE_THRU", "QR_ORDER", "KIOSK", "PHONE"]);
 
 export function TypeBadge({ type }: { type: string }) {
+  const { t } = useI18n();
   return (
     <Badge variant="secondary" className="font-normal">
-      {ORDER_TYPE_LABEL[type] ?? type.replace("_", " ")}
+      {KNOWN_TYPES.has(type) ? t(`common.orderType.${type}`) : type.replace("_", " ")}
     </Badge>
   );
 }

@@ -8,20 +8,15 @@ export const restoreBackupSchema = z.object({
 });
 export type RestoreBackupDto = z.infer<typeof restoreBackupSchema>;
 
-// Not @IsUrl-style strict URL validation on `endpoint` — deliberately a
-// loose http(s):// prefix check (same reasoning as zulivio's
-// SetBackupConfigDto): a real S3-compatible endpoint can be a bare IP with
-// a port, and the actual validation that matters is the live connectivity
-// probe `BackupService.setConfig()` performs before persisting anything.
+// Cloudflare edition: backups go to the deployment's bound R2 bucket, so the
+// S3 connection fields are optional and ignored by the API (older clients may
+// still send them). Only the schedule (intervalDays / retainCount) is saved.
 export const setBackupConfigSchema = z.object({
-  endpoint: z
-    .string()
-    .min(1)
-    .regex(/^https?:\/\/.+/, "Endpoint must start with http:// or https://"),
-  bucket: z.string().min(1),
-  accessKeyId: z.string().min(1),
-  secretAccessKey: z.string().min(1),
-  region: z.string().min(1).optional(),
+  endpoint: z.string().optional(),
+  bucket: z.string().optional(),
+  accessKeyId: z.string().optional(),
+  secretAccessKey: z.string().optional(),
+  region: z.string().optional(),
   intervalDays: z.coerce.number().int().min(1).max(30).optional(),
   retainCount: z.coerce.number().int().min(1).max(10).optional(),
 });

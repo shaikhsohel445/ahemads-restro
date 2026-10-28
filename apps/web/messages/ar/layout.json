@@ -1,1 +1,15 @@
-{}
+{
+  "contact.call": "اتصال",
+  "contact.noPhone": "لا يوجد رقم هاتف مسجّل.",
+  "contact.whatsapp": "واتساب",
+  "contactSupport": "التواصل مع الدعم",
+  "navigation": "التنقل",
+  "needsAttention": "يحتاج إلى متابعة",
+  "noBranch": "لم يتم تعيين أي فرع لحسابك. اطلب من المسؤول تعيينك في أحد الفروع.",
+  "openNavigation": "فتح القائمة",
+  "primaryNav": "التنقل الرئيسي",
+  "redirecting": "جارٍ التحويل…",
+  "selectBranch": "اختر الفرع",
+  "toggleTheme": "تبديل المظهر",
+  "whatBranches": "فروعك"
+}

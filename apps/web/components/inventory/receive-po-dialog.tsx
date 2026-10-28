@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateGoodsReceipt, type PurchaseOrderDetail } from "@/hooks/use-inventory";
 import { ApiError } from "@/lib/api";
+import { formatNumber } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 
 interface ReceiveRow {
   purchaseOrderItemId: string;
@@ -28,6 +30,7 @@ interface ReceiveRow {
 }
 
 export function ReceivePoDialog({ branchId, po }: { branchId: string | null; po: PurchaseOrderDetail }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const outstanding = po.items.filter(
     (item) => Number(item.quantityReceived) < Number(item.quantityOrdered),
@@ -70,11 +73,11 @@ export function ReceivePoDialog({ branchId, po }: { branchId: string | null; po:
       },
       {
         onSuccess: () => {
-          toast.success("Goods receipt recorded — stock updated");
+          toast.success(t("inventory.grn.recorded"));
           setOpen(false);
         },
         onError: (err) =>
-          toast.error(err instanceof ApiError ? err.message : "Could not record goods receipt"),
+          toast.error(err instanceof ApiError ? err.message : t("inventory.grn.recordFailed")),
       },
     );
   };
@@ -83,15 +86,14 @@ export function ReceivePoDialog({ branchId, po }: { branchId: string | null; po:
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm">Receive items</Button>} />
+      <DialogTrigger render={<Button size="sm">{t("inventory.grn.receiveItems")}</Button>} />
       <DialogContent className="sm:max-w-lg">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>Receive against {po.poNumber}</DialogTitle>
+            <DialogTitle>{t("inventory.grn.receiveAgainst", { po: po.poNumber })}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Enter what actually arrived — quantity and cost can differ from what was ordered.
-            Each line becomes its own batch with a lot number and optional expiry date.
+            {t("inventory.grn.help")}
           </p>
           <div className="flex flex-col gap-4">
             {rows.map((row, index) => (
@@ -99,32 +101,37 @@ export function ReceivePoDialog({ branchId, po }: { branchId: string | null; po:
                 <div className="mb-2 flex items-center justify-between text-sm font-medium text-foreground">
                   <span>{row.name}</span>
                   <span className="text-xs text-muted-foreground">
-                    {row.remaining} {row.unit} outstanding
+                    {t("inventory.grn.outstanding", {
+                      qty: formatNumber(row.remaining, { maximumFractionDigits: 3 }),
+                      unit: row.unit ? t(`inventory.unit.${row.unit}`) : "",
+                    })}
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <div className="flex flex-col gap-1">
-                    <Label className="text-xs">Qty received</Label>
+                    <Label className="text-xs">{t("inventory.grn.qtyReceived")}</Label>
                     <Input
                       type="number"
                       min="0"
                       step="0.001"
                       value={row.quantity}
                       onChange={(e) => updateRow(index, { quantity: e.target.value })}
+                      dir="ltr"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <Label className="text-xs">Cost / unit</Label>
+                    <Label className="text-xs">{t("inventory.costPerUnit")}</Label>
                     <Input
                       type="number"
                       min="0"
                       step="0.01"
                       value={row.unitCost}
                       onChange={(e) => updateRow(index, { unitCost: e.target.value })}
+                      dir="ltr"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <Label className="text-xs">Expiry (optional)</Label>
+                    <Label className="text-xs">{t("inventory.grn.expiryOptional")}</Label>
                     <Input
                       type="date"
                       value={row.expiryDate}
@@ -137,7 +144,7 @@ export function ReceivePoDialog({ branchId, po }: { branchId: string | null; po:
           </div>
           <DialogFooter>
             <Button type="submit" disabled={!canSubmit || createGrn.isPending}>
-              {createGrn.isPending ? "Recording…" : "Record goods receipt"}
+              {createGrn.isPending ? t("inventory.recording") : t("inventory.grn.record")}
             </Button>
           </DialogFooter>
         </form>

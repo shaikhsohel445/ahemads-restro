@@ -11,9 +11,13 @@ import {
 } from "recharts";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatDate } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 
+// Trend points are calendar days ("YYYY-MM-DD", parsed as UTC midnight), so
+// format them in UTC to keep the day from shifting with the time zone.
 function formatDayLabel(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  return formatDate(dateStr, { day: "numeric", month: "short", timeZone: "UTC" });
 }
 
 export function TrendChart({
@@ -36,6 +40,8 @@ export function TrendChart({
   emptyMessage: string;
 }) {
   const hasData = data.some((d) => Number(d[valueKey]) > 0);
+  // Re-render the chart when the UI language changes (tick labels).
+  const { locale } = useI18n();
 
   return (
     <Card className="flex flex-col gap-3 p-6">
@@ -51,9 +57,10 @@ export function TrendChart({
           {emptyMessage}
         </div>
       ) : (
-        <div className="h-56">
+        // Time runs left-to-right even in Arabic, so the chart keeps LTR axes.
+        <div className="h-56" dir="ltr">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+            <LineChart key={locale} data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis
                 dataKey="date"
@@ -66,7 +73,7 @@ export function TrendChart({
                 tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
                 axisLine={false}
                 tickLine={false}
-                width={48}
+                width={64}
                 tickFormatter={(v: number) => valueFormatter(v)}
               />
               <Tooltip

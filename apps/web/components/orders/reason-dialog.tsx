@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ApiError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 
 // A deliberate "are you sure, and why" step for refusing something. Used for
 // declining an incoming order and for the kitchen rejecting a ticket. It is a
@@ -26,7 +27,7 @@ export function ReasonDialog({
   warning,
   reasons,
   confirmLabel,
-  keepLabel = "Keep it",
+  keepLabel,
   onSubmit,
 }: {
   open: boolean;
@@ -40,6 +41,7 @@ export function ReasonDialog({
   keepLabel?: string;
   onSubmit: (reason: string) => Promise<unknown>;
 }) {
+  const { t } = useI18n();
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -63,7 +65,7 @@ export function ReasonDialog({
       setReason("");
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof ApiError || err instanceof Error ? err.message : "Something went wrong. Try again.");
+      setError(err instanceof ApiError || err instanceof Error ? err.message : t("orders.reasonDialog.failed"));
     } finally {
       setPending(false);
     }
@@ -83,7 +85,7 @@ export function ReasonDialog({
             </p>
           )}
           <div className="flex flex-col gap-2">
-            <Label htmlFor="reason-input">Reason</Label>
+            <Label htmlFor="reason-input">{t("orders.reason")}</Label>
             <Input
               id="reason-input"
               value={reason}
@@ -92,7 +94,7 @@ export function ReasonDialog({
               required
               autoFocus
               className="h-11"
-              placeholder="Why?"
+              placeholder={t("orders.reasonDialog.why")}
             />
             <div className="flex flex-wrap gap-2">
               {reasons.map((r) => (
@@ -109,10 +111,10 @@ export function ReasonDialog({
           )}
           <DialogFooter>
             <Button type="button" variant="outline" className="h-11" onClick={() => close(false)}>
-              {keepLabel}
+              {keepLabel ?? t("orders.reasonDialog.keep")}
             </Button>
             <Button type="submit" variant="destructive" className="h-11" disabled={pending || !reason.trim()}>
-              {pending ? "Working…" : confirmLabel}
+              {pending ? t("orders.reasonDialog.working") : confirmLabel}
             </Button>
           </DialogFooter>
         </form>

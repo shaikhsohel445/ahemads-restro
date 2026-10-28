@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateCustomer, type Customer } from "@/hooks/use-customers";
 import { ApiError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 
 export function AddCustomerDialog({
   branchId,
@@ -28,6 +29,7 @@ export function AddCustomerDialog({
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const createCustomer = useCreateCustomer(branchId);
+  const { t } = useI18n();
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +37,7 @@ export function AddCustomerDialog({
       { name: name || undefined, phone: phone || undefined, email: email || undefined },
       {
         onSuccess: (customer) => {
-          toast.success(`${name || "Customer"} added`);
+          toast.success(t("customers.added", { name: name || t("common.customer") }));
           setOpen(false);
           setName("");
           setPhone("");
@@ -43,39 +45,40 @@ export function AddCustomerDialog({
           onCreated?.(customer);
         },
         onError: (err) =>
-          toast.error(err instanceof ApiError ? err.message : "Could not add customer"),
+          toast.error(err instanceof ApiError ? err.message : t("customers.addError")),
       },
     );
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm">New customer</Button>} />
+      <DialogTrigger render={<Button size="sm">{t("customers.new")}</Button>} />
       <DialogContent className="sm:max-w-sm">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>New customer</DialogTitle>
+            <DialogTitle>{t("customers.new")}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="c-name">Name</Label>
+            <Label htmlFor="c-name">{t("common.name")}</Label>
             <Input id="c-name" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="c-phone">Phone</Label>
-            <Input id="c-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <Label htmlFor="c-phone">{t("common.phone")}</Label>
+            <Input id="c-phone" type="tel" dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="c-email">Email</Label>
+            <Label htmlFor="c-email">{t("common.email")}</Label>
             <Input
               id="c-email"
               type="email"
+              dir="ltr"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <DialogFooter>
             <Button type="submit" disabled={createCustomer.isPending}>
-              {createCustomer.isPending ? "Adding…" : "Add customer"}
+              {createCustomer.isPending ? t("customers.adding") : t("customers.add")}
             </Button>
           </DialogFooter>
         </form>

@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAdjustStock, type Ingredient } from "@/hooks/use-inventory";
 import { ApiError } from "@/lib/api";
+import { formatNumber } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 
 export function AdjustStockDialog({
   branchId,
@@ -23,6 +25,7 @@ export function AdjustStockDialog({
   branchId: string | null;
   ingredient: Ingredient;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState("");
   const [note, setNote] = useState("");
@@ -36,36 +39,45 @@ export function AdjustStockDialog({
       { id: ingredient.id, dto: { quantity: qty, note } },
       {
         onSuccess: () => {
-          toast.success(`Stock adjusted by ${qty > 0 ? "+" : ""}${qty} ${ingredient.unit}`);
+          toast.success(
+            t("inventory.adjust.success", {
+              qty: `${qty > 0 ? "+" : ""}${formatNumber(qty, { maximumFractionDigits: 3 })}`,
+              unit: t(`inventory.unit.${ingredient.unit}`),
+            }),
+          );
           setOpen(false);
           setQuantity("");
           setNote("");
         },
-        onError: (err) => toast.error(err instanceof ApiError ? err.message : "Could not adjust stock"),
+        onError: (err) => toast.error(err instanceof ApiError ? err.message : t("inventory.adjust.failed")),
       },
     );
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="outline" size="sm">Adjust</Button>} />
+      <DialogTrigger render={<Button variant="outline" size="sm">{t("inventory.adjust.button")}</Button>} />
       <DialogContent className="sm:max-w-sm">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>Adjust stock — {ingredient.name}</DialogTitle>
+            <DialogTitle>{t("inventory.adjust.title", { name: ingredient.name })}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Current: {ingredient.currentStock} {ingredient.unit}. Use this only for stocktake
-            corrections — receiving stock should go through a purchase order + GRN, and losses
-            should go through the waste log.
+            {t("inventory.adjust.current")}{" "}
+            <bdi>
+              {formatNumber(ingredient.currentStock, { maximumFractionDigits: 3 })}{" "}
+              {t(`inventory.unit.${ingredient.unit}`)}
+            </bdi>
+            . {t("inventory.adjust.help")}
           </p>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="adj-qty">Quantity change</Label>
+            <Label htmlFor="adj-qty">{t("inventory.adjust.quantityChange")}</Label>
             <Input
               id="adj-qty"
               type="number"
               step="0.001"
-              placeholder="e.g. -2 or 5"
+              placeholder={t("inventory.adjust.quantityPlaceholder")}
+              dir="ltr"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               autoFocus
@@ -73,18 +85,18 @@ export function AdjustStockDialog({
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="adj-note">Reason</Label>
+            <Label htmlFor="adj-note">{t("inventory.reason")}</Label>
             <Input
               id="adj-note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="e.g. Physical count correction"
+              placeholder={t("inventory.adjust.reasonPlaceholder")}
               required
             />
           </div>
           <DialogFooter>
             <Button type="submit" disabled={adjustStock.isPending}>
-              {adjustStock.isPending ? "Saving…" : "Save adjustment"}
+              {adjustStock.isPending ? t("common.saving") : t("inventory.adjust.save")}
             </Button>
           </DialogFooter>
         </form>

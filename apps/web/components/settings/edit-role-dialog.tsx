@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useUpdateRole, type RoleWithPermissions } from "@/hooks/use-roles";
 import { ApiError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/context";
 
 // Mounted only while a specific role is being edited (see RolesPage), keyed
 // by role.id — a fresh mount per role means `label`/`permissionKeys` can be
@@ -27,6 +28,7 @@ export function EditRoleDialog({
   role: RoleWithPermissions;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const [label, setLabel] = useState(role.label);
   const [permissionKeys, setPermissionKeys] = useState<string[]>(() =>
     role.permissions.map((p) => p.permission.key),
@@ -44,11 +46,11 @@ export function EditRoleDialog({
       { id: role.id, dto: { label: label.trim(), permissionKeys } },
       {
         onSuccess: () => {
-          toast.success(`${label.trim()} updated`);
+          toast.success(t("settings.roles.updatedToast", { name: label.trim() }));
           onClose();
         },
         onError: (err) =>
-          toast.error(err instanceof ApiError ? err.message : "Could not update role"),
+          toast.error(err instanceof ApiError ? err.message : t("settings.roles.updateFailed")),
       },
     );
   };
@@ -58,16 +60,16 @@ export function EditRoleDialog({
       <DialogContent className="sm:max-w-lg">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>Edit role</DialogTitle>
+            <DialogTitle>{t("settings.roles.editTitle")}</DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="r-edit-name">Name</Label>
-            <Input id="r-edit-name" value={role.name} disabled />
+            <Label htmlFor="r-edit-name">{t("common.name")}</Label>
+            <Input id="r-edit-name" value={role.name} disabled dir="ltr" />
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="r-edit-label">Display label</Label>
+            <Label htmlFor="r-edit-label">{t("settings.roles.displayLabel")}</Label>
             <Input
               id="r-edit-label"
               value={label}
@@ -78,13 +80,13 @@ export function EditRoleDialog({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label>Permissions</Label>
+            <Label>{t("settings.roles.permissions")}</Label>
             <PermissionChecklist selected={permissionKeys} onToggle={togglePermission} />
           </div>
 
           <DialogFooter>
             <Button type="submit" disabled={updateRole.isPending}>
-              {updateRole.isPending ? "Saving…" : "Save changes"}
+              {updateRole.isPending ? t("common.saving") : t("settings.saveChanges")}
             </Button>
           </DialogFooter>
         </form>

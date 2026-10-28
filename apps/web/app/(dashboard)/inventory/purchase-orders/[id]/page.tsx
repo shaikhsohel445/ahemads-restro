@@ -24,9 +24,11 @@ import {
   type PurchaseOrderDetail,
 } from "@/hooks/use-inventory";
 import { ApiError } from "@/lib/api";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDate, formatNumber } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 
 export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t } = useI18n();
   const { id } = use(params);
   const { branchId } = useBranch();
   const { data: po, isLoading } = usePurchaseOrder(branchId, id);
@@ -40,8 +42,8 @@ export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ 
     updateStatus.mutate(
       { id: po.id, status: "SENT" },
       {
-        onSuccess: () => toast.success("Marked as sent to supplier"),
-        onError: (err) => toast.error(err instanceof ApiError ? err.message : "Could not update"),
+        onSuccess: () => toast.success(t("inventory.po.markedSent")),
+        onError: (err) => toast.error(err instanceof ApiError ? err.message : t("inventory.updateFailed")),
       },
     );
 
@@ -49,8 +51,8 @@ export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ 
     updateStatus.mutate(
       { id: po.id, status: "CANCELLED" },
       {
-        onSuccess: () => toast.success("Purchase order cancelled"),
-        onError: (err) => toast.error(err instanceof ApiError ? err.message : "Could not update"),
+        onSuccess: () => toast.success(t("inventory.po.cancelled")),
+        onError: (err) => toast.error(err instanceof ApiError ? err.message : t("inventory.updateFailed")),
       },
     );
 
@@ -62,22 +64,22 @@ export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ 
           className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="rtl:-scale-x-100 h-3.5 w-3.5" />
-          Purchase orders
+          {t("inventory.tabs.purchaseOrders")}
         </Link>
         <div className="mt-2 flex items-center gap-3">
           <h1 className="text-[32px] font-semibold tracking-tight text-foreground">{po.poNumber}</h1>
-          <Badge>{po.status.replace("_", " ")}</Badge>
+          <Badge>{t(`inventory.poStatus.${po.status}`)}</Badge>
         </div>
         <p className="text-sm text-muted-foreground">
-          {po.supplier.name} · created by {po.createdBy.name} on{" "}
-          {new Date(po.createdAt).toLocaleDateString()}
+          {po.supplier.name} ·{" "}
+          {t("inventory.po.createdByOn", { name: po.createdBy.name, date: formatDate(po.createdAt) })}
         </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
         {po.status === "DRAFT" && (
           <Button size="sm" onClick={send} disabled={updateStatus.isPending}>
-            Mark as sent
+            {t("inventory.po.markSent")}
           </Button>
         )}
         {(po.status === "SENT" || po.status === "PARTIALLY_RECEIVED") && (
@@ -85,7 +87,7 @@ export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ 
         )}
         {(po.status === "DRAFT" || po.status === "SENT") && (
           <Button size="sm" variant="outline" onClick={cancel} disabled={updateStatus.isPending}>
-            Cancel order
+            {t("inventory.po.cancel")}
           </Button>
         )}
       </div>
@@ -94,11 +96,11 @@ export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ 
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Ingredient</TableHead>
-              <TableHead className="text-end">Ordered</TableHead>
-              <TableHead className="text-end">Received</TableHead>
-              <TableHead className="text-end">Cost / unit</TableHead>
-              <TableHead className="text-end">Line total</TableHead>
+              <TableHead>{t("inventory.ingredient")}</TableHead>
+              <TableHead className="text-end">{t("inventory.po.ordered")}</TableHead>
+              <TableHead className="text-end">{t("inventory.po.received")}</TableHead>
+              <TableHead className="text-end">{t("inventory.costPerUnit")}</TableHead>
+              <TableHead className="text-end">{t("inventory.po.lineTotal")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -108,10 +110,16 @@ export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ 
                   {item.ingredient?.name ?? item.ingredientId}
                 </TableCell>
                 <TableCell className="text-end tabular-nums">
-                  {item.quantityOrdered} {item.ingredient?.unit}
+                  <bdi>
+                    {formatNumber(item.quantityOrdered, { maximumFractionDigits: 3 })}{" "}
+                    {item.ingredient ? t(`inventory.unit.${item.ingredient.unit}`) : ""}
+                  </bdi>
                 </TableCell>
                 <TableCell className="text-end tabular-nums">
-                  {item.quantityReceived} {item.ingredient?.unit}
+                  <bdi>
+                    {formatNumber(item.quantityReceived, { maximumFractionDigits: 3 })}{" "}
+                    {item.ingredient ? t(`inventory.unit.${item.ingredient.unit}`) : ""}
+                  </bdi>
                 </TableCell>
                 <TableCell className="text-end tabular-nums">{formatCurrency(item.unitCost)}</TableCell>
                 <TableCell className="text-end tabular-nums">
@@ -122,24 +130,29 @@ export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ 
           </TableBody>
         </Table>
         <div className="flex items-center justify-end gap-2 border-t border-border px-4 py-3 text-sm">
-          <span className="text-muted-foreground">Total</span>
+          <span className="text-muted-foreground">{t("common.total")}</span>
           <span className="font-semibold text-foreground">{formatCurrency(po.totalAmount)}</span>
         </div>
       </Card>
 
       {po.goodsReceipts.length > 0 && (
         <Card className="flex flex-col gap-3 p-5">
-          <h2 className="text-[18px] font-medium text-foreground">Goods receipts</h2>
+          <h2 className="text-[18px] font-medium text-foreground">{t("inventory.grn.title")}</h2>
           <div className="flex flex-col divide-y divide-border">
             {po.goodsReceipts.map((grn: PurchaseOrderDetail["goodsReceipts"][number]) => (
               <div key={grn.id} className="flex items-center justify-between py-2.5 text-sm">
                 <div className="flex flex-col">
                   <span className="font-medium text-foreground">{grn.grnNumber}</span>
                   <span className="text-xs text-muted-foreground">
-                    Received by {grn.receivedBy.name} on {new Date(grn.receivedAt).toLocaleDateString()}
+                    {t("inventory.grn.receivedByOn", {
+                      name: grn.receivedBy.name,
+                      date: formatDate(grn.receivedAt),
+                    })}
                   </span>
                 </div>
-                <span className="text-muted-foreground">{grn.items.length} line item(s)</span>
+                <span className="text-muted-foreground">
+                  {t("inventory.grn.lineItems", { n: formatNumber(grn.items.length) })}
+                </span>
               </div>
             ))}
           </div>

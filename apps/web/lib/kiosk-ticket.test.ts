@@ -45,3 +45,23 @@ test("never claims the order is paid and omits a zero tax row", () => {
   assert.ok(html.includes("NO PAGADO"));
   assert.ok(!html.includes("Incluye IVA"));
 });
+
+test("renders Arabic tickets right-to-left with an Arabic-capable font and Latin digits", () => {
+  const html = buildTicketHtml({
+    ...base,
+    restaurantName: "مطعم التجربة",
+    locale: "ar-SA-u-nu-latn",
+    currency: "SAR",
+    taxLabel: "ضريبة القيمة المضافة",
+    labels: { ...base.labels, order: "طلب", taxIncluded: "شامل" },
+  });
+  assert.ok(html.includes('<html lang="ar" dir="rtl">'));
+  assert.ok(html.includes("IBM Plex Sans Arabic"));
+  assert.ok(html.includes('طلب <bdi dir="ltr">20261017-0007</bdi>'));
+  assert.ok(html.includes("شامل ضريبة القيمة المضافة"));
+  assert.match(html, /3\.50/);
+});
+
+test("keeps non-Arabic tickets left-to-right", () => {
+  assert.ok(buildTicketHtml(base).includes('<html lang="es" dir="ltr">'));
+});

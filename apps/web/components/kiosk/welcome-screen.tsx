@@ -4,6 +4,7 @@ import { RefreshCw, ShoppingBag, UtensilsCrossed } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import type { KioskMenu } from "@/lib/kiosk-api";
 import type { ServiceType } from "@/lib/kiosk-flow";
+import { KioskLanguagePicker, LOCALES_SHOWN } from "./kiosk-header";
 import { Banner, KButton } from "./kiosk-ui";
 
 export type MenuLoad =
@@ -22,10 +23,19 @@ export function WelcomeScreen({
   onRetry: () => void;
   onStart: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale, setLocale } = useI18n();
   const menu = load.status === "ready" || load.status === "empty" ? load.menu : null;
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-8 px-8 text-center">
+    <div className="relative flex h-full flex-col items-center justify-center gap-8 px-8 text-center">
+      <div className="absolute end-4 top-4">
+        <KioskLanguagePicker
+          locale={locale}
+          onLocale={setLocale}
+          locales={LOCALES_SHOWN}
+          label={t("kiosk.language")}
+          large
+        />
+      </div>
       {menu?.logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={menu.logoUrl} alt="" className="h-28 w-28 rounded-3xl object-contain" />
@@ -45,7 +55,7 @@ export function WelcomeScreen({
         </KButton>
       )}
       {load.status === "loading" && (
-        <div role="status" aria-label="loading" className="h-[4rem] w-[22rem] animate-pulse rounded-2xl bg-secondary motion-reduce:animate-none" />
+        <div role="status" aria-label={t("kiosk.loading")} className="h-[4rem] w-[22rem] animate-pulse rounded-2xl bg-secondary motion-reduce:animate-none" />
       )}
       {load.status === "empty" && (
         <div className="w-full max-w-[40rem]">

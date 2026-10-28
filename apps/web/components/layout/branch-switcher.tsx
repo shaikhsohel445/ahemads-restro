@@ -8,10 +8,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useBranch } from "@/hooks/use-branch";
+import { useI18n } from "@/lib/i18n/context";
 
 export function BranchSwitcher() {
   const { branchId, branches, setBranchId } = useBranch();
   const current = branches.find((b) => b.id === branchId);
+  const { t } = useI18n();
 
   if (branches.length === 0) return null;
 
@@ -20,7 +22,7 @@ export function BranchSwitcher() {
       <DropdownMenuTrigger className="flex w-full items-center gap-2 rounded-xl border border-sidebar-border bg-sidebar px-3 py-2 text-start text-sm hover:bg-sidebar-accent/50">
         <Store className="h-4 w-4 shrink-0 text-muted-foreground" />
         <span className="flex-1 truncate font-medium text-sidebar-foreground">
-          {current?.name ?? "Select branch"}
+          {current?.name ?? t("layout.selectBranch")}
         </span>
         <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
       </DropdownMenuTrigger>

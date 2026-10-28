@@ -126,10 +126,10 @@ export function ModifierSheet({
                           {m.name}
                         </span>
                         {adj !== 0 && (
-                          <span className="tabular-nums text-muted-foreground">
+                          <bdi className="tabular-nums text-muted-foreground">
                             {adj > 0 ? "+" : ""}
                             {priceText(adj)}
-                          </span>
+                          </bdi>
                         )}
                       </button>
                     );

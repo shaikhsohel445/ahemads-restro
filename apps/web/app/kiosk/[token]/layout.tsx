@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { KIOSK_DEFAULT_LOCALE } from "@/components/kiosk/kiosk-locales";
+import { MESSAGES } from "@/lib/i18n/messages";
 
 // Public self-service kiosk shell. Everything here is deliberately
 // independent of the staff dashboard: no sidebar, no auth, no staff links.
@@ -10,13 +12,18 @@ export async function generateMetadata({
   params: Promise<{ token: string }>;
 }): Promise<Metadata> {
   const { token } = await params;
+  // Rendered on the server before the guest picks a language: the kiosk's
+  // default language (the page itself then follows the guest's choice).
+  const title = MESSAGES[KIOSK_DEFAULT_LOCALE]["kiosk.app.name"] ?? MESSAGES.en["kiosk.app.name"];
+  const description =
+    MESSAGES[KIOSK_DEFAULT_LOCALE]["kiosk.welcome.title"] ?? MESSAGES.en["kiosk.welcome.title"];
   return {
-    title: "Autopedido",
-    description: "Pide aquí",
+    title,
+    description,
     // Per-token manifest so "Add to Home screen" opens THIS kiosk, not "/".
     manifest: `/kiosk/${encodeURIComponent(token)}/manifest.webmanifest`,
     robots: { index: false, follow: false },
-    appleWebApp: { capable: true, title: "Autopedido", statusBarStyle: "black-translucent" },
+    appleWebApp: { capable: true, title, statusBarStyle: "black-translucent" },
     formatDetection: { telephone: false },
   };
 }

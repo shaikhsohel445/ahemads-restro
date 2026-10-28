@@ -54,7 +54,7 @@ export function planPayment(input: {
   };
 }
 
-/** "10% (₹20.00)" - the discount as both percentage and amount. */
+/** "10% (SAR 20.00)" - the discount as both percentage and amount. */
 export function discountSummary(
   discountPercent: number,
   discountAmount: number,

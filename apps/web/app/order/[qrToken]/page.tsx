@@ -14,6 +14,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { api, ApiError } from "@/lib/api";
 import { playSuccessChime, vibrateSuccess } from "@/lib/celebrate";
 import { formatCurrency } from "@/lib/format";
+import { intlLocaleTag } from "@/lib/i18n/locales";
 
 interface PublicMenuItem {
   id: string;
@@ -54,14 +55,31 @@ interface PublicStatus {
   openRequests: ("WAITER" | "BILL")[];
 }
 
-const ITEM_STATUS_LABEL: Record<string, string> = {
-  NEW: "Received",
-  ACCEPTED: "Received",
-  PREPARING: "Being prepared",
-  READY: "Ready",
-  SERVED: "Served",
-  CANCELLED: "Cancelled",
+// Kitchen item status -> order.itemStatus.<key>
+const ITEM_STATUS_KEY: Record<string, string> = {
+  NEW: "received",
+  ACCEPTED: "received",
+  PREPARING: "preparing",
+  READY: "ready",
+  SERVED: "served",
+  CANCELLED: "cancelled",
 };
+
+/**
+ * Renders a translated sentence with the order number isolated in <bdi>, so
+ * a Latin order number (e.g. "20261029-0007") never reorders inside Arabic
+ * text. The template comes from t(key) without vars, so "{number}" is intact.
+ */
+function WithOrderNumber({ template, number }: { template: string; number: string }) {
+  const [before, after = ""] = template.split("{number}");
+  return (
+    <>
+      {before}
+      <bdi dir="ltr">{number}</bdi>
+      {after}
+    </>
+  );
+}
 
 interface PublicMenuCategory {
   id: string;
@@ -72,6 +90,9 @@ interface PublicMenuCategory {
 interface PublicMenuResponse {
   branchName: string;
   tableName: string;
+  /** Not sent by every API version; fall back to the regional defaults. */
+  currency?: string;
+  taxLabel?: string;
   categories: PublicMenuCategory[];
 }
 
@@ -81,7 +102,7 @@ export default function PublicMenuPage({
   params: Promise<{ qrToken: string }>;
 }) {
   const { qrToken } = use(params);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const nameStorageKey = `qr-guest-name:${qrToken}`;
   const [cart, setCart] = useState<CartLine[]>([]);
   const [pickerItem, setPickerItem] = useState<PublicMenuItem | null>(null);
@@ -155,6 +176,11 @@ export default function PublicMenuPage({
     setGuestName(trimmed);
   };
 
+  const money = (n: number | string) => formatCurrency(n, data?.currency, intlLocaleTag(locale));
+  // Server error messages are English-only: shown as extra detail to English guests only.
+  const serverDetail = (err: unknown) =>
+    locale === "en" && err instanceof ApiError && err.message ? err.message : null;
+
   const cartCount = cart.reduce((sum, l) => sum + l.quantity, 0);
   const cartTotal = cart.reduce((sum, l) => sum + l.unitPrice * l.quantity, 0);
   const quantityOfItem = (itemId: string) =>
@@ -190,9 +216,8 @@ export default function PublicMenuPage({
       <div className="flex min-h-screen flex-col items-center justify-center gap-2 bg-background px-6 text-center">
         <UtensilsCrossed className="h-10 w-10 text-muted-foreground" />
         <p className="text-lg font-medium text-foreground">{t("order.qrNotRecognized")}</p>
-        <p className="text-sm text-muted-foreground">
-          {error instanceof ApiError ? error.message : t("order.askStaffForHelp")}
-        </p>
+        <p className="text-sm text-muted-foreground">{t("order.askStaffForHelp")}</p>
+        {serverDetail(error) && <p className="text-xs text-muted-foreground">{serverDetail(error)}</p>}
       </div>
     );
   }
@@ -211,7 +236,7 @@ export default function PublicMenuPage({
           {t("order.thanksMessage", { branch: data?.branchName ?? t("order.theKitchen") })}
         </p>
         <p className="text-xs text-muted-foreground">
-          {t("order.orderNumberSent", { number: placed.orderNumber })}
+          <WithOrderNumber template={t("order.orderNumberSent")} number={placed.orderNumber} />
         </p>
         <Button variant="outline" className="mt-2" onClick={() => setPlaced(null)}>
           {t("order.orderMore")}
@@ -312,7 +337,7 @@ export default function PublicMenuPage({
                               </p>
                             )}
                             <span className="mt-1 block text-sm font-medium tabular-nums text-foreground">
-                              {formatCurrency(item.price)}
+                              <bdi>{money(item.price)}</bdi>
                             </span>
                           </div>
                         </div>
@@ -323,6 +348,7 @@ export default function PublicMenuPage({
                               size="icon"
                               className="h-7 w-7"
                               onClick={() => removeOne(item.id)}
+                              aria-label={t("order.less", { name: item.name })}
                             >
                               <Minus className="h-3 w-3" />
                             </Button>
@@ -332,6 +358,7 @@ export default function PublicMenuPage({
                               size="icon"
                               className="h-7 w-7"
                               onClick={() => handleAdd(item)}
+                              aria-label={t("order.more", { name: item.name })}
                             >
                               <Plus className="h-3 w-3" />
                             </Button>
@@ -361,8 +388,8 @@ export default function PublicMenuPage({
           {status.order && (
             <div className="mb-4 rounded-2xl border border-border p-4">
               <p className="text-sm font-medium text-foreground">
-                Your order #{status.order.orderNumber}
-                {status.order.acceptance === "PENDING" && " — waiting for the restaurant to confirm"}
+                <WithOrderNumber template={t("order.yourOrder")} number={status.order.orderNumber} />
+                {status.order.acceptance === "PENDING" && ` — ${t("order.waitingConfirm")}`}
               </p>
               <ul className="mt-2 flex flex-col gap-1 text-sm text-muted-foreground">
                 {status.order.items.map((i) => (
@@ -370,7 +397,9 @@ export default function PublicMenuPage({
                     <span>
                       {i.quantity} × {i.nameSnapshot}
                     </span>
-                    <span>{ITEM_STATUS_LABEL[i.status] ?? i.status}</span>
+                    <span>
+                      {ITEM_STATUS_KEY[i.status] ? t(`order.itemStatus.${ITEM_STATUS_KEY[i.status]}`) : i.status}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -384,7 +413,7 @@ export default function PublicMenuPage({
               onClick={() => requestService.mutate("WAITER")}
             >
               <BellRing className="me-2 h-4 w-4" />
-              {status.openRequests.includes("WAITER") ? "Waiter is coming" : "Call waiter"}
+              {status.openRequests.includes("WAITER") ? t("order.waiterComing") : t("order.callWaiter")}
             </Button>
             {status.order && (
               <Button
@@ -394,7 +423,7 @@ export default function PublicMenuPage({
                 onClick={() => requestService.mutate("BILL")}
               >
                 <Receipt className="me-2 h-4 w-4" />
-                {status.openRequests.includes("BILL") ? "Bill requested" : "Request bill"}
+                {status.openRequests.includes("BILL") ? t("order.billRequested") : t("order.requestBill")}
               </Button>
             )}
           </div>
@@ -416,7 +445,7 @@ export default function PublicMenuPage({
       />
 
       <footer className="border-t border-border px-5 py-6 text-center text-xs text-muted-foreground">
-        {t("order.pricesIncludeTax")}
+        {t("order.pricesIncludeTax", { tax: data?.taxLabel || t("order.vat") })}
       </footer>
 
       {cartCount > 0 && (
@@ -429,14 +458,15 @@ export default function PublicMenuPage({
             >
               {placeOrder.isPending
                 ? t("order.placingOrder")
-                : `${t("order.placeOrder")} — ${cartCount} ${cartCount > 1 ? t("order.items") : t("order.item")} · ${formatCurrency(cartTotal)}`}
+                : `${t("order.placeOrder")} — ${
+                    cartCount === 1 ? t("order.oneItem") : t("order.itemCount", { count: cartCount })
+                  } · ${money(cartTotal)}`}
             </Button>
           </div>
           {placeOrder.isError && (
             <p className="mx-auto mt-2 max-w-lg text-center text-xs text-destructive">
-              {placeOrder.error instanceof ApiError
-                ? placeOrder.error.message
-                : t("order.couldNotPlace")}
+              {t("order.couldNotPlace")}
+              {serverDetail(placeOrder.error) && ` (${serverDetail(placeOrder.error)})`}
             </p>
           )}
         </div>

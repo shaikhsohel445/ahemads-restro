@@ -2,18 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 
+// labelKey is translated at render time (module scope runs before the locale is known).
 const TABS = [
-  { label: "Ingredients", href: "/inventory" },
-  { label: "Suppliers", href: "/inventory/suppliers" },
-  { label: "Purchase Orders", href: "/inventory/purchase-orders" },
-  { label: "Procurement", href: "/inventory/procurement" },
-  { label: "Transfers", href: "/inventory/transfers" },
-  { label: "Waste", href: "/inventory/waste" },
+  { labelKey: "inventory.tabs.ingredients", href: "/inventory" },
+  { labelKey: "inventory.tabs.suppliers", href: "/inventory/suppliers" },
+  { labelKey: "inventory.tabs.purchaseOrders", href: "/inventory/purchase-orders" },
+  { labelKey: "inventory.tabs.procurement", href: "/inventory/procurement" },
+  { labelKey: "inventory.tabs.transfers", href: "/inventory/transfers" },
+  { labelKey: "inventory.tabs.waste", href: "/inventory/waste" },
 ];
 
 export function InventoryTabs() {
+  const { t } = useI18n();
   const pathname = usePathname();
 
   return (
@@ -32,7 +35,7 @@ export function InventoryTabs() {
                 : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >
-            {tab.label}
+            {t(tab.labelKey)}
           </Link>
         );
       })}

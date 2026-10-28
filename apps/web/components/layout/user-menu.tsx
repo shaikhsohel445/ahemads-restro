@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLogout } from "@/hooks/use-auth";
+import { useI18n } from "@/lib/i18n/context";
 
 function initials(name?: string) {
   if (!name) return "?";
@@ -29,6 +30,7 @@ export function UserMenu({ user }: { user?: SessionUser }) {
   const { theme, setTheme } = useTheme();
   const logout = useLogout();
   const router = useRouter();
+  const { t } = useI18n();
 
   return (
     <div className="flex items-center gap-2">
@@ -36,7 +38,7 @@ export function UserMenu({ user }: { user?: SessionUser }) {
         type="button"
         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
         className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary"
-        aria-label="Toggle theme"
+        aria-label={t("layout.toggleTheme")}
       >
         <Sun className="h-[18px] w-[18px] dark:hidden" />
         <Moon className="hidden h-[18px] w-[18px] dark:block" />
@@ -61,7 +63,7 @@ export function UserMenu({ user }: { user?: SessionUser }) {
             onClick={() => logout.mutate(undefined, { onSuccess: () => router.push("/login") })}
           >
             <LogOut className="rtl:-scale-x-100 h-4 w-4" />
-            Sign out
+            {t("common.logout")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

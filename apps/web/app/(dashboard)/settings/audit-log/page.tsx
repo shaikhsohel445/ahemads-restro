@@ -21,6 +21,8 @@ import {
   useAuditLogEntities,
   type AuditLogEntry,
 } from "@/hooks/use-audit-log";
+import { formatDateTime, formatNumber } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
@@ -33,6 +35,7 @@ interface Filters {
 }
 
 export default function AuditLogPage() {
+  const { t } = useI18n();
   const [filters, setFilters] = useState<Filters>({ page: 1 });
   const { data, isLoading, isFetching } = useAuditLog({
     ...filters,
@@ -54,8 +57,8 @@ export default function AuditLogPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground">Restaurant, branch, and staff configuration</p>
+        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">{t("settings.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("settings.subtitle")}</p>
       </div>
 
       <SettingsTabs />
@@ -63,15 +66,17 @@ export default function AuditLogPage() {
       <Card className="flex flex-col gap-5 p-6">
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-[18px] font-medium text-foreground">Audit log</h2>
+            <h2 className="text-[18px] font-medium text-foreground">{t("settings.audit.title")}</h2>
             {data ? (
-              <p className="text-sm text-muted-foreground">{data.total} entries</p>
+              <p className="text-sm text-muted-foreground">
+                {t("settings.audit.entries", { n: formatNumber(data.total) })}
+              </p>
             ) : null}
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             <EntityChip
-              label="All"
+              label={t("common.all")}
               active={!filters.entity}
               onClick={() => setEntityFilter(undefined)}
             />
@@ -87,7 +92,7 @@ export default function AuditLogPage() {
 
           <div className="flex flex-wrap items-end gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="audit-from">From</Label>
+              <Label htmlFor="audit-from">{t("common.from")}</Label>
               <Input
                 id="audit-from"
                 type="date"
@@ -97,7 +102,7 @@ export default function AuditLogPage() {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="audit-to">To</Label>
+              <Label htmlFor="audit-to">{t("common.to")}</Label>
               <Input
                 id="audit-to"
                 type="date"
@@ -108,7 +113,7 @@ export default function AuditLogPage() {
             </div>
             {filters.from || filters.to ? (
               <Button type="button" variant="ghost" size="sm" onClick={clearDates}>
-                Clear dates
+                {t("settings.audit.clearDates")}
               </Button>
             ) : null}
           </div>
@@ -125,11 +130,11 @@ export default function AuditLogPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Actor</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Entity</TableHead>
-                  <TableHead>Timestamp</TableHead>
-                  <TableHead className="text-end">Details</TableHead>
+                  <TableHead>{t("settings.audit.actor")}</TableHead>
+                  <TableHead>{t("settings.audit.action")}</TableHead>
+                  <TableHead>{t("settings.audit.entity")}</TableHead>
+                  <TableHead>{t("settings.audit.timestamp")}</TableHead>
+                  <TableHead className="text-end">{t("common.details")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -141,7 +146,7 @@ export default function AuditLogPage() {
 
             <div className="flex items-center justify-between pt-2">
               <p className="text-sm text-muted-foreground">
-                Page {data.page} of {data.totalPages}
+                {t("common.pageOf", { page: data.page, pages: data.totalPages })}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -150,7 +155,7 @@ export default function AuditLogPage() {
                   disabled={data.page <= 1 || isFetching}
                   onClick={() => goToPage(data.page - 1)}
                 >
-                  Previous
+                  {t("common.previous")}
                 </Button>
                 <Button
                   variant="outline"
@@ -158,16 +163,16 @@ export default function AuditLogPage() {
                   disabled={data.page >= data.totalPages || isFetching}
                   onClick={() => goToPage(data.page + 1)}
                 >
-                  Next
+                  {t("common.next")}
                 </Button>
               </div>
             </div>
           </>
         ) : (
           <div className="flex flex-col items-center gap-2 py-16 text-center">
-            <p className="text-sm font-medium text-foreground">No audit log entries yet</p>
+            <p className="text-sm font-medium text-foreground">{t("settings.audit.emptyTitle")}</p>
             <p className="text-sm text-muted-foreground">
-              Actions like staff changes, refunds, and price edits will show up here.
+              {t("settings.audit.emptyDescription")}
             </p>
           </div>
         )}
@@ -207,6 +212,7 @@ function EntityChip({
 // "reset" anything — each row is keyed by entry.id, so a fresh mount already
 // starts collapsed).
 function AuditLogRow({ entry }: { entry: AuditLogEntry }) {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const hasMetadata = entry.metadata !== null && entry.metadata !== undefined;
 
@@ -214,26 +220,26 @@ function AuditLogRow({ entry }: { entry: AuditLogEntry }) {
     <>
       <TableRow>
         <TableCell className="font-medium text-foreground">
-          {entry.user?.name ?? "System"}
+          {entry.user?.name ?? t("settings.audit.system")}
         </TableCell>
         <TableCell>
           <Badge variant="secondary" className="font-normal">
-            {entry.action}
+            <bdi>{entry.action}</bdi>
           </Badge>
         </TableCell>
         <TableCell className="text-muted-foreground">
-          {entry.entity}
-          {entry.entityId ? (
-            <span className="text-xs"> #{entry.entityId.slice(-8)}</span>
-          ) : null}
+          <bdi>
+            {entry.entity}
+            {entry.entityId ? <span className="text-xs"> #{entry.entityId.slice(-8)}</span> : null}
+          </bdi>
         </TableCell>
         <TableCell className="text-muted-foreground">
-          {new Date(entry.createdAt).toLocaleString()}
+          {formatDateTime(entry.createdAt)}
         </TableCell>
         <TableCell className="text-end">
           {hasMetadata ? (
             <Button variant="ghost" size="sm" onClick={() => setExpanded((v) => !v)}>
-              {expanded ? "Hide" : "View"}
+              {expanded ? t("settings.audit.hide") : t("common.view")}
             </Button>
           ) : (
             <span className="text-xs text-muted-foreground">—</span>
@@ -243,7 +249,7 @@ function AuditLogRow({ entry }: { entry: AuditLogEntry }) {
       {expanded && hasMetadata ? (
         <TableRow>
           <TableCell colSpan={5} className="whitespace-normal bg-muted/30">
-            <pre className="max-h-64 overflow-auto rounded-lg bg-background p-3 text-xs text-muted-foreground">
+            <pre dir="ltr" className="max-h-64 overflow-auto rounded-lg bg-background p-3 text-xs text-muted-foreground">
               {JSON.stringify(entry.metadata, null, 2)}
             </pre>
           </TableCell>
