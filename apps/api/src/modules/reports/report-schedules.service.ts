@@ -118,7 +118,7 @@ export class ReportSchedulesService {
   async deliver(s: ReportSchedule, today: string) {
     if (!this.email.isConfigured())
       throw new BadRequestException(
-        'Email is not set up: set SMTP_URL and SMTP_FROM on the server',
+        'Email is not set up: set EMAIL_API_KEY and EMAIL_FROM on the server',
       );
     const { from, to } = periodFor(s.frequency, today);
     const result = await this.reports.run(s.reportKey, s.branchId, from, to);

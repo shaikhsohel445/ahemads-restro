@@ -67,6 +67,6 @@ export function waitUntil(promise: Promise<unknown>) {
 // Prisma client waiting on it, stalling every later query in the isolate.
 // detach() hands the promise to waitUntil() so it runs to completion, and
 // swallows its error the way the original `.catch(() => undefined)` did.
-export function detach(promise: Promise<unknown>) {
-  waitUntil(promise.catch(() => undefined));
+export function detach(promise: Promise<unknown> | undefined) {
+  waitUntil(Promise.resolve(promise).catch(() => undefined));
 }

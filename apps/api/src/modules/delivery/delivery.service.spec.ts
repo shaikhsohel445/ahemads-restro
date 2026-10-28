@@ -12,9 +12,12 @@ function setup(order: Record<string, unknown> | null, zoneClash = false) {
     },
     user: { findFirst: jest.fn().mockResolvedValue({ id: 'd1' }) },
     deliveryZone: {
-      findFirst: jest
+      // Pincodes are a JSON array on D1; the service matches them in code.
+      findMany: jest
         .fn()
-        .mockResolvedValue(zoneClash ? { name: 'Central' } : null),
+        .mockResolvedValue(
+          zoneClash ? [{ name: 'Central', pincodes: ['700001'] }] : [],
+        ),
       create: jest.fn().mockResolvedValue({ id: 'z1' }),
     },
   };

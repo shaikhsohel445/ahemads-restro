@@ -11,6 +11,17 @@ generator client {
   importFileExtension    = ""
 }
 
+// Node build of the same client, used only by prisma/seed.ts (which runs
+// under Node via Wrangler's platform proxy, not inside the Worker).
+generator seedClient {
+  provider     = "prisma-client"
+  output                 = "./generated-node"
+  runtime                = "nodejs"
+  moduleFormat           = "cjs"
+  generatedFileExtension = "ts"
+  importFileExtension    = ""
+}
+
 datasource db {
   provider = "sqlite"
 }

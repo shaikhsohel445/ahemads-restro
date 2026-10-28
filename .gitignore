@@ -24,3 +24,4 @@ apps/api/src/generated/
 .wrangler/
 .dev.vars
 .open-next/
+apps/api/prisma/generated-node/

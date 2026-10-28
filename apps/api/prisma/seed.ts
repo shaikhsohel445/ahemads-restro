@@ -1,17 +1,21 @@
-import { PrismaClient } from '../src/generated/prisma/client';
+// Demo data for local development, written into the local D1 database that
+// `wrangler dev` uses (.wrangler/state). Runs under Node through Wrangler's
+// platform proxy, which hands this script the same `DB` binding the Worker
+// gets, and a Node build of the Prisma client (prisma/generated-node).
+//
+//   pnpm --filter @nodedr-restaurant/api db:seed:local
+import { PrismaD1 } from '@prisma/adapter-d1';
 import bcrypt from 'bcryptjs';
+import { getPlatformProxy } from 'wrangler';
+import { PrismaClient } from './generated-node/client';
 import {
   DEFAULT_ROLE_PERMISSIONS,
   PERMISSIONS,
   STAFF_ROLES,
 } from '@nodedr-restaurant/types';
 
-// Deliberately not imported from src/modules/orders/pricing — the runtime
-// image only ships apps/backend/dist + prisma (see ARCHITECTURE.md /
-// install.sh packaging notes), so `src/` doesn't exist to import from once
-// this script runs via a container's `npx ts-node prisma/seed.ts`. Same
-// tax-inclusive math as OrdersService.priceLine, kept tiny and duplicated
-// on purpose rather than reaching across that packaging boundary.
+// Same tax-inclusive math as OrdersService.priceLine, kept tiny and
+// duplicated on purpose so the seed has no dependency on src/.
 function round2(value: number): number {
   return Math.round((value + Number.EPSILON) * 100) / 100;
 }
@@ -26,9 +30,22 @@ function priceLine(
   return { lineTotal, taxAmount };
 }
 
-const prisma = new PrismaClient();
+let prisma: PrismaClient;
 
 async function main() {
+  const proxy = await getPlatformProxy<{ DB: unknown }>({
+    configPath: 'wrangler.jsonc',
+  });
+  prisma = new PrismaClient({ adapter: new PrismaD1(proxy.env.DB as never) });
+  try {
+    await seed();
+  } finally {
+    await prisma.$disconnect();
+    await proxy.dispose();
+  }
+}
+
+async function seed() {
   console.log('Seeding permissions...');
   for (const permission of PERMISSIONS) {
     await prisma.permission.upsert({
@@ -46,8 +63,9 @@ async function main() {
     update: {},
     create: {
       id: 'demo-restaurant',
-      name: 'Nodedr Bistro (Demo)',
-      currency: 'INR',
+      name: 'مطعم نودر التجريبي — Nodedr Bistro (Demo)',
+      currency: 'SAR',
+      timezone: 'Asia/Riyadh',
     },
   });
 
@@ -57,8 +75,13 @@ async function main() {
     create: {
       id: 'demo-branch',
       restaurantId: restaurant.id,
-      name: 'Main Branch',
-      address: '123 Demo Street',
+      name: 'الفرع الرئيسي — Main Branch',
+      address: 'طريق الملك فهد، الرياض',
+      country: 'SA',
+      taxRegime: 'SA_VAT',
+      taxMode: 'INCLUSIVE',
+      // Example only (correct shape: 15 digits, starts and ends with 3).
+      taxId: '300000000000003',
     },
   });
 
@@ -166,7 +189,7 @@ async function main() {
     create: {
       id: 'demo-cat-starters',
       branchId: branch.id,
-      name: 'Starters',
+      name: 'المقبلات — Starters',
       sortOrder: 0,
     },
   });
@@ -176,7 +199,7 @@ async function main() {
     create: {
       id: 'demo-cat-mains',
       branchId: branch.id,
-      name: 'Main Course',
+      name: 'الأطباق الرئيسية — Main Course',
       sortOrder: 1,
     },
   });
@@ -186,7 +209,7 @@ async function main() {
     create: {
       id: 'demo-cat-drinks',
       branchId: branch.id,
-      name: 'Drinks',
+      name: 'المشروبات — Drinks',
       sortOrder: 2,
     },
   });
@@ -225,7 +248,7 @@ async function main() {
             create: {
               id: 'demo-mod-cheese',
               name: 'Extra Cheese',
-              priceAdjustment: 60,
+              priceAdjustment: 8,
             },
           },
         ],
@@ -244,58 +267,58 @@ async function main() {
     modifierGroupId?: string;
   }[] = [
     {
-      id: 'demo-item-paneer-tikka',
-      name: 'Paneer Tikka',
+      id: 'demo-item-hummus',
+      name: 'حمص — Hummus',
       categoryId: starters.id,
       stationId: mainKitchen.id,
-      price: 280,
-      taxRatePercent: 5,
+      price: 18,
+      taxRatePercent: 15,
       isVeg: true,
     },
     {
-      id: 'demo-item-chicken-65',
-      name: 'Chicken 65',
+      id: 'demo-item-sambousek',
+      name: 'سمبوسة لحم — Meat Sambousek',
       categoryId: starters.id,
       stationId: mainKitchen.id,
-      price: 320,
-      taxRatePercent: 5,
+      price: 22,
+      taxRatePercent: 15,
       isVeg: false,
     },
     {
       id: 'demo-item-margherita',
-      name: 'Margherita Pizza',
+      name: 'بيتزا مارغريتا — Margherita Pizza',
       categoryId: mains.id,
       stationId: mainKitchen.id,
-      price: 420,
-      taxRatePercent: 5,
+      price: 45,
+      taxRatePercent: 15,
       isVeg: true,
       modifierGroupId: crustGroup.id,
     },
     {
-      id: 'demo-item-butter-chicken',
-      name: 'Butter Chicken',
+      id: 'demo-item-kabsa',
+      name: 'كبسة دجاج — Chicken Kabsa',
       categoryId: mains.id,
       stationId: mainKitchen.id,
-      price: 480,
-      taxRatePercent: 5,
+      price: 55,
+      taxRatePercent: 15,
       isVeg: false,
     },
     {
-      id: 'demo-item-mojito',
-      name: 'Virgin Mojito',
+      id: 'demo-item-arabic-coffee',
+      name: 'قهوة عربية — Arabic Coffee',
       categoryId: drinks.id,
       stationId: bar.id,
-      price: 220,
-      taxRatePercent: 18,
+      price: 12,
+      taxRatePercent: 15,
       isVeg: true,
     },
     {
-      id: 'demo-item-cola',
-      name: 'Coca-Cola',
+      id: 'demo-item-water',
+      name: 'مياه — Water',
       categoryId: drinks.id,
       stationId: bar.id,
-      price: 90,
-      taxRatePercent: 18,
+      price: 3,
+      taxRatePercent: 15,
       isVeg: true,
     },
   ];
@@ -340,8 +363,8 @@ async function main() {
       orderNumber: 'TA-DEMO-0001',
       paid: false,
       lines: [
-        { itemId: 'demo-item-chicken-65', quantity: 1 },
-        { itemId: 'demo-item-cola', quantity: 2 },
+        { itemId: 'demo-item-sambousek', quantity: 1 },
+        { itemId: 'demo-item-arabic-coffee', quantity: 2 },
       ],
     },
     {
@@ -351,8 +374,8 @@ async function main() {
       orderNumber: 'TA-DEMO-0002',
       paid: true,
       lines: [
-        { itemId: 'demo-item-butter-chicken', quantity: 1 },
-        { itemId: 'demo-item-cola', quantity: 1 },
+        { itemId: 'demo-item-kabsa', quantity: 1 },
+        { itemId: 'demo-item-water', quantity: 1 },
       ],
     },
   ];

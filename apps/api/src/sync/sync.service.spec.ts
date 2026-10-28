@@ -1,36 +1,25 @@
-import { SyncChange, SyncService } from './sync.service';
+import { NotImplementedException } from '@nestjs/common';
+import { SYNC_UNAVAILABLE, SyncService } from './sync.service';
 
-const ch = (
-  pkKey: string,
-  ts: string,
-  op: 'U' | 'D' = 'U',
-  tbl = 'menu_items',
-): SyncChange => ({
-  tbl,
-  pk: { id: pkKey },
-  pkKey,
-  op,
-  row: op === 'U' ? { id: pkKey } : null,
-  ts,
-});
+// Server sync is not part of the Cloudflare edition (see sync.service.ts):
+// status must say so plainly and every action must refuse with 501, never
+// pretend to have synced.
+describe('SyncService on Cloudflare', () => {
+  const sync = new SyncService();
 
-describe('SyncService.compact', () => {
-  it('keeps only the newest change per row', () => {
-    const out = SyncService.compact([
-      ch('a', '2026-01-01T00:00:00.000Z'),
-      ch('a', '2026-01-01T00:00:02.000Z', 'D'),
-      ch('a', '2026-01-01T00:00:01.000Z'),
-      ch('b', '2026-01-01T00:00:00.000Z'),
-    ]);
-    expect(out).toHaveLength(2);
-    expect(out.find((c) => c.pkKey === 'a')?.op).toBe('D');
+  it('reports itself as disabled and unavailable', async () => {
+    const status = await sync.publicStatus();
+    expect(status.enabled).toBe(false);
+    expect(status.unavailable).toBe(true);
+    expect(status.lastError).toBe(SYNC_UNAVAILABLE);
   });
 
-  it('treats the same key in different tables as different rows', () => {
-    const out = SyncService.compact([
-      ch('a', '2026-01-01T00:00:00.000Z', 'U', 'orders'),
-      ch('a', '2026-01-01T00:00:00.000Z', 'U', 'tables'),
-    ]);
-    expect(out).toHaveLength(2);
+  it.each([
+    ['pull', () => sync.pull(0n, 'device')],
+    ['push', () => sync.push('device', [])],
+    ['enable', () => sync.enable('https://hub', 'key', 'merge')],
+    ['runOnce', () => sync.runOnce()],
+  ])('%s answers 501 Not Implemented', async (_name, run) => {
+    await expect(run()).rejects.toBeInstanceOf(NotImplementedException);
   });
 });

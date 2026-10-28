@@ -4,6 +4,7 @@
 // internet — a printer on the restaurant's private LAN is not. Exposing a
 // printer publicly has obvious risks; the browser print buttons are the
 // recommended path (docs/cloudflare/MIGRATION-REPORT.md).
+import { connect } from 'cloudflare:sockets';
 import { PrinterNotFoundError } from './escpos-usb';
 
 const CONNECT_TIMEOUT_MS = 4000;
@@ -26,7 +27,6 @@ export async function sendViaNetwork(
   target: NetworkPrinterTarget,
   buffer: Buffer,
 ): Promise<void> {
-  const { connect } = await import('cloudflare:sockets');
   let socket: ReturnType<typeof connect>;
   try {
     socket = connect({ hostname: target.host, port: target.port });

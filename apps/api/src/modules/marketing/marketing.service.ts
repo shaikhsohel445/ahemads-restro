@@ -292,7 +292,7 @@ export class MarketingService {
   }
 
   /**
-   * Sends a campaign. Email goes out through the operator's SMTP server. SMS
+   * Sends a campaign. Email goes out through the configured email API (EmailService). SMS
    * and WhatsApp need a provider, so each message is handed to the
    * restaurant's webhook (`campaign.message`) for an automation service to
    * deliver. A campaign can be sent once an hour, so a double-click or a
@@ -334,7 +334,7 @@ export class MarketingService {
       if (!this.email.isConfigured())
         throw await this.releaseAndFail(
           campaign.id,
-          'Email is not set up on this server (SMTP_URL / SMTP_FROM)',
+          'Email is not set up on this server (EMAIL_API_KEY / EMAIL_FROM)',
         );
       const restaurant = await this.prisma.branch.findUnique({
         where: { id: branchId },

@@ -1,5 +1,7 @@
-// Runs against a real PostgreSQL with every migration applied. Skipped unless VERIFACTU_TEST_DATABASE_URL is
-// set, e.g. postgresql://postgres@127.0.0.1:55432/orderrestro_vf (a throwaway database).
+// Ran against a real PostgreSQL with every migration applied. The Cloudflare
+// edition has no PostgreSQL (PrismaService is bound to D1), so this suite is
+// kept for reference and always skipped; Spain's VERI*FACTU is outside the
+// Saudi scope (docs/cloudflare/MIGRATION-REPORT.md).
 import { writeFileSync } from 'node:fs';
 import { ConfigService } from '@nestjs/config';
 import forge from 'node-forge';
@@ -8,7 +10,7 @@ import type { AeatResponse } from './verifactu.aeat';
 import { altaHash } from './verifactu.domain';
 import { VerifactuService } from './verifactu.service';
 
-const url = process.env.VERIFACTU_TEST_DATABASE_URL;
+const url: string | undefined = undefined;
 // The client reads DATABASE_URL, so point it at the throwaway database before it is constructed.
 if (url) process.env.DATABASE_URL = url;
 const d = url ? describe : describe.skip;
@@ -29,7 +31,7 @@ function selfSignedP12(password: string): Buffer {
 }
 
 d('VERI*FACTU against PostgreSQL', () => {
-  const prisma = new PrismaService();
+  const prisma = {} as PrismaService;
   const config = new ConfigService({
     JWT_SECRET: 'test-secret',
     VERIFACTU_PRODUCER_ID: 'U0000000000000000000',
