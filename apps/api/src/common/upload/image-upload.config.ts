@@ -36,7 +36,11 @@ export const imageUploadOptions = {
 // mislabeled non-image (e.g. an .html or .svg file sent as "photo.jpg" with a
 // spoofed Content-Type: image/jpeg) is rejected before it is stored and
 // served back under /api/uploads/.
-const SIGNATURES: { ext: string; mime: string; match: (b: Uint8Array) => boolean }[] = [
+const SIGNATURES: {
+  ext: string;
+  mime: string;
+  match: (b: Uint8Array) => boolean;
+}[] = [
   {
     ext: '.jpg',
     mime: 'image/jpeg',

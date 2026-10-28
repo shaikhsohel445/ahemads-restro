@@ -160,7 +160,11 @@ export class MarketingService {
     for (const p of promos) {
       if (
         !promotionActive(
-          { ...p, value: Number(p.value), daysOfWeek: numberArray(p.daysOfWeek) },
+          {
+            ...p,
+            value: Number(p.value),
+            daysOfWeek: numberArray(p.daysOfWeek),
+          },
           day,
           minute,
         )

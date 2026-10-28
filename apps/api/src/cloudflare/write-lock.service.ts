@@ -63,7 +63,8 @@ export class WriteLockService {
       return Response.json(
         {
           statusCode: 503,
-          message: 'The restaurant is busy saving another change. Please retry.',
+          message:
+            'The restaurant is busy saving another change. Please retry.',
         },
         { status: 503, headers: { 'Retry-After': '2' } },
       );
@@ -116,7 +117,9 @@ export class WriteLockService {
             await this.prisma.table.findUnique({
               where: { qrToken: token },
               select: {
-                floor: { select: { branch: { select: { restaurantId: true } } } },
+                floor: {
+                  select: { branch: { select: { restaurantId: true } } },
+                },
               },
             })
           )?.floor.branch

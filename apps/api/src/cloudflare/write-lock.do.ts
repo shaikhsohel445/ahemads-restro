@@ -23,8 +23,10 @@ interface Waiter {
 }
 
 export class WriteLock extends DurableObject {
-  private holder: { token: string; expiry: ReturnType<typeof setTimeout> } | null =
-    null;
+  private holder: {
+    token: string;
+    expiry: ReturnType<typeof setTimeout>;
+  } | null = null;
   private queue: Waiter[] = [];
 
   acquire(leaseMs: number, waitMs: number): Promise<string | null> {

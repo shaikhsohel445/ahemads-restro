@@ -78,7 +78,9 @@ export class WebhooksService {
       select: { restaurantId: true },
     });
     if (!branch) return false;
-    return (await this.subscribedEndpoints(branch.restaurantId, event)).length > 0;
+    return (
+      (await this.subscribedEndpoints(branch.restaurantId, event)).length > 0
+    );
   }
 
   async emit(restaurantId: string, event: WebhookEvent, data: object) {

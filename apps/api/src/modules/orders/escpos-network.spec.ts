@@ -17,7 +17,10 @@ describe('network printer transport (Cloudflare TCP sockets)', () => {
   it('reports a refused connection as a clear printer error', async () => {
     __setConnectBehaviour({ kind: 'refuse', message: 'connection refused' });
     await expect(
-      sendViaNetwork({ host: 'printer.example.test', port: 9100 }, Buffer.from('x')),
+      sendViaNetwork(
+        { host: 'printer.example.test', port: 9100 },
+        Buffer.from('x'),
+      ),
     ).rejects.toThrow(
       /Could not reach the printer at printer\.example\.test:9100.*refused/,
     );

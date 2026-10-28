@@ -63,7 +63,8 @@ export async function buildXlsx(
 
 const A4: [number, number] = [595.28, 841.89];
 const MARGIN = 36;
-const ARABIC = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+const ARABIC =
+  /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
 
 // Greedy word wrap against the real glyph widths of the embedded font.
 function wrap(text: string, font: PDFFont, size: number, width: number) {
@@ -150,7 +151,15 @@ export async function buildPdf(
     }
     cells.forEach((lines, i) => {
       lines.forEach((line, li) =>
-        text(line, MARGIN + i * colW, y - li * lineH, font, size, rgb(0, 0, 0), colW - 6),
+        text(
+          line,
+          MARGIN + i * colW,
+          y - li * lineH,
+          font,
+          size,
+          rgb(0, 0, 0),
+          colW - 6,
+        ),
       );
     });
     y -= h + 4;
@@ -166,7 +175,14 @@ export async function buildPdf(
   for (const row of r.rows) drawRow(row.map(fmt), false);
   if (!r.rows.length) {
     y -= 10;
-    text('No data for this period.', MARGIN, y, regular, 10, rgb(0.4, 0.4, 0.4));
+    text(
+      'No data for this period.',
+      MARGIN,
+      y,
+      regular,
+      10,
+      rgb(0.4, 0.4, 0.4),
+    );
   }
   return Buffer.from(await pdf.save());
 }

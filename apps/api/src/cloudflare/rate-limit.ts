@@ -16,8 +16,16 @@ interface RateLimiter {
 // The binding only supports 10 s or 60 s windows; the limits below match the
 // self-hosted @Throttle values per minute.
 const RULES: { binding: keyof WorkerEnv; method: string; path: RegExp }[] = [
-  { binding: 'AUTH_RATE_LIMITER', method: 'POST', path: /^\/api\/v1\/auth\/(login|register|pin-login|2fa\/enable|2fa\/disable)$/ },
-  { binding: 'PUBLIC_RATE_LIMITER', method: 'POST', path: /^\/api\/v1\/public\// },
+  {
+    binding: 'AUTH_RATE_LIMITER',
+    method: 'POST',
+    path: /^\/api\/v1\/auth\/(login|register|pin-login|2fa\/enable|2fa\/disable)$/,
+  },
+  {
+    binding: 'PUBLIC_RATE_LIMITER',
+    method: 'POST',
+    path: /^\/api\/v1\/public\//,
+  },
 ];
 
 export async function edgeRateLimit(

@@ -33,7 +33,7 @@ declare const WebSocketRequestResponsePair: typeof WebSocketRequestResponsePairT
 // after a reconnect, so a push missed while offline cannot leave them stale.
 export class RealtimeHub extends DurableObject {
   constructor(ctx: DurableObjectState, env: unknown) {
-    super(ctx, env as never);
+    super(ctx, env);
     this.ctx.setWebSocketAutoResponse(
       new WebSocketRequestResponsePair('ping', 'pong'),
     );

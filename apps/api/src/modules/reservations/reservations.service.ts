@@ -138,14 +138,16 @@ export class ReservationsService {
       );
     }
 
-    detach(this.webhooks.emitForBranch(branchId, 'reservation.created', {
-      reservationId: created.id,
-      customerName: created.customerName,
-      phone: created.phone,
-      guestCount: created.guestCount,
-      reservedAt: created.reservedAt,
-      channel: created.channel,
-    }));
+    detach(
+      this.webhooks.emitForBranch(branchId, 'reservation.created', {
+        reservationId: created.id,
+        customerName: created.customerName,
+        phone: created.phone,
+        guestCount: created.guestCount,
+        reservedAt: created.reservedAt,
+        channel: created.channel,
+      }),
+    );
 
     return created;
   }

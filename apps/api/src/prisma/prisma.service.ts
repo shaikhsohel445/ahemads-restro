@@ -36,11 +36,16 @@ export class PrismaService
     if (typeof arg === 'function') {
       return (arg as (tx: unknown) => Promise<unknown>)(this);
     }
-    return PrismaClient.prototype.$transaction.call(
-      this,
-      arg as never,
-      options as never,
-    );
+    // The generated client class types its prototype loosely; the call below
+    // is the client's own batch $transaction.
+    /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
+    const batch = PrismaClient.prototype.$transaction as (
+      this: PrismaClient,
+      arg: unknown,
+      options?: unknown,
+    ) => Promise<unknown>;
+    return batch.call(this, arg, options);
+    /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
   }) as PrismaClient['$transaction'];
 
   async onModuleInit() {

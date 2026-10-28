@@ -4,7 +4,10 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import type { ReportFrequency, ReportSchedule } from '../../generated/prisma/client';
+import type {
+  ReportFrequency,
+  ReportSchedule,
+} from '../../generated/prisma/client';
 import { BranchTimeService } from '../../common/services/branch-time.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EmailService } from '../email/email.service';

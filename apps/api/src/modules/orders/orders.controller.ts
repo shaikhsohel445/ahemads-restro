@@ -536,9 +536,7 @@ export class OrdersController {
                 ? `Cannot reach ${network.host}:${network.port} from the server${network.error ? ` (${network.error})` : ''}.`
                 : 'Network printing is selected but no printer address is set.',
             ]
-          : [
-              USB_UNAVAILABLE,
-            ],
+          : [USB_UNAVAILABLE],
     };
   }
 

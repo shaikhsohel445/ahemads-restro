@@ -8,6 +8,7 @@ import type {
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { setWorkerEnv, type WorkerEnv } from './cloudflare/bindings';
 import { edgeRateLimit } from './cloudflare/rate-limit';
+import type { VerifiedRealtimeIdentity } from './realtime/realtime.gateway';
 
 // Durable Object classes must be exported from the Worker's main module.
 export { RealtimeHub } from './realtime/realtime-hub.do';
@@ -71,7 +72,7 @@ async function realtimeUpgrade(
   const { RealtimeGateway } = await import('./realtime/realtime.gateway.js');
   const gateway = app.get(RealtimeGateway);
   const url = new URL(request.url);
-  let identity;
+  let identity: VerifiedRealtimeIdentity;
   try {
     identity = await gateway.authorizeUpgrade(
       request.headers.get('Cookie'),
@@ -104,11 +105,9 @@ export default {
     }
     const limited = await edgeRateLimit(request, env);
     if (limited) return limited;
-    const handle = () =>
-      nodeHandler.fetch(request as never, env as never, ctx as never);
-    const { WriteLockService } = await import(
-      './cloudflare/write-lock.service.js'
-    );
+    const handle = () => nodeHandler.fetch(request, env, ctx);
+    const { WriteLockService } =
+      await import('./cloudflare/write-lock.service.js');
     const lock = app.get(WriteLockService);
     if (!lock.needsLock(request)) return handle();
     return lock.run(request, handle, (p) => ctx.waitUntil(p));

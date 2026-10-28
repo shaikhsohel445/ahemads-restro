@@ -162,9 +162,11 @@ export async function dumpGzip(db: D1Database): Promise<Uint8Array> {
   return new Uint8Array(await new Response(gz as never).arrayBuffer());
 }
 
-export async function gunzipText(data: ArrayBuffer | Uint8Array): Promise<string> {
+export async function gunzipText(
+  data: ArrayBuffer | Uint8Array,
+): Promise<string> {
   const stream = new Response(data as never).body!.pipeThrough(
-    new DecompressionStream('gzip') as never,
+    new DecompressionStream('gzip'),
   );
   return new Response(stream as never).text();
 }

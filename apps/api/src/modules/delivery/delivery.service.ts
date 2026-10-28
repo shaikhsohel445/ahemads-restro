@@ -197,13 +197,15 @@ export class DeliveryService {
       include: ORDER_INCLUDE,
     });
     this.realtime.emitToBranch(branchId, 'order.updated', { id: orderId });
-    detach(this.webhooks.emitForBranch(branchId, 'delivery.updated', {
-      orderId,
-      orderNumber: updated.orderNumber,
-      status: updated.deliveryStatus,
-      driver: updated.driver?.name ?? null,
-      address: updated.deliveryAddress,
-    }));
+    detach(
+      this.webhooks.emitForBranch(branchId, 'delivery.updated', {
+        orderId,
+        orderNumber: updated.orderNumber,
+        status: updated.deliveryStatus,
+        driver: updated.driver?.name ?? null,
+        address: updated.deliveryAddress,
+      }),
+    );
     return updated;
   }
 }

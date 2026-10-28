@@ -34,6 +34,7 @@ export const inlineCode = (c: string) => (
 );
 
 export function linkTo(href: string, external = false) {
+  // eslint-disable-next-line react/display-name -- a render callback, not a component
   return (c: string) => (
     <a
       href={href}

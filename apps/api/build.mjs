@@ -16,7 +16,9 @@ import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const tsconfig = JSON.parse(readFileSync(resolve(here, 'tsconfig.json'), 'utf8'));
+const tsconfig = JSON.parse(
+  readFileSync(resolve(here, 'tsconfig.json'), 'utf8'),
+);
 
 const decoratorMetadata = {
   name: 'ts-decorator-metadata',
@@ -65,7 +67,9 @@ const optionalPeers = {
   name: 'optional-peers',
   setup(b) {
     b.onResolve(
-      { filter: /^(@nestjs\/microservices(\/.*)?|class-transformer\/storage)$/ },
+      {
+        filter: /^(@nestjs\/microservices(\/.*)?|class-transformer\/storage)$/,
+      },
       (args) => ({ path: args.path, namespace: 'optional-peer' }),
     );
     b.onLoad({ filter: /.*/, namespace: 'optional-peer' }, (args) => ({

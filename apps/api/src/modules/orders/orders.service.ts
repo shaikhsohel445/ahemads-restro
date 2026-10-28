@@ -435,16 +435,18 @@ export class OrdersService {
       );
     }
 
-    detach(this.webhooks.emitForBranch(branchId, 'order.created', {
-      orderId: full.id,
-      orderNumber: full.orderNumber,
-      type: full.type,
-      channel: full.channel,
-      total: Number(full.totalAmount),
-      deliveryAddress: full.deliveryAddress,
-      deliveryPhone: full.deliveryPhone,
-      scheduledFor: full.scheduledFor,
-    }));
+    detach(
+      this.webhooks.emitForBranch(branchId, 'order.created', {
+        orderId: full.id,
+        orderNumber: full.orderNumber,
+        type: full.type,
+        channel: full.channel,
+        total: Number(full.totalAmount),
+        deliveryAddress: full.deliveryAddress,
+        deliveryPhone: full.deliveryPhone,
+        scheduledFor: full.scheduledFor,
+      }),
+    );
 
     return full;
   }
@@ -928,11 +930,13 @@ export class OrdersService {
         total: order.totalAmount.toString(),
       },
     });
-    detach(this.webhooks.emitForBranch(branchId, 'order.cancelled', {
-      orderId,
-      orderNumber: order.orderNumber,
-      type: order.type,
-    }));
+    detach(
+      this.webhooks.emitForBranch(branchId, 'order.cancelled', {
+        orderId,
+        orderNumber: order.orderNumber,
+        type: order.type,
+      }),
+    );
 
     return this.getOrder(branchId, orderId);
   }
@@ -1744,19 +1748,21 @@ export class OrdersService {
           id: order.tableId,
         });
       }
-      detach(this.webhooks.emitForBranch(branchId, 'order.paid', {
-        orderId: updated.id,
-        orderNumber: updated.orderNumber,
-        type: updated.type,
-        total: Number(updated.totalAmount),
-        tip: Number(updated.tipAmount),
-        discount: Number(updated.discountAmount),
-        couponCode: updated.couponCode,
-        payments: updated.payments.map((p) => ({
-          method: p.method,
-          amount: Number(p.amount),
-        })),
-      }));
+      detach(
+        this.webhooks.emitForBranch(branchId, 'order.paid', {
+          orderId: updated.id,
+          orderNumber: updated.orderNumber,
+          type: updated.type,
+          total: Number(updated.totalAmount),
+          tip: Number(updated.tipAmount),
+          discount: Number(updated.discountAmount),
+          couponCode: updated.couponCode,
+          payments: updated.payments.map((p) => ({
+            method: p.method,
+            amount: Number(p.amount),
+          })),
+        }),
+      );
     }
     return {
       ...updated,

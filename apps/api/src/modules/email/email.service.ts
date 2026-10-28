@@ -54,7 +54,9 @@ export class EmailService {
         : await this.viaResend(mail);
     if (!res.ok) {
       const detail = (await res.text()).slice(0, 200);
-      throw new Error(`${this.provider} answered HTTP ${res.status}: ${detail}`);
+      throw new Error(
+        `${this.provider} answered HTTP ${res.status}: ${detail}`,
+      );
     }
   }
 
@@ -110,7 +112,10 @@ export class EmailService {
       body: JSON.stringify({
         personalizations: [{ to: [{ email: mail.to }] }],
         from: from
-          ? { name: from[1].trim().replace(/^"|"$/g, ''), email: from[2].trim() }
+          ? {
+              name: from[1].trim().replace(/^"|"$/g, ''),
+              email: from[2].trim(),
+            }
           : { email: this.from },
         subject: mail.subject,
         content: [{ type: 'text/plain', value: mail.text }],

@@ -66,16 +66,17 @@ export class AuditInterceptor implements NestInterceptor {
             : undefined;
         detach(
           this.audit
-          .record({
-            userId: req.user?.id ?? null,
-            action: meta.action,
-            entity: meta.entity,
-            entityId: params.id ?? params.userId ?? params.orderId ?? resultId,
-            metadata: { ...(branchId ? { branchId } : {}), ...params },
-          })
-          .catch((err: unknown) =>
-            this.logger.warn(`audit write failed: ${String(err)}`),
-          ),
+            .record({
+              userId: req.user?.id ?? null,
+              action: meta.action,
+              entity: meta.entity,
+              entityId:
+                params.id ?? params.userId ?? params.orderId ?? resultId,
+              metadata: { ...(branchId ? { branchId } : {}), ...params },
+            })
+            .catch((err: unknown) =>
+              this.logger.warn(`audit write failed: ${String(err)}`),
+            ),
         );
       }),
     );

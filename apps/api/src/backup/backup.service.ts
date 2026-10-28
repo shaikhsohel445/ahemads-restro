@@ -165,7 +165,8 @@ export class BackupService {
     try {
       await this.bucket.put(probeKey, 'ok');
       const back = await this.bucket.get(probeKey);
-      if ((await back?.text()) !== 'ok') throw new Error('probe read back wrong');
+      if ((await back?.text()) !== 'ok')
+        throw new Error('probe read back wrong');
       await this.bucket.delete(probeKey);
     } catch (err) {
       throw new BadRequestException(
@@ -348,7 +349,8 @@ export class BackupService {
       );
     }
     const object = await this.bucket.get(record.s3KeyDb);
-    if (!object) throw new BadRequestException('Backup file is missing from R2');
+    if (!object)
+      throw new BadRequestException('Backup file is missing from R2');
 
     await this.audit.record({
       userId: user.id,
