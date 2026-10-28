@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build shared types
+        run: pnpm --filter @nodedr-restaurant/types build
+      - name: Type check
+        run: pnpm typecheck
+      - name: Unit tests (API, web, migration tooling)
+        run: |
+          pnpm --filter @nodedr-restaurant/api test
+          pnpm --filter @nodedr-restaurant/web test
+          pnpm --filter @nodedr-restaurant/migration-tools test
+      - name: Translations complete (en/ar)
+        run: pnpm i18n:check
+      - name: Bundle the API Worker
+        run: pnpm --filter @nodedr-restaurant/api exec wrangler deploy --dry-run --outdir /tmp/api-bundle
+      - name: Build the web Worker (OpenNext)
+        run: pnpm --filter @nodedr-restaurant/web build:cf
+      - name: End-to-end smoke test on local D1
+        run: |
+          cd apps/api
+          printf 'JWT_SECRET=%s\n' "$(openssl rand -hex 32)" > .dev.vars
+          pnpm exec wrangler d1 migrations apply DB --local
+          pnpm exec wrangler dev --port 8787 > /tmp/api.log 2>&1 &
+          for i in $(seq 1 90); do curl -sf localhost:8787/api/health && break; sleep 1; done
+          cd ../.. && node scripts/verify/smoke-api.mjs || (tail -100 /tmp/api.log; exit 1)
+
+  migration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: PostgreSQL -> D1 migration against a throwaway PostgreSQL
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql >/dev/null
+          PG_BIN=$(ls -d /usr/lib/postgresql/*/bin | tail -1) WORK=$PWD/.migration-test scripts/migration/test/run-local.sh

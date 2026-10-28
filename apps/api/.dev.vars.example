@@ -1,0 +1,19 @@
+# Local secrets for `wrangler dev` (copy to apps/api/.dev.vars, never commit
+# the real file). In staging/production set each one with
+#   pnpm --filter @nodedr-restaurant/api exec wrangler secret put <NAME> --env <staging|production>
+# Non-secret settings live in "vars" in wrangler.jsonc.
+
+# Required. Signs session cookies. 32+ random characters: openssl rand -hex 32
+JWT_SECRET=
+
+# Optional. Separate key for sealing webhook secrets / 2FA secrets at rest
+# (falls back to JWT_SECRET). openssl rand -hex 32
+# WEBHOOK_KEY=
+
+# Optional. Outgoing email (report schedules, marketing campaigns).
+# EMAIL_PROVIDER=resend        # or: sendgrid
+# EMAIL_API_KEY=
+# EMAIL_FROM="My Restaurant <orders@example.com>"
+
+# Optional. Show Swagger UI at /api/docs even when NODE_ENV=production.
+# ENABLE_SWAGGER=true

@@ -60,6 +60,7 @@
     "DEFAULT_COUNTRY": "SA",
     "DEFAULT_CURRENCY": "SAR",
     "DEFAULT_TIMEZONE": "Asia/Riyadh",
+    "APP_VERSION": "2.0.0-dev",
     "COOKIE_SECURE": "false"
   },
   "env": {
@@ -97,6 +98,7 @@
         "DEFAULT_COUNTRY": "SA",
         "DEFAULT_CURRENCY": "SAR",
         "DEFAULT_TIMEZONE": "Asia/Riyadh",
+        "APP_VERSION": "2.0.0",
         "COOKIE_SECURE": "true"
       }
     },
@@ -133,6 +135,7 @@
         "DEFAULT_COUNTRY": "SA",
         "DEFAULT_CURRENCY": "SAR",
         "DEFAULT_TIMEZONE": "Asia/Riyadh",
+        "APP_VERSION": "2.0.0",
         "COOKIE_SECURE": "true"
       }
     }
