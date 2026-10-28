@@ -1,3 +1,9 @@
+> **Saudi edition palette (2026):** the primary accent is now deep emerald
+> `#0B5D4A` (dark theme `#3DBB94`) with a restrained gold `#B08A3E`, warm sand
+> neutrals and charcoal text — see `apps/web/app/globals.css`. Layouts use
+> logical (RTL-safe) utilities. Everything else below still applies; read
+> "wine/burgundy" as the primary token.
+
 # Design System
 
 Bar to hit: Stripe Dashboard, Linear, Notion, Vercel, Raycast, Arc, Figma,
