@@ -30,6 +30,19 @@
   --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-gold: var(--gold);
+  --color-surface-2: var(--surface-2);
+  --color-status-success: var(--status-success);
+  --color-status-success-soft: var(--status-success-soft);
+  --color-status-warning: var(--status-warning);
+  --color-status-warning-soft: var(--status-warning-soft);
+  --color-status-danger: var(--status-danger);
+  --color-status-danger-soft: var(--status-danger-soft);
+  --color-status-info: var(--status-info);
+  --color-status-info-soft: var(--status-info-soft);
+  --color-status-neutral: var(--status-neutral);
+  --color-status-neutral-soft: var(--status-neutral-soft);
+  --color-status-gold: var(--status-gold);
+  --color-status-gold-soft: var(--status-gold-soft);
   --color-gold-foreground: var(--gold-foreground);
   --color-success: var(--success);
   --color-warning: var(--warning);
@@ -88,14 +101,30 @@
   --chart-4: #4C6EF5;
   --chart-5: #7A7F85;
   --radius: 0.875rem;
-  --sidebar: #FFFDF9;
-  --sidebar-foreground: #1F2328;
-  --sidebar-primary: #0B5D4A;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #E8F2EE;
-  --sidebar-accent-foreground: #0B5D4A;
-  --sidebar-border: #E6DFD3;
-  --sidebar-ring: #0B5D4A;
+  /* Deep emerald navigation rail with a gold active marker — the one large
+     coloured surface; page content stays on light sand. */
+  --sidebar: #0A3D31;
+  --sidebar-foreground: #E6EFEA;
+  --sidebar-primary: #D4B26A;
+  --sidebar-primary-foreground: #1A1408;
+  --sidebar-accent: #12513F;
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: #165443;
+  --sidebar-ring: #D4B26A;
+  /* Status colours shared by tables, tickets, orders and pills. */
+  --status-success: #15803D;
+  --status-success-soft: #E7F5EC;
+  --status-warning: #B45309;
+  --status-warning-soft: #FDF3E1;
+  --status-danger: #C2410C;
+  --status-danger-soft: #FCEBE2;
+  --status-info: #1D4ED8;
+  --status-info-soft: #E6EDFD;
+  --status-neutral: #5F6368;
+  --status-neutral-soft: #EFEBE4;
+  --status-gold: #8A6A26;
+  --status-gold-soft: #F6EEDC;
+  --surface-2: #F6F2EB;
 }
 
 .dark {
@@ -126,14 +155,27 @@
   --chart-3: #6FD3B2;
   --chart-4: #818CF8;
   --chart-5: #A3ABA7;
-  --sidebar: #101815;
-  --sidebar-foreground: #F1F1EE;
-  --sidebar-primary: #3DBB94;
-  --sidebar-primary-foreground: #04140F;
-  --sidebar-accent: #15302A;
-  --sidebar-accent-foreground: #6FD3B2;
-  --sidebar-border: #25302C;
-  --sidebar-ring: #3DBB94;
+  --sidebar: #08201A;
+  --sidebar-foreground: #DDE8E3;
+  --sidebar-primary: #D4B26A;
+  --sidebar-primary-foreground: #1A1408;
+  --sidebar-accent: #123A30;
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: #173A31;
+  --sidebar-ring: #D4B26A;
+  --status-success: #4ADE80;
+  --status-success-soft: rgb(74 222 128 / 0.12);
+  --status-warning: #FBBF24;
+  --status-warning-soft: rgb(251 191 36 / 0.12);
+  --status-danger: #FB923C;
+  --status-danger-soft: rgb(251 146 60 / 0.13);
+  --status-info: #93B4FD;
+  --status-info-soft: rgb(147 180 253 / 0.13);
+  --status-neutral: #A3ABA7;
+  --status-neutral-soft: rgb(163 171 167 / 0.12);
+  --status-gold: #D4B26A;
+  --status-gold-soft: rgb(212 178 106 / 0.14);
+  --surface-2: #18211E;
 }
 
 /* Customer kiosk (/kiosk/*): always the light palette, whatever the device's

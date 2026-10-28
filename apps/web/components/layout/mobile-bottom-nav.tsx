@@ -36,12 +36,14 @@ export function MobileBottomNav({
     .slice(0, PRIMARY_COUNT);
 
   const itemClass =
-    "relative flex flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors";
+    "relative flex flex-1 flex-col items-center justify-center gap-1 rounded-2xl text-[11px] font-medium transition-colors";
 
+  // Floating bar: rounded, lifted off the screen edge, with a filled pill
+  // behind the active tab.
   return (
     <nav
       aria-label={t("layout.primaryNav")}
-      className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+      className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-30 flex gap-1 rounded-3xl border border-border/70 bg-card/90 p-1.5 shadow-[0_12px_32px_-12px_rgb(0_0_0/0.25)] backdrop-blur-xl lg:hidden"
     >
       {primary.map((item) => {
         const isActive = pathname?.startsWith(item.href);
@@ -53,14 +55,14 @@ export function MobileBottomNav({
             aria-current={isActive ? "page" : undefined}
             className={cn(
               itemClass,
-              "h-16",
-              isActive ? "text-primary" : "text-muted-foreground active:text-foreground",
+              "h-14",
+              isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground active:bg-muted",
             )}
           >
-            <Icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
+            <Icon className="size-5" strokeWidth={isActive ? 2.4 : 2} />
             <span className="max-w-full truncate px-1">{t(item.labelKey)}</span>
             {badges.nav[item.href] && !isActive ? (
-              <span className="absolute top-2 start-1/2 ms-2 h-2.5 w-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_2px_rgba(245,158,11,0.7)]" />
+              <span className="absolute top-2 start-1/2 ms-2 size-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_2px_rgba(245,158,11,0.7)]" />
             ) : null}
           </Link>
         );
@@ -68,9 +70,9 @@ export function MobileBottomNav({
       <button
         type="button"
         onClick={onMore}
-        className={cn(itemClass, "h-16 text-muted-foreground active:text-foreground")}
+        className={cn(itemClass, "h-14 text-muted-foreground active:bg-muted")}
       >
-        <MoreHorizontal className="h-5 w-5" />
+        <MoreHorizontal className="size-5" />
         <span>{t("common.more")}</span>
       </button>
     </nav>

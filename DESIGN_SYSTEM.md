@@ -1,3 +1,39 @@
+# UI kit — Saudi edition (2026 redesign)
+
+Use these for every dashboard page so the app reads as one product.
+
+**Shell** (`components/layout/app-shell.tsx`): dark-emerald grouped sidebar
+(collapsible to an icon rail), sticky header that already shows the page
+name + icon, floating tab bar on phones. `<main>` scrolls; it pads
+`p-4 sm:p-6 lg:p-8` (max width 1440px) or, for `/pos`, `/kds`, `/tables`,
+`p-3 sm:p-4 lg:p-5` full-width. Phones reserve `pb-28` for the tab bar.
+Full-height screens size themselves with `h-[calc(100dvh-4rem-<padding>)]`
+— the header is 4rem — or better, `flex-1 min-h-0` inside a flex column.
+
+**Primitives** (`components/ui/`):
+- `PageHeader` — title, description, icon, `actions`, children (tabs/filters). Every page starts with it (except POS/KDS full-screen workspaces, which use a compact toolbar).
+- `StatCard` — KPI tile (label, value, icon, `tone`, hint).
+- `Segmented` — pill segmented control for filters, order types, views (supports icons and count bubbles).
+- `StatusPill` + `ORDER_STATUS_TONE`, `TABLE_STATUS_TONE`, `KOT_STATUS_TONE` — the one way to colour a status.
+- `EmptyState`, `Toolbar`, `SearchInput`, `Card`, `Badge` (`success|warning|danger|info|neutral|gold` variants), `Tabs` (pill style), `Button` (`h-9`, `lg` = `h-11` for primary touch actions).
+
+**Tokens** (Tailwind classes): `bg-background` sand page, `bg-card` white
+surfaces, `bg-surface-2` recessed areas (column backgrounds, segmented
+tracks), `bg-accent text-accent-foreground` soft emerald highlight,
+`bg-primary` emerald (primary actions only), `text-gold`/`bg-status-gold-soft`
+for small premium highlights, `bg-status-{success,warning,danger,info,neutral,gold}(-soft)`
+for state. Radii: cards `rounded-2xl`, controls `rounded-xl`. Borders
+`border-border/80`; shadows come from the card token — don't add heavy ones.
+
+**Rules**
+- Mobile first: single column on phones, grids that grow with `sm:`/`lg:`/`xl:`; use `grid-cols-[repeat(auto-fill,minmax(…,1fr))]` for tile grids. No horizontal page scroll; wide tables scroll inside their card (`overflow-x-auto`) or turn into card lists below `md`.
+- Touch targets ≥ 44px on service screens (POS, KDS, tables).
+- Numbers `tabular-nums`; money via `formatCurrency`.
+- Logical properties only (`ms/me/ps/pe/start/end/text-start`), RTL must look intentional.
+- Keep every existing behaviour, permission check, query, mutation and translation key; add new keys to the screen's own namespace in both `messages/en` and `messages/ar`.
+
+---
+
 > **Saudi edition palette (2026):** the primary accent is now deep emerald
 > `#0B5D4A` (dark theme `#3DBB94`) with a restrained gold `#B08A3E`, warm sand
 > neutrals and charcoal text — see `apps/web/app/globals.css`. Layouts use

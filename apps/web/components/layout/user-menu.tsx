@@ -37,7 +37,7 @@ export function UserMenu({ user }: { user?: SessionUser }) {
       <button
         type="button"
         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary"
+        className="flex size-10 items-center justify-center rounded-xl text-muted-foreground hover:bg-secondary"
         aria-label={t("layout.toggleTheme")}
       >
         <Sun className="h-[18px] w-[18px] dark:hidden" />
@@ -45,13 +45,16 @@ export function UserMenu({ user }: { user?: SessionUser }) {
       </button>
 
       <DropdownMenu>
-        <DropdownMenuTrigger className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-secondary">
+        <DropdownMenuTrigger className="flex items-center gap-2 rounded-xl py-1 ps-1 pe-2 hover:bg-secondary">
           <Avatar className="h-8 w-8">
             <AvatarFallback className="bg-primary text-xs font-medium text-primary-foreground">
               {initials(user?.name)}
             </AvatarFallback>
           </Avatar>
-          <span className="hidden text-sm font-medium sm:block">{user?.name}</span>
+          <span className="hidden flex-col items-start leading-tight md:flex">
+            <span className="text-sm font-medium">{user?.name}</span>
+            <span className="text-[11px] text-muted-foreground">{user?.roleName}</span>
+          </span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>
