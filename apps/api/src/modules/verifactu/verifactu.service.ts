@@ -17,8 +17,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../generated/prisma/client';
 import { AuditService } from '../../audit/audit.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
@@ -679,7 +678,7 @@ export class VerifactuService {
   }
 
   // ---- submission to AEAT ----
-  @Cron(CronExpression.EVERY_MINUTE)
+  // Runs every minute (Cron Trigger "* * * * *", see src/cloudflare/scheduled.ts).
   async tick() {
     try {
       await this.submitAll();

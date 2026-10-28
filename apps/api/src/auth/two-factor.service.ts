@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { AuditService } from '../audit/audit.service';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -15,6 +15,7 @@ import {
   sealSecret,
   verifyTotp,
 } from './totp';
+import { stringArray } from '../common/json-array';
 
 const MAX_FAILURES = 5;
 const LOCK_MS = 15 * 60_000;
@@ -24,7 +25,8 @@ interface TwoFactorUser {
   id: string;
   twoFactorEnabled: boolean;
   twoFactorSecret: string | null;
-  twoFactorRecoveryHashes: string[];
+  // JSON array of bcrypt hashes (a String[] column on PostgreSQL).
+  twoFactorRecoveryHashes: unknown;
   twoFactorLastStep: number | null;
 }
 
@@ -119,14 +121,15 @@ export class TwoFactorService {
 
   private async consumeRecoveryCode(user: TwoFactorUser, input: string) {
     const normalised = input.toUpperCase().replace(/[\s-]/g, '');
-    for (const hash of user.twoFactorRecoveryHashes) {
+    const hashes = stringArray(user.twoFactorRecoveryHashes);
+    for (const hash of hashes) {
       if (await bcrypt.compare(normalised, hash)) {
+        // Compare-and-set on the whole list (D1 has no array `has` filter):
+        // a code used twice concurrently still only succeeds once.
         const { count } = await this.prisma.user.updateMany({
-          where: { id: user.id, twoFactorRecoveryHashes: { has: hash } },
+          where: { id: user.id, twoFactorRecoveryHashes: { equals: hashes } },
           data: {
-            twoFactorRecoveryHashes: user.twoFactorRecoveryHashes.filter(
-              (h) => h !== hash,
-            ),
+            twoFactorRecoveryHashes: hashes.filter((h) => h !== hash),
           },
         });
         return count === 1;
@@ -142,7 +145,7 @@ export class TwoFactorService {
     });
     return {
       enabled: u.twoFactorEnabled,
-      recoveryCodesLeft: u.twoFactorRecoveryHashes.length,
+      recoveryCodesLeft: stringArray(u.twoFactorRecoveryHashes).length,
     };
   }
 

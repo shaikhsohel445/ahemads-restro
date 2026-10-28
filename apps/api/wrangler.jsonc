@@ -1,0 +1,137 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  // OrderRestro API — NestJS on Cloudflare Workers (see src/worker.ts).
+  //
+  // Top level = local development (`wrangler dev`). `env.staging` and
+  // `env.production` repeat every binding because Wrangler does not inherit
+  // bindings into environments. Replace each REPLACE_WITH_* id with the id
+  // printed by the matching `wrangler … create` command
+  // (docs/cloudflare/DEPLOYMENT.md). Secrets (JWT_SECRET, SMTP_URL, …) are
+  // never written here: `wrangler secret put <NAME> --env <env>`.
+  "name": "orderrestro-api",
+  "main": "dist/worker.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // dist/ is produced by build.mjs (see the comment there for why Wrangler
+  // does not bundle src/ itself).
+  "build": { "command": "node build.mjs" },
+  "no_bundle": true,
+  "find_additional_modules": true,
+  "base_dir": "dist",
+  "rules": [
+    { "type": "CompiledWasm", "globs": ["**/*.wasm"], "fallthrough": false },
+    { "type": "Data", "globs": ["**/*.ttf"], "fallthrough": false }
+  ],
+  "observability": { "enabled": true, "head_sampling_rate": 1 },
+  // bcrypt (password/PIN hashing) and PDF/XLSX exports need more than the
+  // Free plan's 10 ms of CPU per request: Workers Paid is required.
+  "limits": { "cpu_ms": 30000 },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "orderrestro-dev",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    { "binding": "UPLOADS", "bucket_name": "orderrestro-uploads-dev" },
+    { "binding": "BACKUPS", "bucket_name": "orderrestro-backups-dev" }
+  ],
+  "kv_namespaces": [
+    { "binding": "CACHE", "id": "00000000000000000000000000000000" }
+  ],
+  "durable_objects": {
+    "bindings": [
+      { "name": "REALTIME", "class_name": "RealtimeHub" },
+      { "name": "WRITE_LOCK", "class_name": "WriteLock" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["RealtimeHub", "WriteLock"] }
+  ],
+  "triggers": {
+    "crons": ["* * * * *", "*/10 * * * *", "0 * * * *", "0 0 * * *"]
+  },
+  "vars": {
+    "NODE_ENV": "development",
+    "CORS_ORIGIN": "http://localhost:1995",
+    "DEFAULT_COUNTRY": "SA",
+    "DEFAULT_CURRENCY": "SAR",
+    "DEFAULT_TIMEZONE": "Asia/Riyadh",
+    "COOKIE_SECURE": "false"
+  },
+  "env": {
+    "staging": {
+      "name": "orderrestro-api-staging",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "orderrestro-staging",
+          "database_id": "REPLACE_WITH_STAGING_D1_ID",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "r2_buckets": [
+        { "binding": "UPLOADS", "bucket_name": "orderrestro-uploads-staging" },
+        { "binding": "BACKUPS", "bucket_name": "orderrestro-backups-staging" }
+      ],
+      "kv_namespaces": [
+        { "binding": "CACHE", "id": "REPLACE_WITH_STAGING_KV_ID" }
+      ],
+      "durable_objects": {
+        "bindings": [
+          { "name": "REALTIME", "class_name": "RealtimeHub" },
+          { "name": "WRITE_LOCK", "class_name": "WriteLock" }
+        ]
+      },
+      "triggers": {
+        "crons": ["* * * * *", "*/10 * * * *", "0 * * * *", "0 0 * * *"]
+      },
+      "vars": {
+        "NODE_ENV": "production",
+        "ENABLE_SWAGGER": "true",
+        "CORS_ORIGIN": "https://staging.orderrestro.example",
+        "DEFAULT_COUNTRY": "SA",
+        "DEFAULT_CURRENCY": "SAR",
+        "DEFAULT_TIMEZONE": "Asia/Riyadh",
+        "COOKIE_SECURE": "true"
+      }
+    },
+    "production": {
+      "name": "orderrestro-api-production",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "orderrestro-production",
+          "database_id": "REPLACE_WITH_PRODUCTION_D1_ID",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "r2_buckets": [
+        { "binding": "UPLOADS", "bucket_name": "orderrestro-uploads-production" },
+        { "binding": "BACKUPS", "bucket_name": "orderrestro-backups-production" }
+      ],
+      "kv_namespaces": [
+        { "binding": "CACHE", "id": "REPLACE_WITH_PRODUCTION_KV_ID" }
+      ],
+      "durable_objects": {
+        "bindings": [
+          { "name": "REALTIME", "class_name": "RealtimeHub" },
+          { "name": "WRITE_LOCK", "class_name": "WriteLock" }
+        ]
+      },
+      "triggers": {
+        "crons": ["* * * * *", "*/10 * * * *", "0 * * * *", "0 0 * * *"]
+      },
+      "vars": {
+        "NODE_ENV": "production",
+        "CORS_ORIGIN": "https://app.orderrestro.example",
+        "DEFAULT_COUNTRY": "SA",
+        "DEFAULT_CURRENCY": "SAR",
+        "DEFAULT_TIMEZONE": "Asia/Riyadh",
+        "COOKIE_SECURE": "true"
+      }
+    }
+  }
+}

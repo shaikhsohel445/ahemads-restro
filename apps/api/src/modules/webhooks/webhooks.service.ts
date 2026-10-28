@@ -1,6 +1,4 @@
 import { randomBytes } from 'node:crypto';
-import http from 'node:http';
-import https from 'node:https';
 import {
   BadRequestException,
   Injectable,
@@ -8,8 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '../../generated/prisma/client';
 import { openSecret, sealSecret } from '../../auth/totp';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
@@ -18,6 +15,8 @@ import {
   type ResolvedTarget,
 } from './net-guard';
 import { BACKOFF_MS, MAX_ATTEMPTS, signPayload } from './signing';
+import { stringArray } from '../../common/json-array';
+import { waitUntil } from '../../cloudflare/bindings';
 
 export const WEBHOOK_EVENTS = [
   'order.created',
@@ -79,21 +78,11 @@ export class WebhooksService {
       select: { restaurantId: true },
     });
     if (!branch) return false;
-    const n = await this.prisma.webhookEndpoint.count({
-      where: {
-        restaurantId: branch.restaurantId,
-        isActive: true,
-        events: { has: event },
-      },
-    });
-    return n > 0;
+    return (await this.subscribedEndpoints(branch.restaurantId, event)).length > 0;
   }
 
   async emit(restaurantId: string, event: WebhookEvent, data: object) {
-    const endpoints = await this.prisma.webhookEndpoint.findMany({
-      where: { restaurantId, isActive: true, events: { has: event } },
-      select: { id: true },
-    });
+    const endpoints = await this.subscribedEndpoints(restaurantId, event);
     if (endpoints.length === 0) return;
     const payload = {
       event,
@@ -103,6 +92,20 @@ export class WebhooksService {
     await this.prisma.webhookDelivery.createMany({
       data: endpoints.map((e) => ({ endpointId: e.id, event, payload })),
     });
+    // Cron Triggers run at most once a minute (the self-hosted worker ticked
+    // every 10 s), so deliver right away after the response instead of
+    // waiting for the next tick; failures are retried by tick() as before.
+    waitUntil(this.tick());
+  }
+
+  // An endpoint's `events` is a JSON array on D1 (no array `has` filter), so
+  // the restaurant's active endpoints are matched in code.
+  private async subscribedEndpoints(restaurantId: string, event: string) {
+    const endpoints = await this.prisma.webhookEndpoint.findMany({
+      where: { restaurantId, isActive: true },
+      select: { id: true, events: true },
+    });
+    return endpoints.filter((e) => stringArray(e.events).includes(event));
   }
 
   // --- Endpoint management -------------------------------------------------
@@ -242,7 +245,10 @@ export class WebhooksService {
 
   // --- Delivery worker -----------------------------------------------------
 
-  @Cron(CronExpression.EVERY_10_SECONDS)
+  // Runs every minute (Cron Trigger "* * * * *", see
+  // src/cloudflare/scheduled.ts); Cron Triggers cannot fire more often than
+  // that, so a new delivery is also attempted right after it is queued
+  // (see emit()).
   async tick() {
     try {
       const due = await this.prisma.webhookDelivery.findMany({
@@ -257,7 +263,7 @@ export class WebhooksService {
     }
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  // Runs daily at 00:00 UTC = 03:00 Asia/Riyadh (see src/cloudflare/scheduled.ts).
   async cleanup() {
     const cutoff = new Date(Date.now() - 30 * 86_400_000);
     await this.prisma.webhookDelivery.deleteMany({
@@ -338,42 +344,36 @@ export class WebhooksService {
     });
   }
 
-  private post(
+  // fetch() instead of node:http(s). The target is still resolved and
+  // vetted by resolveWebhookTarget on every attempt; in addition, Workers'
+  // outbound fetch cannot reach private/RFC 1918 addresses at all, which
+  // also closes the DNS-rebinding window the self-hosted build closed by
+  // pinning the vetted address. Redirects are not followed (as before).
+  private async post(
     target: ResolvedTarget,
     body: string,
     headers: Record<string, string>,
   ): Promise<number> {
-    const { url, address, family } = target;
-    const client = url.protocol === 'https:' ? https : http;
-    return new Promise((resolve, reject) => {
-      const req = client.request(
-        {
-          protocol: url.protocol,
-          hostname: url.hostname,
-          port: url.port || undefined,
-          path: `${url.pathname}${url.search}`,
-          method: 'POST',
-          timeout: TIMEOUT_MS,
-          headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(body),
-            'User-Agent': 'OrderRestro-Webhooks/1',
-            ...headers,
-          },
-          // Connect to the address we already vetted; TLS still validates
-          // the certificate against the real hostname.
-          lookup: (_host, _opts, cb) => cb(null, address, family),
+    let res: Response;
+    try {
+      res = await fetch(target.url.toString(), {
+        method: 'POST',
+        redirect: 'manual',
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'OrderRestro-Webhooks/1',
+          ...headers,
         },
-        (res) => {
-          res.resume(); // we never read the response body
-          resolve(res.statusCode ?? 0);
-        },
-      );
-      req.on('timeout', () =>
-        req.destroy(new Error('Timed out after 8 seconds')),
-      );
-      req.on('error', reject);
-      req.end(body);
-    });
+        body,
+      });
+    } catch (err) {
+      if (err instanceof Error && err.name === 'TimeoutError')
+        throw new Error('Timed out after 8 seconds');
+      throw err;
+    }
+    // We never read the response body.
+    await res.body?.cancel();
+    return res.status;
   }
 }

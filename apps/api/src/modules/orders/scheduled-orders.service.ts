@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import { OrdersService } from './orders.service';
 
 /** Releases scheduled orders to the kitchen as their time approaches. */
@@ -9,7 +8,7 @@ export class ScheduledOrdersService {
 
   constructor(private readonly orders: OrdersService) {}
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  // Runs every minute (Cron Trigger "* * * * *", see src/cloudflare/scheduled.ts).
   async tick() {
     try {
       const released = await this.orders.releaseDueScheduledOrders();

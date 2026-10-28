@@ -100,7 +100,9 @@ export class TransfersService {
           `${to.name} stocks ${source.name} in ${dest.unit}, not ${source.unit}`,
         );
 
-      await tx.$queryRaw`SELECT id FROM ingredients WHERE id = ${dest.id} FOR UPDATE`;
+      // Was `SELECT ... FOR UPDATE` (a PostgreSQL row lock). On D1 the same
+      // serialisation comes from the restaurant's WriteLock, held for the
+      // whole request (src/cloudflare/write-lock.do.ts).
       const fresh = await tx.ingredient.findUniqueOrThrow({
         where: { id: dest.id },
       });

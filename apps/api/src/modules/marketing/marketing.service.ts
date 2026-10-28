@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../generated/prisma/client';
 import type {
   CampaignDto,
   CouponDto,
@@ -23,6 +23,7 @@ import {
   round2,
   toMinutes,
 } from './discounts';
+import { numberArray } from '../../common/json-array';
 
 export interface CheckoutDiscount {
   amount: number;
@@ -157,7 +158,13 @@ export class MarketingService {
       where: { branchId, isActive: true },
     });
     for (const p of promos) {
-      if (!promotionActive({ ...p, value: Number(p.value) }, day, minute))
+      if (
+        !promotionActive(
+          { ...p, value: Number(p.value), daysOfWeek: numberArray(p.daysOfWeek) },
+          day,
+          minute,
+        )
+      )
         continue;
       const amount = discountAmount(p.kind, Number(p.value), subtotal);
       if (amount > best.amount) best = { amount, promotionName: p.name };

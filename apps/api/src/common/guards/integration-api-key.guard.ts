@@ -10,6 +10,7 @@ import { createHash } from 'node:crypto';
 import type { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
 import { INTEGRATION_SCOPES_KEY } from '../decorators/require-scope.decorator';
+import { stringArray } from '../json-array';
 
 // Authenticates every route on IntegrationsController — the public REST API
 // external websites use as a backend (see docs/integrations-api.md). A
@@ -50,7 +51,8 @@ export class IntegrationApiKeyGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
     if (required?.length) {
-      const missing = required.filter((scope) => !key.scopes.includes(scope));
+      const scopes = stringArray(key.scopes);
+      const missing = required.filter((scope) => !scopes.includes(scope));
       if (missing.length > 0) {
         throw new ForbiddenException(
           `This API key is missing required scope(s): ${missing.join(', ')}`,
@@ -62,7 +64,7 @@ export class IntegrationApiKeyGuard implements CanActivate {
       id: key.id,
       restaurantId: key.restaurantId,
       branchId: key.branchId,
-      scopes: key.scopes,
+      scopes: stringArray(key.scopes),
     };
 
     // Best-effort — must never block an already-authenticated request.

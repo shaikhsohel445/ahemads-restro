@@ -6,6 +6,9 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class CustomersService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // SQLite's LIKE (what `contains` compiles to on D1) is already
+  // case-insensitive for ASCII, which is what `mode: 'insensitive'` gave on
+  // PostgreSQL. Arabic has no letter case.
   list(branchId: string, search?: string) {
     return this.prisma.customer.findMany({
       where: {
@@ -13,9 +16,9 @@ export class CustomersService {
         ...(search
           ? {
               OR: [
-                { name: { contains: search, mode: 'insensitive' } },
+                { name: { contains: search } },
                 { phone: { contains: search } },
-                { email: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search } },
               ],
             }
           : {}),

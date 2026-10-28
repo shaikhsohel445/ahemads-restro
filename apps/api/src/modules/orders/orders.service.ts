@@ -6,8 +6,8 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+import { Prisma } from '../../generated/prisma/client';
+import bcrypt from 'bcryptjs';
 import {
   canTransitionKot,
   KOT_STARTED_STATUSES,
@@ -44,6 +44,7 @@ import {
 } from './settlement';
 import type { TaxMode } from '@nodedr-restaurant/types';
 import { VerifactuService } from '../verifactu/verifactu.service';
+import { findZoneForPincode } from '../delivery/zone-lookup';
 
 const KOT_FORWARD_STATUSES = [
   'ACCEPTED',
@@ -275,13 +276,11 @@ export class OrdersService {
         deliveryPhone: dto.delivery?.phone,
       };
       if (hasZones && dto.delivery) {
-        const zone = await this.prisma.deliveryZone.findFirst({
-          where: {
-            branchId,
-            isActive: true,
-            pincodes: { has: dto.delivery.pincode },
-          },
-        });
+        const zone = await findZoneForPincode(
+          this.prisma,
+          branchId,
+          dto.delivery.pincode,
+        );
         if (!zone) {
           throw new BadRequestException(
             'Sorry, we do not deliver to that pincode',

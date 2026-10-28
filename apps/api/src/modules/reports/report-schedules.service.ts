@@ -4,13 +4,13 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import type { ReportFrequency, ReportSchedule } from '@prisma/client';
+import type { ReportFrequency, ReportSchedule } from '../../generated/prisma/client';
 import { BranchTimeService } from '../../common/services/branch-time.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { EXPORT_TYPES, isExportFormat, renderReport } from './export';
 import { REPORT_CATALOG, ReportsService } from './reports.service';
+import { stringArray } from '../../common/json-array';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const iso = (d: Date) => d.toISOString().slice(0, 10);
@@ -127,7 +127,7 @@ export class ReportSchedulesService {
     const t = EXPORT_TYPES[format];
     const subject = `${result.title} · ${from === to ? from : `${from} to ${to}`}`;
     const out = await this.email.sendEach(
-      s.recipients.map((to_) => ({
+      stringArray(s.recipients).map((to_) => ({
         to: to_,
         subject,
         text: `Your scheduled ${result.title} report for ${from} to ${to} is attached.\n\nSent by NodeDR OrderRestro.`,
@@ -173,7 +173,7 @@ export class ReportSchedulesService {
     };
   }
 
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  // Runs every 10 minutes (Cron Trigger "*/10 * * * *", see src/cloudflare/scheduled.ts).
   async tick() {
     try {
       if (!this.email.isConfigured()) return;

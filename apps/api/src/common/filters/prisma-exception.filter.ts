@@ -8,7 +8,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../generated/prisma/client';
 import type { Response } from 'express';
 
 // Converts Prisma's database errors into the same JSON error shape as every

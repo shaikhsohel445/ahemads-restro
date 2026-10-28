@@ -9,8 +9,6 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import archiver from 'archiver';
-import * as fs from 'node:fs/promises';
 import type { Response } from 'express';
 import {
   restoreBackupSchema,
@@ -77,38 +75,21 @@ export class BackupController {
     return this.backupService.restore(user, id, body as never);
   }
 
-  // Streams a single zip built server-side from the backup's two S3
-  // objects (whichever exist) — new beyond zulivio, which never built a
-  // local-download path. See BackupService.prepareDownload() for the
-  // VERIFIED-only check and its own audit call.
-  // Local backup: dump the database + uploads right now and stream them as
-  // a zip to the browser, so an owner can keep a copy on their own machine
-  // with no S3 bucket configured. Declared before ':id/download' routes.
+  // Local backup: dump the database right now and send it to the browser,
+  // so an owner can keep a copy on their own machine. Declared before the
+  // ':id/download' route.
   @Auth('backup.manage')
   @Get('export')
   async exportLocal(@CurrentUser() user: SessionUser, @Res() res: Response) {
-    const { workDir, dbDumpPath, uploadsArchivePath } =
-      await this.backupService.prepareLocalExport(user);
-
-    const filename = `orderrestro-backup-${new Date().toISOString().replace(/[:.]/g, '-')}.zip`;
-    res.setHeader('Content-Type', 'application/zip');
+    const dump = await this.backupService.prepareLocalExport(user);
+    const filename = `orderrestro-backup-${new Date().toISOString().replace(/[:.]/g, '-')}.ndjson.gz`;
+    res.setHeader('Content-Type', 'application/gzip');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-
-    const cleanup = () => {
-      void fs.rm(workDir, { recursive: true, force: true });
-    };
-    res.on('close', cleanup);
-
-    const archive = archiver('zip', { zlib: { level: 9 } });
-    archive.on('error', (err) => res.destroy(err));
-    archive.pipe(res);
-    archive.file(dbDumpPath, { name: 'db.dump' });
-    if (uploadsArchivePath) {
-      archive.file(uploadsArchivePath, { name: 'uploads.tar.gz' });
-    }
-    await archive.finalize();
+    res.send(Buffer.from(dump));
   }
 
+  // The stored dump of a VERIFIED backup. See
+  // BackupService.prepareDownload() for the state check and its audit call.
   @Auth('backup.manage')
   @Get(':id/download')
   async download(
@@ -116,36 +97,10 @@ export class BackupController {
     @Param('id') id: string,
     @Res() res: Response,
   ) {
-    const { record, config, s3 } = await this.backupService.prepareDownload(
-      user,
-      id,
-    );
-
-    const filename = `backup-${record.createdAt.toISOString().replace(/[:.]/g, '-')}.zip`;
-    res.setHeader('Content-Type', 'application/zip');
+    const { record, data } = await this.backupService.prepareDownload(user, id);
+    const filename = `backup-${record.createdAt.toISOString().replace(/[:.]/g, '-')}.ndjson.gz`;
+    res.setHeader('Content-Type', 'application/gzip');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-
-    const archive = archiver('zip', { zlib: { level: 9 } });
-    archive.on('error', (err) => res.destroy(err));
-    archive.pipe(res);
-
-    if (record.s3KeyDb) {
-      const dbStream = await this.backupService.fetchObjectStream(
-        s3,
-        config.bucket,
-        record.s3KeyDb,
-      );
-      archive.append(dbStream, { name: 'db.dump' });
-    }
-    if (record.s3KeyUploads) {
-      const uploadsStream = await this.backupService.fetchObjectStream(
-        s3,
-        config.bucket,
-        record.s3KeyUploads,
-      );
-      archive.append(uploadsStream, { name: 'uploads.tar.gz' });
-    }
-
-    await archive.finalize();
+    res.send(Buffer.from(data));
   }
 }

@@ -5,8 +5,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { CreateStaffDto, UpdateStaffDto } from '@nodedr-restaurant/types';
-import { Prisma } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+import { Prisma } from '../../generated/prisma/client';
+import bcrypt from 'bcryptjs';
 import { AuditService } from '../../audit/audit.service';
 import { PrismaService } from '../../prisma/prisma.service';
 

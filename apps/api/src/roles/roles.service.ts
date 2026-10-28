@@ -106,7 +106,6 @@ export class RolesService {
         if (toAdd.length > 0) {
           await tx.rolePermission.createMany({
             data: toAdd.map((p) => ({ roleId: id, permissionId: p.id })),
-            skipDuplicates: true,
           });
         }
       }

@@ -1,33 +1,17 @@
 import { BadRequestException } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, unlinkSync } from 'node:fs';
-import { extname, join } from 'node:path';
+import { extname } from 'node:path';
 import type { Request } from 'express';
-import { diskStorage, type FileFilterCallback } from 'multer';
+import { memoryStorage, type FileFilterCallback } from 'multer';
 
-// Persisted separately from the app's own image (a bind/named volume in
-// docker-compose.yml) so uploaded menu photos survive container rebuilds,
-// the same way the Postgres volume survives them — see README/ARCHITECTURE.
-export function uploadsDir(): string {
-  const dir = process.env.UPLOADS_DIR ?? join(process.cwd(), 'uploads');
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true });
-  }
-  return dir;
-}
+// Uploads are buffered in memory (max 5 MB) and then written to R2 by
+// StorageService — a Worker has no writable disk for multer's diskStorage.
 
 const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 
 export const imageUploadOptions = {
-  storage: diskStorage({
-    destination: (_req, _file, cb) => cb(null, uploadsDir()),
-    filename: (_req, file, cb) => {
-      const ext = extname(file.originalname).toLowerCase();
-      cb(null, `${randomUUID()}${ALLOWED_EXTENSIONS.has(ext) ? ext : '.jpg'}`);
-    },
-  }),
-  limits: { fileSize: MAX_FILE_SIZE_BYTES },
+  storage: memoryStorage(),
+  limits: { fileSize: MAX_FILE_SIZE_BYTES, files: 1 },
   fileFilter: (
     _req: Request,
     file: Express.Multer.File,
@@ -46,17 +30,21 @@ export const imageUploadOptions = {
   },
 };
 
-// Magic-byte signatures for the extensions ALLOWED_EXTENSIONS accepts.
-// `fileFilter` above only sees the client-declared filename/mimetype
-// (multer calls it before any bytes are read from a diskStorage upload) —
-// neither is trustworthy. This checks the file actually on disk after
-// multer finishes writing it, so a renamed/mislabeled non-image (e.g. an
-// .html or .svg file saved as "photo.jpg" with a spoofed
-// Content-Type: image/jpeg) is rejected and deleted rather than served
-// back later under /api/uploads/.
-const SIGNATURES: { match: (buf: Buffer) => boolean }[] = [
-  { match: (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff }, // JPEG
+// Magic-byte signatures for the formats ALLOWED_EXTENSIONS accepts.
+// `fileFilter` above only sees the client-declared filename/mimetype —
+// neither is trustworthy. This checks the actual bytes, so a renamed or
+// mislabeled non-image (e.g. an .html or .svg file sent as "photo.jpg" with a
+// spoofed Content-Type: image/jpeg) is rejected before it is stored and
+// served back under /api/uploads/.
+const SIGNATURES: { ext: string; mime: string; match: (b: Uint8Array) => boolean }[] = [
   {
+    ext: '.jpg',
+    mime: 'image/jpeg',
+    match: (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff,
+  },
+  {
+    ext: '.png',
+    mime: 'image/png',
     match: (b) =>
       b[0] === 0x89 &&
       b[1] === 0x50 &&
@@ -66,9 +54,15 @@ const SIGNATURES: { match: (buf: Buffer) => boolean }[] = [
       b[5] === 0x0a &&
       b[6] === 0x1a &&
       b[7] === 0x0a,
-  }, // PNG
-  { match: (b) => b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46 }, // GIF ("GIF")
+  },
   {
+    ext: '.gif',
+    mime: 'image/gif',
+    match: (b) => b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46,
+  },
+  {
+    ext: '.webp',
+    mime: 'image/webp',
     match: (b) =>
       b[0] === 0x52 &&
       b[1] === 0x49 &&
@@ -78,26 +72,22 @@ const SIGNATURES: { match: (buf: Buffer) => boolean }[] = [
       b[9] === 0x45 &&
       b[10] === 0x42 &&
       b[11] === 0x50,
-  }, // WEBP ("RIFF....WEBP")
+  },
 ];
 
-export function assertValidImageSignature(filePath: string): void {
-  let header: Buffer;
-  try {
-    header = readFileSync(filePath).subarray(0, 16);
-  } catch {
-    throw new BadRequestException('Uploaded file could not be read');
-  }
-  const isValidImage = SIGNATURES.some((sig) => sig.match(header));
-  if (!isValidImage) {
-    try {
-      unlinkSync(filePath);
-    } catch {
-      // best-effort cleanup — the invalid file is at worst an orphaned,
-      // non-executable, randomly-named blob under UPLOADS_DIR
-    }
+/**
+ * Returns the detected format of an uploaded image (from its bytes, not its
+ * name), or throws 400 if the content is not a supported image. The stored
+ * object's extension and Content-Type come from this, so what is served back
+ * always matches what the bytes really are.
+ */
+export function detectImage(bytes: Uint8Array): { ext: string; mime: string } {
+  const header = bytes.subarray(0, 16);
+  const found = SIGNATURES.find((sig) => sig.match(header));
+  if (!found) {
     throw new BadRequestException(
       'File content does not match a supported image format (jpg, png, webp, gif)',
     );
   }
+  return { ext: found.ext, mime: found.mime };
 }

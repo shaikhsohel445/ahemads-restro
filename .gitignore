@@ -19,3 +19,8 @@ docker-compose.override.yml
 # own ./out directory; these are only produced by a local `dotnet build`.
 windows/msix/Launcher/bin/
 windows/msix/Launcher/obj/
+.prisma-scratch.db*
+apps/api/src/generated/
+.wrangler/
+.dev.vars
+.open-next/

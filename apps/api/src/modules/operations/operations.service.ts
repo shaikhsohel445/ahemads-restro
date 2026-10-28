@@ -10,6 +10,7 @@ import type {
 } from '@nodedr-restaurant/types';
 import { addDaysToDate, localDate } from '../../common/time';
 import { BranchTimeService } from '../../common/services/branch-time.service';
+import { StorageService } from '../../cloudflare/storage.service';
 import { PrismaService } from '../../prisma/prisma.service';
 
 export const ATTACHMENT_MAX_BYTES = 5 * 1024 * 1024;
@@ -42,6 +43,7 @@ export class OperationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly time: BranchTimeService,
+    private readonly storage: StorageService,
   ) {}
 
   // --- Equipment -----------------------------------------------------------
@@ -195,9 +197,15 @@ export class OperationsService {
     });
     if (count >= 10)
       throw new BadRequestException('A document can hold at most 10 files');
+    const storageKey = await this.storage.putPrivate(
+      'documents',
+      new Uint8Array(file.buffer),
+      file.mimetype,
+    );
     const created = await this.prisma.documentFile.create({
       data: {
         documentId: id,
+        storageKey,
         // Strip path separators and control characters from the client name.
         fileName:
           file.originalname
@@ -206,7 +214,6 @@ export class OperationsService {
             .slice(0, 150) || 'file',
         mimeType: file.mimetype,
         size: file.size,
-        data: new Uint8Array(file.buffer),
       },
       select: {
         id: true,
@@ -225,12 +232,15 @@ export class OperationsService {
       where: { id: fileId, documentId: id },
     });
     if (!f) throw new NotFoundException('File not found');
-    return f;
+    const data = await this.storage.getBytes(f.storageKey);
+    if (!data) throw new NotFoundException('File content is missing');
+    return { ...f, data };
   }
 
   async deleteDocumentFile(branchId: string, id: string, fileId: string) {
-    await this.getDocumentFile(branchId, id, fileId);
+    const f = await this.getDocumentFile(branchId, id, fileId);
     await this.prisma.documentFile.delete({ where: { id: fileId } });
+    await this.storage.delete(f.storageKey);
     return { ok: true };
   }
 

@@ -22,8 +22,21 @@ export class PermissionsSyncService implements OnModuleInit {
     await this.sync();
   }
 
+  // Runs once per Worker isolate start, so it first reads the catalog and
+  // only writes the permissions that are missing or whose label/category
+  // changed — normally zero writes, two reads.
   async sync() {
+    const existing = new Map(
+      (await this.prisma.permission.findMany()).map((p) => [p.key, p]),
+    );
     for (const permission of PERMISSIONS) {
+      const row = existing.get(permission.key);
+      if (
+        row &&
+        row.label === permission.label &&
+        row.category === permission.category
+      )
+        continue;
       await this.prisma.permission.upsert({
         where: { key: permission.key },
         update: { label: permission.label, category: permission.category },
@@ -44,7 +57,6 @@ export class PermissionsSyncService implements OnModuleInit {
 
       await this.prisma.rolePermission.createMany({
         data: missing.map((p) => ({ roleId: role.id, permissionId: p.id })),
-        skipDuplicates: true,
       });
       this.logger.log(
         `Backfilled ${missing.length} new permission(s) onto role ${role.id} (${role.name})`,

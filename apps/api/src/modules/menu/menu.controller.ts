@@ -26,10 +26,11 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { BranchAccessService } from '../../common/services/branch-access.service';
 import {
-  assertValidImageSignature,
+  detectImage,
   imageUploadOptions,
 } from '../../common/upload/image-upload.config';
 import { MenuService } from './menu.service';
+import { StorageService } from '../../cloudflare/storage.service';
 
 @ApiTags('menu')
 @Controller('v1/menu')
@@ -37,6 +38,7 @@ export class MenuController {
   constructor(
     private readonly menuService: MenuService,
     private readonly branchAccess: BranchAccessService,
+    private readonly storage: StorageService,
   ) {}
 
   // --- Categories ---------------------------------------------------------
@@ -152,7 +154,7 @@ export class MenuController {
   @Auth('menu.manage')
   @Post('items/upload-image')
   @UseInterceptors(FileInterceptor('file', imageUploadOptions))
-  uploadItemImage(@UploadedFile() file?: Express.Multer.File) {
+  async uploadItemImage(@UploadedFile() file?: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
@@ -160,8 +162,10 @@ export class MenuController {
     // filename/mimetype before any bytes were read — verify the bytes
     // actually on disk match a real image signature before this URL is
     // ever handed back to be saved on a menu item and served publicly.
-    assertValidImageSignature(file.path);
-    return { url: `/api/uploads/${file.filename}` };
+    const bytes = new Uint8Array(file.buffer);
+    const { ext, mime } = detectImage(bytes);
+    const name = await this.storage.putPublicImage(bytes, ext, mime);
+    return { url: `/api/uploads/${name}` };
   }
 
   @Auth('menu.manage')

@@ -23,10 +23,11 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { BranchAccessService } from '../../common/services/branch-access.service';
 import {
-  assertValidImageSignature,
+  detectImage,
   imageUploadOptions,
 } from '../../common/upload/image-upload.config';
 import { SettingsService } from './settings.service';
+import { StorageService } from '../../cloudflare/storage.service';
 
 @ApiTags('settings')
 @Controller('v1/settings')
@@ -34,6 +35,7 @@ export class SettingsController {
   constructor(
     private readonly settingsService: SettingsService,
     private readonly branchAccess: BranchAccessService,
+    private readonly storage: StorageService,
   ) {}
 
   @Auth('settings.manage')
@@ -63,15 +65,17 @@ export class SettingsController {
   @Auth('settings.manage')
   @Post('restaurant/logo')
   @UseInterceptors(FileInterceptor('file', imageUploadOptions))
-  uploadRestaurantLogo(@UploadedFile() file?: Express.Multer.File) {
+  async uploadRestaurantLogo(@UploadedFile() file?: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
     // See menu.controller.ts's uploadItemImage — same rationale for
     // checking the bytes on disk before this URL is saved and served back
     // publicly as the restaurant's branding.
-    assertValidImageSignature(file.path);
-    return { url: `/api/uploads/${file.filename}` };
+    const bytes = new Uint8Array(file.buffer);
+    const { ext, mime } = detectImage(bytes);
+    const name = await this.storage.putPublicImage(bytes, ext, mime);
+    return { url: `/api/uploads/${name}` };
   }
 
   @Auth('settings.manage')

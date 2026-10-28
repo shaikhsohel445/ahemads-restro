@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { resolveTaxLabel, type KioskOrderDto } from '@nodedr-restaurant/types';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OrdersService } from '../orders/orders.service';
 import { PublicMenuService } from './public-menu.service';

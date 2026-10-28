@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+import { PrismaClient } from '../src/generated/prisma/client';
+import bcrypt from 'bcryptjs';
 import {
   DEFAULT_ROLE_PERMISSIONS,
   PERMISSIONS,

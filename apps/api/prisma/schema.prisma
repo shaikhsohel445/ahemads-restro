@@ -1,15 +1,18 @@
-// Nodedr OrderRestro — Phase 0/1 core schema.
-// See ARCHITECTURE.md for why PostgreSQL is the primary target and how
-// multi-branch/single-location both map onto the same schema (a branch is
-// just a Branch row, not a different deployment mode).
+// Nodedr OrderRestro — Cloudflare D1 (SQLite) schema.
+// GENERATED from the PostgreSQL schema by scripts/migration/convert-prisma-schema.mjs,
+// then maintained here. See docs/cloudflare/DATABASE.md.
 
 generator client {
-  provider = "prisma-client-js"
+  provider               = "prisma-client"
+  output                 = "../src/generated/prisma"
+  runtime                = "workerd"
+  moduleFormat           = "cjs"
+  generatedFileExtension = "ts"
+  importFileExtension    = ""
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
 }
 
 // ---------------------------------------------------------------------------
@@ -62,7 +65,7 @@ model Restaurant {
   // OrdersService, now per-restaurant and settings-editable. Point value
   // is the currency amount 1 redeemed point is worth; earn rate is how
   // many currency units of net spend earn 1 point (floor division).
-  loyaltyPointValue      Decimal @default(1) @db.Decimal(6, 2)
+  loyaltyPointValue      Decimal @default(1)
   loyaltyEarnPerCurrency Int     @default(100)
 
   createdAt DateTime @default(now())
@@ -243,7 +246,7 @@ model User {
   isActive                Boolean  @default(true)
   twoFactorSecret         String? // AES-GCM sealed TOTP secret (see auth/totp.ts)
   twoFactorEnabled        Boolean  @default(false)
-  twoFactorRecoveryHashes String[] @default([]) // bcrypt hashes of unused one-time recovery codes
+  twoFactorRecoveryHashes Json @default("[]") // bcrypt hashes of unused one-time recovery codes
   twoFactorLastStep       Int? // last accepted TOTP step: a code works once
 
   createdAt DateTime @default(now())
@@ -325,7 +328,7 @@ model IntegrationApiKey {
   name      String
   tokenHash String   @unique
   lastFour  String
-  scopes    String[]
+  scopes    Json
 
   createdById String
   createdBy   User   @relation("IntegrationApiKeyCreatedBy", fields: [createdById], references: [id])
@@ -613,12 +616,12 @@ model Ingredient {
   name         String
   sku          String?
   unit         IngredientUnit
-  reorderLevel Decimal        @default(0) @db.Decimal(12, 3)
+  reorderLevel Decimal        @default(0)
 
   // Cached from the StockMovement ledger — see note above on why these are
   // safe (transactional read-then-set, never `increment`).
-  currentStock Decimal @default(0) @db.Decimal(12, 3)
-  costPerUnit  Decimal @default(0) @db.Decimal(12, 4) // weighted-average cost
+  currentStock Decimal @default(0)
+  costPerUnit  Decimal @default(0) // weighted-average cost
 
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -647,7 +650,7 @@ model RecipeIngredient {
   ingredientId String
   ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
 
-  quantity  Decimal  @db.Decimal(12, 3) // in ingredient.unit
+  quantity  Decimal  // in ingredient.unit
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -703,7 +706,7 @@ model PurchaseOrder {
   status       PurchaseOrderStatus @default(DRAFT)
   expectedDate DateTime?
   notes        String?
-  totalAmount  Decimal             @default(0) @db.Decimal(12, 2)
+  totalAmount  Decimal             @default(0)
 
   createdById String
   createdBy   User     @relation("PurchaseOrderCreatedBy", fields: [createdById], references: [id])
@@ -726,9 +729,9 @@ model PurchaseOrderItem {
   ingredientId    String
   ingredient      Ingredient    @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
 
-  quantityOrdered  Decimal @db.Decimal(12, 3)
-  unitCost         Decimal @db.Decimal(12, 4)
-  quantityReceived Decimal @default(0) @db.Decimal(12, 3)
+  quantityOrdered  Decimal
+  unitCost         Decimal
+  quantityReceived Decimal @default(0)
 
   goodsReceiptItems GoodsReceiptItem[]
 
@@ -772,8 +775,8 @@ model GoodsReceiptItem {
   purchaseOrderItemId String?
   purchaseOrderItem   PurchaseOrderItem? @relation(fields: [purchaseOrderItemId], references: [id], onDelete: SetNull)
 
-  quantity    Decimal   @db.Decimal(12, 3)
-  unitCost    Decimal   @db.Decimal(12, 4)
+  quantity    Decimal  
+  unitCost    Decimal  
   batchNumber String
   expiryDate  DateTime?
   createdAt   DateTime  @default(now())
@@ -827,7 +830,7 @@ model PurchaseRequestItem {
   ingredientId      String
   ingredient        Ingredient      @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
 
-  quantityRequested Decimal @db.Decimal(12, 3)
+  quantityRequested Decimal
   notes             String?
 
   @@index([purchaseRequestId])
@@ -873,8 +876,8 @@ model SupplierQuotationItem {
   ingredientId        String
   ingredient          Ingredient        @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
 
-  quantityQuoted Decimal @db.Decimal(12, 3)
-  unitPrice      Decimal @db.Decimal(12, 4)
+  quantityQuoted Decimal
+  unitPrice      Decimal
 
   @@index([supplierQuotationId])
   @@map("supplier_quotation_items")
@@ -903,8 +906,8 @@ model SupplierInvoice {
   invoiceNumber String
   invoiceDate   DateTime
   dueDate       DateTime?
-  totalAmount   Decimal               @db.Decimal(12, 2)
-  amountPaid    Decimal               @default(0) @db.Decimal(12, 2)
+  totalAmount   Decimal              
+  amountPaid    Decimal               @default(0)
   status        SupplierInvoiceStatus @default(UNPAID)
   notes         String?
 
@@ -927,7 +930,7 @@ model SupplierPayment {
   supplierInvoiceId String
   supplierInvoice   SupplierInvoice @relation(fields: [supplierInvoiceId], references: [id], onDelete: Cascade)
 
-  amount        Decimal       @db.Decimal(12, 2)
+  amount        Decimal      
   paymentMethod PaymentMethod
   reference     String?
   paidAt        DateTime      @default(now())
@@ -951,9 +954,9 @@ model StockBatch {
   goodsReceiptItem   GoodsReceiptItem? @relation(fields: [goodsReceiptItemId], references: [id], onDelete: SetNull)
 
   batchNumber       String
-  quantityReceived  Decimal   @db.Decimal(12, 3)
-  quantityRemaining Decimal   @db.Decimal(12, 3)
-  unitCost          Decimal   @db.Decimal(12, 4)
+  quantityReceived  Decimal  
+  quantityRemaining Decimal  
+  unitCost          Decimal  
   expiryDate        DateTime?
   receivedAt        DateTime  @default(now())
 
@@ -993,7 +996,7 @@ model StockMovement {
   batch        StockBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
 
   type     StockMovementType
-  quantity Decimal           @db.Decimal(12, 3) // signed: +in, -out
+  quantity Decimal           // signed: +in, -out
   note     String?
   // Set for order-driven movements (checkout consumption / return reversal).
   // Plain column, no FK: the ledger must outlive a deleted order.
@@ -1026,9 +1029,9 @@ model WasteLog {
   batchId      String?
   batch        StockBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
 
-  quantity        Decimal     @db.Decimal(12, 3)
+  quantity        Decimal    
   reason          WasteReason
-  unitCostAtWaste Decimal     @db.Decimal(12, 4)
+  unitCostAtWaste Decimal    
   notes           String?
 
   createdById String
@@ -1053,9 +1056,9 @@ model MenuItem {
   description String?
   imageUrl    String?
 
-  price          Decimal  @db.Decimal(12, 2) // tax-inclusive selling price (see nodedr-pos GST lesson in ARCHITECTURE.md)
-  taxRatePercent Decimal  @default(0) @db.Decimal(5, 2)
-  costPrice      Decimal? @db.Decimal(12, 2)
+  price          Decimal  // tax-inclusive selling price (see nodedr-pos GST lesson in ARCHITECTURE.md)
+  taxRatePercent Decimal  @default(0)
+  costPrice      Decimal?
 
   prepTimeMinutes Int?
   calories        Int?
@@ -1065,7 +1068,7 @@ model MenuItem {
   isHalal         Boolean    @default(false)
   isGlutenFree    Boolean    @default(false)
   spiceLevel      SpiceLevel @default(NONE)
-  allergens       String[]   @default([])
+  allergens       Json   @default("[]")
 
   availableFrom String? // "HH:mm" — availability window
   availableTo   String?
@@ -1080,10 +1083,10 @@ model MenuItem {
   inventoryTracking    InventoryTracking @default(NONE)
   stockIngredientId    String?
   stockIngredient      Ingredient?       @relation("DirectStockItem", fields: [stockIngredientId], references: [id], onDelete: SetNull)
-  stockQuantityPerSale Decimal           @default(1) @db.Decimal(12, 3)
+  stockQuantityPerSale Decimal           @default(1)
 
   // Price of a half portion; null = item has no portion picker. `price` is the full portion.
-  halfPrice Decimal? @db.Decimal(12, 2)
+  halfPrice Decimal?
 
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
@@ -1122,8 +1125,8 @@ model Modifier {
   group   ModifierGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   name            String // e.g. "Extra Cheese", "No Onion"
-  priceAdjustment Decimal  @default(0) @db.Decimal(12, 2)
-  taxRatePercent  Decimal? @db.Decimal(5, 2)
+  priceAdjustment Decimal  @default(0)
+  taxRatePercent  Decimal?
   kitchenNote     String?
   isDefault       Boolean  @default(false)
   sortOrder       Int      @default(0)
@@ -1166,7 +1169,7 @@ model Customer {
   loyaltyPoints   Int     @default(0)
   // Opted out of marketing messages; excluded from every campaign audience.
   marketingOptOut Boolean @default(false)
-  walletBalance   Decimal @default(0) @db.Decimal(12, 2) // store credit
+  walletBalance   Decimal @default(0) // store credit
 
   createdAt DateTime   @default(now())
   orders    Order[]
@@ -1185,8 +1188,8 @@ model GiftCard {
   branchId     String
   branch       Branch    @relation(fields: [branchId], references: [id], onDelete: Cascade)
   code         String    @unique
-  initialValue Decimal   @db.Decimal(12, 2)
-  balance      Decimal   @db.Decimal(12, 2)
+  initialValue Decimal  
+  balance      Decimal  
   customerId   String?
   customer     Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
   isActive     Boolean   @default(true)
@@ -1204,7 +1207,7 @@ model GiftCardRedemption {
   giftCard   GiftCard @relation(fields: [giftCardId], references: [id], onDelete: Cascade)
   orderId    String
   order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  amount     Decimal  @db.Decimal(12, 2)
+  amount     Decimal 
   createdAt  DateTime @default(now())
 
   @@map("gift_card_redemptions")
@@ -1311,13 +1314,13 @@ model Order {
   createdById String
   createdBy   User   @relation("OrderCreatedBy", fields: [createdById], references: [id])
 
-  subtotal              Decimal @default(0) @db.Decimal(12, 2)
-  discountAmount        Decimal @default(0) @db.Decimal(12, 2)
-  taxAmount             Decimal @default(0) @db.Decimal(12, 2) // informational breakup only — see ARCHITECTURE.md inclusive-pricing note
-  tipAmount             Decimal @default(0) @db.Decimal(12, 2)
+  subtotal              Decimal @default(0)
+  discountAmount        Decimal @default(0)
+  taxAmount             Decimal @default(0) // informational breakup only — see ARCHITECTURE.md inclusive-pricing note
+  tipAmount             Decimal @default(0)
   loyaltyPointsRedeemed Int     @default(0)
-  loyaltyDiscountAmount Decimal @default(0) @db.Decimal(12, 2)
-  totalAmount           Decimal @default(0) @db.Decimal(12, 2)
+  loyaltyDiscountAmount Decimal @default(0)
+  totalAmount           Decimal @default(0)
 
   notes         String?
   cancelReason  String?
@@ -1332,7 +1335,7 @@ model Order {
   // The manual discount as the cashier entered it, kept next to the computed
   // discountAmount so a bill can show both the percentage and the amount.
   discountType  ManualDiscountType?
-  discountValue Decimal?            @db.Decimal(12, 2)
+  discountValue Decimal?           
 
   // Client-generated idempotency key for public/unauthenticated order
   // submits (kiosk). A retry after a dropped connection carries the same
@@ -1344,7 +1347,7 @@ model Order {
   // rewrite history.
   deliveryZoneId  String?
   deliveryZone    DeliveryZone?   @relation(fields: [deliveryZoneId], references: [id], onDelete: SetNull)
-  deliveryFee     Decimal         @default(0) @db.Decimal(12, 2)
+  deliveryFee     Decimal         @default(0)
   deliveryAddress String?
   deliveryPincode String?
   deliveryPhone   String?
@@ -1387,11 +1390,11 @@ model OrderItem {
   // Snapshotted at order time so later menu edits never rewrite history
   // (same discipline as nodedr-pos snapshotting name/taxRate/unit onto InvoiceItem).
   nameSnapshot      String
-  unitPriceSnapshot Decimal @db.Decimal(12, 2)
-  taxRateSnapshot   Decimal @db.Decimal(5, 2)
+  unitPriceSnapshot Decimal
+  taxRateSnapshot   Decimal
 
   quantity    Int           @default(1)
-  lineTotal   Decimal       @db.Decimal(12, 2)
+  lineTotal   Decimal      
   kitchenNote String?
   status      KotItemStatus @default(NEW)
 
@@ -1411,7 +1414,7 @@ model OrderItemModifier {
   modifier    Modifier  @relation(fields: [modifierId], references: [id])
 
   nameSnapshot     String
-  priceAdjSnapshot Decimal @db.Decimal(12, 2)
+  priceAdjSnapshot Decimal
 
   @@index([orderItemId])
   @@map("order_item_modifiers")
@@ -1529,7 +1532,7 @@ model Reservation {
   table   Table?  @relation(fields: [tableId], references: [id], onDelete: SetNull)
 
   specialRequests String?
-  deposit         Decimal?          @db.Decimal(12, 2)
+  deposit         Decimal?         
   status          ReservationStatus @default(RESERVED)
   channel         OrderChannel      @default(STAFF)
   reminderSentAt  DateTime?
@@ -1575,12 +1578,12 @@ model Payment {
   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   method          PaymentMethod
-  amount          Decimal       @db.Decimal(12, 2) // applied to the bill (net of change)
+  amount          Decimal       // applied to the bill (net of change)
   reference       String? // gateway/UPI txn ref
   // Cash actually handed over and the change given back, when the guest paid
   // more than was applied. Null on older payments and exact payments.
-  tendered        Decimal?      @db.Decimal(12, 2)
-  changeGiven     Decimal?      @db.Decimal(12, 2)
+  tendered        Decimal?     
+  changeGiven     Decimal?     
   createdById     String?
   // Client-generated key for one checkout attempt, so a retried or
   // double-tapped request records its payments once.
@@ -1597,7 +1600,7 @@ model Refund {
   orderId String
   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  amount      Decimal       @db.Decimal(12, 2)
+  amount      Decimal      
   reason      String?
   method      PaymentMethod // how the refund was issued back to the guest
   createdById String
@@ -1671,10 +1674,10 @@ model DeliveryZone {
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
   name           String
-  fee            Decimal  @default(0) @db.Decimal(12, 2)
-  minOrderAmount Decimal  @default(0) @db.Decimal(12, 2)
+  fee            Decimal  @default(0)
+  minOrderAmount Decimal  @default(0)
   etaMinutes     Int      @default(45)
-  pincodes       String[]
+  pincodes       Json
   isActive       Boolean  @default(true)
 
   createdAt DateTime @default(now())
@@ -1746,8 +1749,8 @@ model LeaveRequest {
   user     User   @relation("LeaveRequester", fields: [userId], references: [id], onDelete: Cascade)
 
   type      LeaveType   @default(ANNUAL)
-  startDate DateTime    @db.Date
-  endDate   DateTime    @db.Date
+  startDate DateTime   
+  endDate   DateTime   
   reason    String?
   status    LeaveStatus @default(PENDING)
 
@@ -1772,7 +1775,7 @@ model StaffPay {
   userId  String  @id
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   payType PayType @default(MONTHLY)
-  rate    Decimal @default(0) @db.Decimal(12, 2)
+  rate    Decimal @default(0)
 
   @@map("staff_pay")
 }
@@ -1787,11 +1790,11 @@ model PayrollRun {
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  periodStart DateTime      @db.Date
-  periodEnd   DateTime      @db.Date
+  periodStart DateTime     
+  periodEnd   DateTime     
   status      PayrollStatus @default(DRAFT)
-  tipPool     Decimal       @default(0) @db.Decimal(12, 2)
-  totalNet    Decimal       @default(0) @db.Decimal(12, 2)
+  tipPool     Decimal       @default(0)
+  totalNet    Decimal       @default(0)
   createdAt   DateTime      @default(now())
   finalizedAt DateTime?
 
@@ -1808,11 +1811,11 @@ model PayrollLine {
   userId String
   user   User       @relation(fields: [userId], references: [id], onDelete: Restrict)
 
-  hoursWorked          Decimal @db.Decimal(8, 2)
-  basePay              Decimal @db.Decimal(12, 2)
-  tipShare             Decimal @default(0) @db.Decimal(12, 2)
-  unpaidLeaveDeduction Decimal @default(0) @db.Decimal(12, 2)
-  netPay               Decimal @db.Decimal(12, 2)
+  hoursWorked          Decimal
+  basePay              Decimal
+  tipShare             Decimal @default(0)
+  unpaidLeaveDeduction Decimal @default(0)
+  netPay               Decimal
 
   @@unique([runId, userId])
   @@map("payroll_lines")
@@ -1827,9 +1830,9 @@ model Expense {
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  spentOn      DateTime @db.Date
+  spentOn      DateTime
   category     String
-  amount       Decimal  @db.Decimal(12, 2)
+  amount       Decimal 
   note         String?
   // Paid out of the till: counted against expected cash at day close.
   paidFromCash Boolean  @default(false)
@@ -1849,13 +1852,13 @@ model CashClosing {
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  businessDate DateTime @db.Date
-  openingFloat Decimal  @default(0) @db.Decimal(12, 2)
-  cashSales    Decimal  @db.Decimal(12, 2)
-  cashExpenses Decimal  @default(0) @db.Decimal(12, 2)
-  expectedCash Decimal  @db.Decimal(12, 2)
-  countedCash  Decimal  @db.Decimal(12, 2)
-  variance     Decimal  @db.Decimal(12, 2)
+  businessDate DateTime
+  openingFloat Decimal  @default(0)
+  cashSales    Decimal 
+  cashExpenses Decimal  @default(0)
+  expectedCash Decimal 
+  countedCash  Decimal 
+  variance     Decimal 
   note         String?
 
   closedById String
@@ -1881,9 +1884,9 @@ model Coupon {
 
   code           String // stored upper-case; unique per branch
   kind           DiscountKind
-  value          Decimal      @db.Decimal(12, 2)
-  minOrderAmount Decimal      @default(0) @db.Decimal(12, 2)
-  maxDiscount    Decimal?     @db.Decimal(12, 2) // cap for PERCENT coupons
+  value          Decimal     
+  minOrderAmount Decimal      @default(0)
+  maxDiscount    Decimal?     // cap for PERCENT coupons
   validFrom      DateTime?
   validUntil     DateTime?
   usageLimit     Int?
@@ -1904,8 +1907,8 @@ model Promotion {
 
   name        String
   kind        DiscountKind
-  value       Decimal      @db.Decimal(12, 2)
-  daysOfWeek  Int[] // 0 = Sunday
+  value       Decimal     
+  daysOfWeek  Json // 0 = Sunday
   startMinute Int
   endMinute   Int
   isActive    Boolean      @default(true)
@@ -1959,8 +1962,8 @@ model Equipment {
   name                String
   location            String?
   serviceIntervalDays Int?
-  lastServicedAt      DateTime? @db.Date
-  nextDueAt           DateTime? @db.Date
+  lastServicedAt      DateTime?
+  nextDueAt           DateTime?
   notes               String?
   isActive            Boolean   @default(true)
   createdAt           DateTime  @default(now())
@@ -1976,8 +1979,8 @@ model ServiceLog {
   equipmentId String
   equipment   Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
 
-  servicedAt DateTime @db.Date
-  cost       Decimal? @db.Decimal(12, 2)
+  servicedAt DateTime
+  cost       Decimal?
   note       String?
   createdAt  DateTime @default(now())
 
@@ -2029,7 +2032,7 @@ model WebhookEndpoint {
 
   url         String
   secret      String // sealed (auth/totp.ts sealSecret); shown in full once
-  events      String[] @default([])
+  events      Json @default("[]")
   description String?
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -2074,7 +2077,7 @@ model Budget {
 
   month    String // "YYYY-MM"
   category String
-  amount   Decimal @db.Decimal(12, 2)
+  amount   Decimal
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2096,10 +2099,10 @@ model BankTransaction {
   branchId String
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  postedOn    DateTime     @db.Date
+  postedOn    DateTime    
   description String
   reference   String       @default("") // "" not null, so the unique key dedupes re-imports
-  amount      Decimal      @db.Decimal(12, 2)
+  amount      Decimal     
   status      BankTxStatus @default(UNMATCHED)
   expenseId   String?
   createdAt   DateTime     @default(now())
@@ -2121,8 +2124,8 @@ model StockTransfer {
   toBranchName   String
   ingredientName String
   unit           String
-  quantity       Decimal  @db.Decimal(12, 3)
-  unitCost       Decimal  @db.Decimal(12, 4)
+  quantity       Decimal 
+  unitCost       Decimal 
   note           String?
   createdById    String
   createdAt      DateTime @default(now())
@@ -2131,18 +2134,20 @@ model StockTransfer {
   @@map("stock_transfers")
 }
 
-// An uploaded file (PDF, image, doc) attached to a Document. Stored in the
-// database so backups and restores carry attachments with everything else.
+// An uploaded file (PDF, image, doc) attached to a Document. The bytes live
+// in R2 (private, under `documents/`), not in the row: D1 caps a row at
+// 2 MB and attachments may be 5 MB. Backups export the objects alongside the
+// tables (see BackupService).
 model DocumentFile {
   id         String   @id @default(cuid())
   documentId String
   document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
-  fileName  String
-  mimeType  String
-  size      Int
-  data      Bytes
-  createdAt DateTime @default(now())
+  fileName   String
+  mimeType   String
+  size       Int
+  storageKey String
+  createdAt  DateTime @default(now())
 
   @@index([documentId])
   @@map("document_files")
@@ -2165,7 +2170,7 @@ model ReportSchedule {
   reportKey  String
   frequency  ReportFrequency
   format     String          @default("xlsx") // csv | xlsx | pdf
-  recipients String[]
+  recipients Json
   isActive   Boolean         @default(true)
   lastSentAt DateTime?
   lastError  String?
@@ -2273,7 +2278,7 @@ model SyncState {
   id          Int       @id @default(1)
   enabled     Boolean   @default(false)
   role        String    @default("client")
-  deviceId    String    @default(dbgenerated("md5(((random())::text || (clock_timestamp())::text))"))
+  deviceId    String    @default(cuid())
   serverUrl   String?
   apiKey      String?
   seeded      Boolean   @default(false)
@@ -2287,13 +2292,13 @@ model SyncState {
 }
 
 model SyncChange {
-  seq    BigInt   @id @default(autoincrement())
+  seq    Int   @id @default(autoincrement())
   tbl    String
   pk     Json
   pkKey  String
-  op     String   @db.Char(1)
+  op     String  
   row    Json?
-  ts     DateTime @db.Timestamptz(3)
+  ts     DateTime
   origin String
 
   @@index([tbl, pkKey], map: "sync_changes_row_idx")

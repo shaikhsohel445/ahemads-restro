@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type { Prisma, StockMovementType } from '@prisma/client';
+import type { Prisma, StockMovementType } from '../../generated/prisma/client';
 import type { StockAdjustmentDto } from '@nodedr-restaurant/types';
 import { PrismaService } from '../../prisma/prisma.service';
 import { round3 } from '../../common/money';
@@ -81,7 +81,9 @@ export class StockService {
     // can both see the same pre-consumption batch quantities and each
     // independently subtract from them, silently over-consuming stock
     // beyond what was actually on hand.
-    await tx.$queryRaw`SELECT id FROM ingredients WHERE id = ${ingredientId} FOR UPDATE`;
+    // Was `SELECT ... FOR UPDATE` (a PostgreSQL row lock). On D1 the same
+    // serialisation comes from the restaurant's WriteLock, held for the
+    // whole request (src/cloudflare/write-lock.do.ts).
 
     const batches = await tx.stockBatch.findMany({
       where: { branchId, ingredientId, quantityRemaining: { gt: 0 } },
@@ -181,7 +183,9 @@ export class StockService {
     quantity: number,
     opts: { userId: string; orderId: string; note?: string },
   ): Promise<number> {
-    await tx.$queryRaw`SELECT id FROM ingredients WHERE id = ${ingredientId} FOR UPDATE`;
+    // Was `SELECT ... FOR UPDATE` (a PostgreSQL row lock). On D1 the same
+    // serialisation comes from the restaurant's WriteLock, held for the
+    // whole request (src/cloudflare/write-lock.do.ts).
     const ingredient = await tx.ingredient.findFirst({
       where: { id: ingredientId, branchId },
     });

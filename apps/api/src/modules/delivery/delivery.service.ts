@@ -11,6 +11,8 @@ import type {
 import { PrismaService } from '../../prisma/prisma.service';
 import { RealtimeGateway } from '../../realtime/realtime.gateway';
 import { WebhooksService } from '../webhooks/webhooks.service';
+import { stringArray } from '../../common/json-array';
+import { findZoneForPincode } from './zone-lookup';
 
 // Forward-only lifecycle; FAILED is reachable from any open state.
 const NEXT: Record<DeliveryStatusDto, DeliveryStatusDto[]> = {
@@ -75,15 +77,19 @@ export class DeliveryService {
     pincodes: string[],
     exceptId?: string,
   ) {
-    const clash = await this.prisma.deliveryZone.findFirst({
+    // Array overlap is checked in code: D1 stores pincodes as a JSON array.
+    const wanted = new Set(pincodes);
+    const zones = await this.prisma.deliveryZone.findMany({
       where: {
         branchId,
         isActive: true,
-        pincodes: { hasSome: pincodes },
         ...(exceptId ? { id: { not: exceptId } } : {}),
       },
-      select: { name: true },
+      select: { name: true, pincodes: true },
     });
+    const clash = zones.find((z) =>
+      stringArray(z.pincodes).some((p) => wanted.has(p)),
+    );
     if (clash)
       throw new BadRequestException(
         `A pincode is already covered by the zone "${clash.name}"`,
@@ -92,9 +98,7 @@ export class DeliveryService {
 
   /** Public-safe quote: fee/ETA for a pincode, no zone internals. */
   async quote(branchId: string, pincode: string) {
-    const zone = await this.prisma.deliveryZone.findFirst({
-      where: { branchId, isActive: true, pincodes: { has: pincode } },
-    });
+    const zone = await findZoneForPincode(this.prisma, branchId, pincode);
     if (!zone) return { deliverable: false as const };
     return {
       deliverable: true as const,

@@ -191,15 +191,60 @@ export class LedgerService {
     const { rows, skipped } = parseStatement(csv);
     if (rows.length > 5000)
       throw new BadRequestException('Import at most 5000 rows at a time');
+    // `createMany({ skipDuplicates })` (INSERT ... ON CONFLICT DO NOTHING)
+    // is PostgreSQL-only in Prisma, so duplicates of the
+    // (branchId, postedOn, description, amount, reference) unique key are
+    // dropped here first (reference is "" rather than NULL precisely so this
+    // key dedupes re-imports).
+    const keyOf = (r: {
+      postedOn: string;
+      description: string;
+      amount: number;
+      reference: string | null | undefined;
+    }) =>
+      `${r.postedOn}|${r.description}|${Number(r.amount).toFixed(2)}|${r.reference ?? ''}`;
+    const dates = [...new Set(rows.map((r) => r.postedOn))].sort();
+    const existing = dates.length
+      ? await this.prisma.bankTransaction.findMany({
+          where: {
+            branchId,
+            postedOn: {
+              gte: new Date(`${dates[0]}T00:00:00.000Z`),
+              lte: new Date(`${dates[dates.length - 1]}T00:00:00.000Z`),
+            },
+          },
+          select: {
+            postedOn: true,
+            description: true,
+            amount: true,
+            reference: true,
+          },
+        })
+      : [];
+    const seen = new Set(
+      existing.map((e) =>
+        keyOf({
+          postedOn: e.postedOn.toISOString().slice(0, 10),
+          description: e.description,
+          amount: Number(e.amount),
+          reference: e.reference,
+        }),
+      ),
+    );
+    const fresh = rows.filter((r) => {
+      const k = keyOf(r);
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
     const res = await this.prisma.bankTransaction.createMany({
-      data: rows.map((r) => ({
+      data: fresh.map((r) => ({
         branchId,
         postedOn: new Date(`${r.postedOn}T00:00:00.000Z`),
         description: r.description,
         reference: r.reference,
         amount: r.amount,
       })),
-      skipDuplicates: true,
     });
     const matched = await this.autoMatch(branchId);
     return {

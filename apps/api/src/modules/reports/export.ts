@@ -1,5 +1,7 @@
 import ExcelJS from 'exceljs';
-import PDFDocument from 'pdfkit';
+import fontkit from '@pdf-lib/fontkit';
+import { PDFDocument, rgb, type PDFFont } from 'pdf-lib';
+import { PDF_FONTS } from './pdf-fonts';
 import { toCsv, type CsvValue } from './csv';
 import type { ReportResult } from './reports.service';
 
@@ -44,7 +46,7 @@ export async function buildXlsx(
     c.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FF7A1F3D' },
+      fgColor: { argb: 'FF0B5D4A' },
     };
   });
   for (const row of r.rows) ws.addRow(row.map(cell));
@@ -59,70 +61,114 @@ export async function buildXlsx(
   return Buffer.from(await wb.xlsx.writeBuffer());
 }
 
-export function buildPdf(r: ReportResult, subtitle: string): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({
-      size: 'A4',
-      layout: r.columns.length > 6 ? 'landscape' : 'portrait',
-      margin: 36,
-    });
-    const chunks: Buffer[] = [];
-    doc.on('data', (c: Buffer) => chunks.push(c));
-    doc.on('end', () => resolve(Buffer.concat(chunks)));
-    doc.on('error', reject);
+const A4: [number, number] = [595.28, 841.89];
+const MARGIN = 36;
+const ARABIC = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
 
-    const pageW = doc.page.width - 72;
-    const colW = pageW / Math.max(1, r.columns.length);
-    const fmt = (v: CsvValue) =>
-      v == null
-        ? ''
-        : v instanceof Date
-          ? v.toISOString().slice(0, 10)
-          : typeof v === 'number'
-            ? String(Math.round(v * 100) / 100)
-            : String(v);
-
-    doc.fontSize(16).font('Helvetica-Bold').text(r.title);
-    doc.fontSize(9).font('Helvetica').fillColor('#666666').text(subtitle);
-    doc.moveDown(0.8);
-
-    const drawRow = (vals: string[], bold: boolean) => {
-      const y = doc.y;
-      if (y > doc.page.height - 60) {
-        doc.addPage();
-        drawRow(r.columns, true);
-        return;
+// Greedy word wrap against the real glyph widths of the embedded font.
+function wrap(text: string, font: PDFFont, size: number, width: number) {
+  const lines: string[] = [];
+  for (const para of text.split(/\r?\n/)) {
+    let line = '';
+    for (const word of para.split(/\s+/)) {
+      const next = line ? `${line} ${word}` : word;
+      if (font.widthOfTextAtSize(next, size) <= width || !line) {
+        line = next;
+      } else {
+        lines.push(line);
+        line = word;
       }
-      doc
-        .font(bold ? 'Helvetica-Bold' : 'Helvetica')
-        .fontSize(8.5)
-        .fillColor('#000000');
-      let h = 0;
-      vals.forEach((v, i) => {
-        const t = doc.heightOfString(v, { width: colW - 6 });
-        h = Math.max(h, t);
-        doc.text(v, 36 + i * colW, y, { width: colW - 6, lineBreak: true });
-      });
-      doc.y = y + h + 4;
-      doc
-        .moveTo(36, doc.y - 2)
-        .lineTo(36 + pageW, doc.y - 2)
-        .strokeColor(bold ? '#7A1F3D' : '#dddddd')
-        .lineWidth(bold ? 1 : 0.5)
-        .stroke();
-    };
-
-    drawRow(r.columns, true);
-    for (const row of r.rows) drawRow(row.map(fmt), false);
-    if (!r.rows.length) {
-      doc
-        .moveDown()
-        .fontSize(10)
-        .fillColor('#666666')
-        .text('No data for this period.');
     }
-    doc.end();
-  });
+    lines.push(line);
+  }
+  return lines;
+}
+
+// pdf-lib (pure JS, runs on Workers) replaces pdfkit, which reads its AFM
+// font files from disk. Layout is the same: title, subtitle, a bold header
+// row repeated on every page, hairline row separators. Arabic cells are
+// shaped by fontkit and right-aligned within their column.
+export async function buildPdf(
+  r: ReportResult,
+  subtitle: string,
+): Promise<Buffer> {
+  const pdf = await PDFDocument.create();
+  pdf.registerFontkit(fontkit);
+  pdf.setCreator('NodeDR OrderRestro');
+  pdf.setTitle(r.title);
+  const regular = await pdf.embedFont(PDF_FONTS.regular, { subset: true });
+  const bold = await pdf.embedFont(PDF_FONTS.bold, { subset: true });
+
+  const landscape = r.columns.length > 6;
+  const [pw, ph] = landscape ? [A4[1], A4[0]] : A4;
+  const pageW = pw - MARGIN * 2;
+  const colW = pageW / Math.max(1, r.columns.length);
+  const fmt = (v: CsvValue) =>
+    v == null
+      ? ''
+      : v instanceof Date
+        ? v.toISOString().slice(0, 10)
+        : typeof v === 'number'
+          ? String(Math.round(v * 100) / 100)
+          : String(v);
+
+  const brand = rgb(0x0b / 255, 0x5d / 255, 0x4a / 255);
+  let page = pdf.addPage([pw, ph]);
+  let y = ph - MARGIN;
+
+  const text = (
+    value: string,
+    x: number,
+    top: number,
+    font: PDFFont,
+    size: number,
+    color = rgb(0, 0, 0),
+    width?: number,
+  ) => {
+    const dx =
+      width && ARABIC.test(value)
+        ? Math.max(0, width - font.widthOfTextAtSize(value, size))
+        : 0;
+    page.drawText(value, { x: x + dx, y: top - size, size, font, color });
+  };
+
+  text(r.title, MARGIN, y, bold, 16);
+  y -= 22;
+  text(subtitle, MARGIN, y, regular, 9, rgb(0.4, 0.4, 0.4));
+  y -= 20;
+
+  const size = 8.5;
+  const lineH = size * 1.35;
+  const drawRow = (vals: string[], isHeader: boolean) => {
+    const font = isHeader ? bold : regular;
+    const cells = vals.map((v) => wrap(v, font, size, colW - 6));
+    const h = Math.max(1, ...cells.map((c) => c.length)) * lineH;
+    if (y - h < 60) {
+      page = pdf.addPage([pw, ph]);
+      y = ph - MARGIN;
+      drawRow(r.columns, true);
+    }
+    cells.forEach((lines, i) => {
+      lines.forEach((line, li) =>
+        text(line, MARGIN + i * colW, y - li * lineH, font, size, rgb(0, 0, 0), colW - 6),
+      );
+    });
+    y -= h + 4;
+    page.drawLine({
+      start: { x: MARGIN, y: y + 2 },
+      end: { x: MARGIN + pageW, y: y + 2 },
+      thickness: isHeader ? 1 : 0.5,
+      color: isHeader ? brand : rgb(0.87, 0.87, 0.87),
+    });
+  };
+
+  drawRow(r.columns, true);
+  for (const row of r.rows) drawRow(row.map(fmt), false);
+  if (!r.rows.length) {
+    y -= 10;
+    text('No data for this period.', MARGIN, y, regular, 10, rgb(0.4, 0.4, 0.4));
+  }
+  return Buffer.from(await pdf.save());
 }
 
 export async function renderReport(
