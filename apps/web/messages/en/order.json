@@ -1,0 +1,19 @@
+{
+  "add": "Add",
+  "askStaffForHelp": "Please ask a staff member for help.",
+  "continueToMenu": "Continue to menu",
+  "couldNotPlace": "Could not place order — please ask a staff member for help.",
+  "item": "item",
+  "items": "items",
+  "namePlaceholder": "e.g. Priya",
+  "orderMore": "Order more",
+  "orderNumberSent": "Order #{number} · sent to the kitchen",
+  "placeOrder": "Place order",
+  "placingOrder": "Placing order…",
+  "pricesIncludeTax": "Prices include tax. A staff member will confirm your order shortly.",
+  "qrNotRecognized": "This QR code isn't recognized",
+  "thankYouName": "Thank you, {name}!",
+  "thanksMessage": "{branch} says thanks for your order 🎉",
+  "theKitchen": "The kitchen",
+  "whatsYourName": "What's your name?"
+}

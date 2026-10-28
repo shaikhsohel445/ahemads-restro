@@ -1,0 +1,19 @@
+{
+  "accounting": "Contabilidad",
+  "attendance": "Asistencia",
+  "customers": "Clientes",
+  "dashboard": "Panel",
+  "delivery": "Entregas",
+  "inventory": "Inventario",
+  "kds": "Pantalla de cocina",
+  "marketing": "Marketing",
+  "menu": "Menú",
+  "operations": "Operaciones",
+  "orders": "Pedidos",
+  "pos": "Punto de venta",
+  "reports": "Informes",
+  "reservations": "Reservas",
+  "settings": "Configuración",
+  "tables": "Mesas",
+  "team": "Equipo"
+}

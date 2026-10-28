@@ -1,0 +1,19 @@
+{
+  "accounting": "Comptabilité",
+  "attendance": "Présence",
+  "customers": "Clients",
+  "dashboard": "Tableau de bord",
+  "delivery": "Livraison",
+  "inventory": "Inventaire",
+  "kds": "Écran de cuisine",
+  "marketing": "Marketing",
+  "menu": "Menu",
+  "operations": "Opérations",
+  "orders": "Commandes",
+  "pos": "Point de vente",
+  "reports": "Rapports",
+  "reservations": "Réservations",
+  "settings": "Paramètres",
+  "tables": "Tables",
+  "team": "Équipe"
+}

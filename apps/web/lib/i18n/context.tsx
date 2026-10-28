@@ -1,24 +1,50 @@
 "use client";
 
-// Lightweight client-side i18n (2026-09-27) — no routing/middleware
-// involved, since this dashboard is a client-rendered SPA-style app and
-// the QR ordering page is the one page a guest actually reads in their
-// own language. A locale is just a piece of client state, persisted to
-// localStorage so it survives a refresh, with a small dictionary lookup.
+// Client-side i18n: a locale is a piece of client state, persisted to
+// localStorage, with a dictionary lookup per namespace (./messages.ts). The
+// dashboard is a client-rendered app, so there is no locale routing.
 //
-// Extending this: add a namespaced key (e.g. "menu.addItem") to every file
-// in ./dictionaries, then call t("menu.addItem") wherever the English
-// literal used to be. See nav-items.ts / sidebar-nav.tsx and
-// app/order/[qrToken]/page.tsx for the two places this is wired up so far.
+// Arabic (2026, Saudi edition): switching to "ar" also sets
+// <html lang="ar" dir="rtl">, so every layout built with logical utilities
+// (ms-/me-/ps-/pe-/start-/end-, text-start/end) mirrors automatically, and
+// it updates the defaults used by formatCurrency/formatDateTime.
+//
+// Usage: const { t } = useI18n(); t("pos.checkout.title", { n: 3 }).
+// Outside React (mutation toasts in hooks, lib code): translate("…").
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { DEFAULT_LOCALE, isLocale, type Locale } from "./locales";
-import en from "./dictionaries/en.json";
-import es from "./dictionaries/es.json";
-import fr from "./dictionaries/fr.json";
+import { setFormatLocale } from "@/lib/format";
+import {
+  DEFAULT_LOCALE,
+  LOCALE_STORAGE_KEY,
+  intlLocaleTag,
+  isLocale,
+  localeDir,
+  type Locale,
+} from "./locales";
+import { MESSAGES } from "./messages";
 
-const DICTIONARIES: Record<Locale, Record<string, string>> = { en, es, fr };
-const STORAGE_KEY = "nodedr-locale";
+type Vars = Record<string, string | number>;
+
+let currentLocale: Locale = DEFAULT_LOCALE;
+
+function lookup(locale: Locale, key: string, vars?: Vars): string {
+  const template = MESSAGES[locale][key] ?? MESSAGES[DEFAULT_LOCALE][key] ?? key;
+  if (!vars) return template;
+  return Object.entries(vars).reduce(
+    (out, [name, value]) => out.replaceAll(`{${name}}`, String(value)),
+    template,
+  );
+}
+
+/** Translate outside React (e.g. toast text inside a mutation hook). */
+export function translate(key: string, vars?: Vars): string {
+  return lookup(currentLocale, key, vars);
+}
+
+export function currentUiLocale(): Locale {
+  return currentLocale;
+}
 
 function detectBrowserLocale(): Locale {
   if (typeof navigator === "undefined") return DEFAULT_LOCALE;
@@ -31,8 +57,9 @@ function detectBrowserLocale(): Locale {
 
 interface I18nContextValue {
   locale: Locale;
+  dir: "rtl" | "ltr";
   setLocale: (locale: Locale) => void;
-  t: (key: string, vars?: Record<string, string | number>) => string;
+  t: (key: string, vars?: Vars) => string;
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null);
@@ -52,38 +79,39 @@ export function I18nProvider({
 }) {
   // Starts at the fixed default on both server and first client render
   // (so hydration matches), then swaps to the saved/browser locale right
-  // after mount — the same pattern the QR page already uses for
-  // sessionStorage reads.
+  // after mount.
   const [locale, setLocaleState] = useState<Locale>(fixedLocale ?? DEFAULT_LOCALE);
 
   useEffect(() => {
     if (fixedLocale) return;
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = localStorage.getItem(LOCALE_STORAGE_KEY);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocaleState(isLocale(saved) ? saved : detectBrowserLocale());
   }, [fixedLocale]);
 
+  // Keep <html lang/dir> and the formatting defaults in step with the locale.
+  useEffect(() => {
+    currentLocale = locale;
+    setFormatLocale(intlLocaleTag(locale));
+    const root = document.documentElement;
+    root.lang = locale;
+    root.dir = localeDir(locale);
+  }, [locale]);
+
   const setLocale = useCallback(
     (next: Locale) => {
-      if (!fixedLocale) localStorage.setItem(STORAGE_KEY, next);
+      if (!fixedLocale) localStorage.setItem(LOCALE_STORAGE_KEY, next);
       setLocaleState(next);
     },
     [fixedLocale],
   );
 
-  const t = useCallback(
-    (key: string, vars?: Record<string, string | number>) => {
-      const template = DICTIONARIES[locale][key] ?? DICTIONARIES[DEFAULT_LOCALE][key] ?? key;
-      if (!vars) return template;
-      return Object.entries(vars).reduce(
-        (out, [name, value]) => out.replaceAll(`{${name}}`, String(value)),
-        template,
-      );
-    },
-    [locale],
-  );
+  const t = useCallback((key: string, vars?: Vars) => lookup(locale, key, vars), [locale]);
 
-  const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t]);
+  const value = useMemo(
+    () => ({ locale, dir: localeDir(locale), setLocale, t }),
+    [locale, setLocale, t],
+  );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

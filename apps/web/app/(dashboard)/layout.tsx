@@ -6,6 +6,8 @@ import { AppShell } from "@/components/layout/app-shell";
 import { useCurrentUser } from "@/hooks/use-auth";
 import { BranchProvider, useBranch } from "@/hooks/use-branch";
 import { useRealtime } from "@/hooks/use-realtime";
+import { useSettings } from "@/hooks/use-settings";
+import { setFormatRegion } from "@/lib/format";
 import { NAV_ITEMS } from "@/components/layout/nav-items";
 import { canOpen, firstAllowedHref } from "@/lib/route-access";
 
@@ -20,6 +22,19 @@ import { canOpen, firstAllowedHref } from "@/lib/route-access";
 function RealtimeBridge() {
   const { branchId } = useBranch();
   useRealtime(branchId);
+  return null;
+}
+
+// Points formatCurrency/formatDateTime at the signed-in restaurant's own
+// currency and time zone (SAR / Asia/Riyadh until they load).
+function RegionSync() {
+  const { branchId } = useBranch();
+  const { data } = useSettings(branchId);
+  const currency = data?.restaurant.currency;
+  const timeZone = data?.restaurant.timezone;
+  useEffect(() => {
+    setFormatRegion({ currency, timeZone });
+  }, [currency, timeZone]);
   return null;
 }
 
@@ -62,6 +77,7 @@ export default function DashboardGroupLayout({ children }: { children: React.Rea
   return (
     <BranchProvider>
       <RealtimeBridge />
+      <RegionSync />
       <AppShell user={data.user}>{children}</AppShell>
     </BranchProvider>
   );

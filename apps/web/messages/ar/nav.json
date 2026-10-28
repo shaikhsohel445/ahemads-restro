@@ -1,0 +1,19 @@
+{
+  "accounting": "المحاسبة",
+  "attendance": "الحضور",
+  "customers": "العملاء",
+  "dashboard": "لوحة التحكم",
+  "delivery": "التوصيل",
+  "inventory": "المخزون",
+  "kds": "شاشة المطبخ",
+  "marketing": "التسويق",
+  "menu": "قائمة الطعام",
+  "operations": "العمليات",
+  "orders": "الطلبات",
+  "pos": "نقطة البيع",
+  "reports": "التقارير",
+  "reservations": "الحجوزات",
+  "settings": "الإعدادات",
+  "tables": "الطاولات",
+  "team": "الفريق"
+}

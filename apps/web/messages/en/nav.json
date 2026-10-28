@@ -1,0 +1,19 @@
+{
+  "accounting": "Accounting",
+  "attendance": "Attendance",
+  "customers": "Customers",
+  "dashboard": "Dashboard",
+  "delivery": "Delivery",
+  "inventory": "Inventory",
+  "kds": "Kitchen Display",
+  "marketing": "Marketing",
+  "menu": "Menu",
+  "operations": "Operations",
+  "orders": "Orders",
+  "pos": "Point of Sale",
+  "reports": "Reports",
+  "reservations": "Reservations",
+  "settings": "Settings",
+  "tables": "Tables",
+  "team": "Team"
+}

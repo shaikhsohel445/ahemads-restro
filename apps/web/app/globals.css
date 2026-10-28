@@ -7,9 +7,11 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  /* Latin glyphs come from Geist, Arabic from IBM Plex Sans Arabic; the
+     browser falls through per character, so mixed text renders in both. */
+  --font-sans: var(--font-geist-sans), var(--font-arabic), ui-sans-serif, system-ui, "Segoe UI", Tahoma, sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-geist-sans);
+  --font-heading: var(--font-geist-sans), var(--font-arabic), ui-sans-serif, system-ui, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -27,6 +29,8 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-accent-foreground: var(--accent-foreground);
@@ -51,78 +55,85 @@
 }
 
 :root {
-  /* Nodedr OrderRestro — light palette. See DESIGN_SYSTEM.md for rationale
-     (wine/burgundy primary is the one deliberate accent choice). */
-  --background: #FBF9F8;
-  --foreground: #111827;
+  /* Nodedr OrderRestro — Saudi edition, light palette (see DESIGN_SYSTEM.md).
+     Deep emerald is the one primary accent; gold is a restrained secondary
+     accent (focus/highlight details only, never large fills); warm sand
+     neutrals replace the old blush tints; text stays dark charcoal for
+     contrast. Every pair used for text meets WCAG AA. */
+  --background: #FAF7F2;
+  --foreground: #1F2328;
   --card: #FFFFFF;
-  --card-foreground: #111827;
+  --card-foreground: #1F2328;
   --popover: #FFFFFF;
-  --popover-foreground: #111827;
-  --primary: #9F1239;
+  --popover-foreground: #1F2328;
+  --primary: #0B5D4A;
   --primary-foreground: #FFFFFF;
-  --secondary: #F5F1F0;
-  --secondary-foreground: #111827;
-  --muted: #F5F1F0;
-  --muted-foreground: #6B7280;
-  --accent: #FDF2F4;
-  --accent-foreground: #9F1239;
-  --destructive: #EF4444;
-  --success: #22C55E;
-  --warning: #F59E0B;
-  --border: #ECE6E4;
-  --input: #E4DCDA;
-  --ring: #9F1239;
-  --chart-1: #9F1239;
-  --chart-2: #22C55E;
-  --chart-3: #F59E0B;
-  --chart-4: #6366F1;
-  --chart-5: #6B7280;
-  --radius: 1rem;
-  --sidebar: #FFFDFC;
-  --sidebar-foreground: #111827;
-  --sidebar-primary: #9F1239;
+  --secondary: #F3EEE5;
+  --secondary-foreground: #1F2328;
+  --muted: #F3EEE5;
+  --muted-foreground: #5F6368;
+  --accent: #E8F2EE;
+  --accent-foreground: #0B5D4A;
+  --gold: #B08A3E;
+  --gold-foreground: #FFFFFF;
+  --destructive: #C2410C;
+  --success: #15803D;
+  --warning: #B45309;
+  --border: #E6DFD3;
+  --input: #DCD3C4;
+  --ring: #0B5D4A;
+  --chart-1: #0B5D4A;
+  --chart-2: #B08A3E;
+  --chart-3: #2F855A;
+  --chart-4: #4C6EF5;
+  --chart-5: #7A7F85;
+  --radius: 0.875rem;
+  --sidebar: #FFFDF9;
+  --sidebar-foreground: #1F2328;
+  --sidebar-primary: #0B5D4A;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #FDF2F4;
-  --sidebar-accent-foreground: #9F1239;
-  --sidebar-border: #ECE6E4;
-  --sidebar-ring: #9F1239;
+  --sidebar-accent: #E8F2EE;
+  --sidebar-accent-foreground: #0B5D4A;
+  --sidebar-border: #E6DFD3;
+  --sidebar-ring: #0B5D4A;
 }
 
 .dark {
-  --background: #0B0B0D;
-  --foreground: #F4F4F5;
-  --card: #151517;
-  --card-foreground: #F4F4F5;
-  --popover: #151517;
-  --popover-foreground: #F4F4F5;
-  --primary: #FB7185;
-  --primary-foreground: #1F0A0F;
-  --secondary: #1D1D20;
-  --secondary-foreground: #F4F4F5;
-  --muted: #1D1D20;
-  --muted-foreground: #9CA3AF;
-  --accent: #2A151A;
-  --accent-foreground: #FB7185;
+  --background: #0D1311;
+  --foreground: #F1F1EE;
+  --card: #141C19;
+  --card-foreground: #F1F1EE;
+  --popover: #141C19;
+  --popover-foreground: #F1F1EE;
+  --primary: #3DBB94;
+  --primary-foreground: #04140F;
+  --secondary: #1B2421;
+  --secondary-foreground: #F1F1EE;
+  --muted: #1B2421;
+  --muted-foreground: #A3ABA7;
+  --accent: #15302A;
+  --accent-foreground: #6FD3B2;
+  --gold: #D4B26A;
+  --gold-foreground: #1A1408;
   --destructive: #F87171;
   --success: #34D399;
   --warning: #FBBF24;
-  --border: #26262A;
-  --input: #26262A;
-  --ring: #FB7185;
-  --chart-1: #FB7185;
-  --chart-2: #34D399;
-  --chart-3: #FBBF24;
+  --border: #25302C;
+  --input: #2C3833;
+  --ring: #3DBB94;
+  --chart-1: #3DBB94;
+  --chart-2: #D4B26A;
+  --chart-3: #6FD3B2;
   --chart-4: #818CF8;
-  --chart-5: #9CA3AF;
-  --sidebar: #111113;
-  --sidebar-foreground: #F4F4F5;
-  --sidebar-primary: #FB7185;
-  --sidebar-primary-foreground: #1F0A0F;
-  --sidebar-accent: #2A151A;
-  --sidebar-accent-foreground: #FB7185;
-  --sidebar-border: #26262A;
-  --sidebar-ring: #FB7185;
+  --chart-5: #A3ABA7;
+  --sidebar: #101815;
+  --sidebar-foreground: #F1F1EE;
+  --sidebar-primary: #3DBB94;
+  --sidebar-primary-foreground: #04140F;
+  --sidebar-accent: #15302A;
+  --sidebar-accent-foreground: #6FD3B2;
+  --sidebar-border: #25302C;
+  --sidebar-ring: #3DBB94;
 }
 
 /* Customer kiosk (/kiosk/*): always the light palette, whatever the device's
@@ -131,29 +142,29 @@
    utilities are unaffected. */
 .kiosk-root {
   color-scheme: light;
-  --background: #FBF9F8;
-  --foreground: #111827;
+  --background: #FAF7F2;
+  --foreground: #1F2328;
   --card: #FFFFFF;
-  --card-foreground: #111827;
+  --card-foreground: #1F2328;
   --popover: #FFFFFF;
-  --popover-foreground: #111827;
-  --primary: #9F1239;
+  --popover-foreground: #1F2328;
+  --primary: #0B5D4A;
   --primary-foreground: #FFFFFF;
-  --secondary: #F5F1F0;
-  --secondary-foreground: #111827;
-  --muted: #F5F1F0;
+  --secondary: #F3EEE5;
+  --secondary-foreground: #1F2328;
+  --muted: #F3EEE5;
   --muted-foreground: #4B5563;
-  --accent: #FDF2F4;
-  --accent-foreground: #9F1239;
+  --accent: #E8F2EE;
+  --accent-foreground: #0B5D4A;
   --destructive: #B91C1C;
   --success: #15803D;
   --warning: #B45309;
-  --border: #D9CFCC;
-  --input: #C9BDBA;
-  --ring: #9F1239;
+  --border: #E0D7C8;
+  --input: #D2C7B5;
+  --ring: #0B5D4A;
   /* Explicit system fallbacks so the kiosk never renders in a serif face if the
      bundled web font is unavailable (offline start-up, blocked fonts CDN). */
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, "Segoe UI", Roboto,
+  font-family: var(--font-geist-sans), var(--font-arabic), ui-sans-serif, system-ui, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
 }
 
@@ -173,6 +184,12 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+  /* Arabic UI: Arabic face first, slightly taller line height for the
+     script's ascenders/descenders. Numbers stay in Latin digits (Geist). */
+  :lang(ar) body {
+    font-family: var(--font-arabic), var(--font-geist-sans), ui-sans-serif, system-ui, Tahoma, sans-serif;
+    line-height: 1.6;
   }
   body {
     @apply bg-background text-foreground;

@@ -1,0 +1,19 @@
+{
+  "add": "Añadir",
+  "askStaffForHelp": "Por favor, pide ayuda a un miembro del personal.",
+  "continueToMenu": "Continuar al menú",
+  "couldNotPlace": "No se pudo realizar el pedido — pide ayuda a un miembro del personal.",
+  "item": "artículo",
+  "items": "artículos",
+  "namePlaceholder": "p. ej. Priya",
+  "orderMore": "Pedir más",
+  "orderNumberSent": "Pedido #{number} · enviado a la cocina",
+  "placeOrder": "Realizar pedido",
+  "placingOrder": "Enviando pedido…",
+  "pricesIncludeTax": "Los precios incluyen impuestos. El personal confirmará tu pedido en breve.",
+  "qrNotRecognized": "Este código QR no se reconoce",
+  "thankYouName": "¡Gracias, {name}!",
+  "thanksMessage": "{branch} agradece tu pedido 🎉",
+  "theKitchen": "La cocina",
+  "whatsYourName": "¿Cuál es tu nombre?"
+}

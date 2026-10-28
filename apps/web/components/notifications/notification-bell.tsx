@@ -2,7 +2,6 @@
 
 import { Bell, CheckCheck, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef } from "react";
-import { io } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -22,7 +21,7 @@ import {
 } from "@/hooks/use-notifications";
 import { openEntity } from "@/lib/entity-events";
 import { playNotificationFeedback } from "@/lib/notification-feedback";
-import { resolveWsUrl } from "@/lib/ws-url";
+import { connectRealtime } from "@/lib/realtime-socket";
 
 // How many alerts the live socket already rang for but the refresh has not
 // listed yet (module-level: only one bell is ever mounted).
@@ -70,7 +69,7 @@ export function NotificationBell() {
   useEffect(() => {
     if (!branchId) return;
 
-    const socket = io(resolveWsUrl(), { query: { branchId }, withCredentials: true });
+    const socket = connectRealtime(branchId);
 
     socket.on("notification.created", () => {
       // The refresh below will list this one; remember its id (via the poll
