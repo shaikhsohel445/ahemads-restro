@@ -153,7 +153,7 @@ export default function TablesPage() {
                 }
               >
                 <div
-                  className="absolute left-0 top-0 origin-top-left"
+                  className="absolute start-0 top-0 origin-top-left"
                   style={{ width: canvasWidth, height: canvasHeight, transform: fitScale < 1 ? `scale(${fitScale})` : undefined }}
                 >
                 {activeFloor?.tables.map((table) =>

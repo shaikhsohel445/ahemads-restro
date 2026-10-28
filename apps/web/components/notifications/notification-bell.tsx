@@ -132,7 +132,7 @@ export function NotificationBell() {
           >
             <Bell className="h-[18px] w-[18px]" />
             {unreadCount > 0 && (
-              <Badge className="absolute -right-1 -top-1 h-4 min-w-4 justify-center rounded-full px-1 text-[10px] leading-none">
+              <Badge className="absolute -end-1 -top-1 h-4 min-w-4 justify-center rounded-full px-1 text-[10px] leading-none">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </Badge>
             )}
@@ -215,11 +215,11 @@ export function NotificationBell() {
                   <span className="truncate text-sm font-medium text-foreground">
                     {notification.title}
                   </span>
-                  <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
+                  <span className="ms-auto shrink-0 text-[11px] text-muted-foreground">
                     {timeAgo(notification.createdAt)}
                   </span>
                 </div>
-                <p className="pl-0 text-xs text-muted-foreground">
+                <p className="ps-0 text-xs text-muted-foreground">
                   {notification.body}
                 </p>
               </DropdownMenuItem>

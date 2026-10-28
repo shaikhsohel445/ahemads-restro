@@ -47,7 +47,7 @@ export function DocSection({ heading, children }: { heading: string; children: R
 
 export function DocList({ items }: { items: ReactNode[] }) {
   return (
-    <ul className="ml-5 flex list-disc flex-col gap-1.5">
+    <ul className="ms-5 flex list-disc flex-col gap-1.5">
       {items.map((it, i) => (
         <li key={i}>{it}</li>
       ))}

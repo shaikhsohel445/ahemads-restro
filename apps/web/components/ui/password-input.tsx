@@ -22,7 +22,7 @@ export function PasswordInput({
         autoCapitalize="none"
         autoCorrect="off"
         spellCheck={false}
-        className={cn("pr-12", className)}
+        className={cn("pe-12", className)}
       />
       <button
         type="button"
@@ -30,7 +30,7 @@ export function PasswordInput({
         onMouseDown={(e) => e.preventDefault()}
         aria-label={visible ? "Hide password" : "Show password"}
         aria-pressed={visible}
-        className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-lg text-muted-foreground transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:outline-none"
+        className="absolute inset-y-0 end-0 flex w-11 items-center justify-center rounded-e-lg text-muted-foreground transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:outline-none"
       >
         {visible ? <EyeOff className="h-[18px] w-[18px]" /> : <Eye className="h-[18px] w-[18px]" />}
       </button>

@@ -48,7 +48,7 @@ export function ProductGrid({
       {categories && categories.length > 0 && (
         <nav
           aria-label="Category"
-          className="hidden w-52 shrink-0 flex-col gap-1 overflow-y-auto border-r border-border pr-3 lg:flex xl:w-60"
+          className="hidden w-52 shrink-0 flex-col gap-1 overflow-y-auto border-e border-border pe-3 lg:flex xl:w-60"
         >
           {[{ id: undefined as string | undefined, name: "All", count: undefined as number | undefined }, ...categories.map((c) => ({ id: c.id as string | undefined, name: c.name, count: c._count.items as number | undefined }))].map((c) => {
             const active = c.id === activeCategoryId;
@@ -59,7 +59,7 @@ export function ProductGrid({
                 aria-current={active ? "true" : undefined}
                 onClick={() => setActiveCategoryId(c.id)}
                 className={cn(
-                  "flex min-h-10 items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                  "flex min-h-10 items-center justify-between gap-2 rounded-lg px-3 py-2 text-start text-sm transition-colors",
                   active
                     ? "bg-primary font-semibold text-primary-foreground shadow-sm"
                     : "font-medium text-foreground hover:bg-secondary",
@@ -87,7 +87,7 @@ export function ProductGrid({
           <button
             key={item.id}
             onClick={() => onSelect(item)}
-            className="flex min-h-24 flex-col items-start gap-2 rounded-2xl border border-border bg-card p-3 text-left sm:p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.97] active:translate-y-0 lg:min-h-32 lg:justify-between lg:p-4 lg:hover:border-primary/50"
+            className="flex min-h-24 flex-col items-start gap-2 rounded-2xl border border-border bg-card p-3 text-start sm:p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.97] active:translate-y-0 lg:min-h-32 lg:justify-between lg:p-4 lg:hover:border-primary/50"
           >
             <span
               className={`h-2.5 w-2.5 rounded-full ${item.isVeg ? "bg-success" : "bg-destructive"}`}

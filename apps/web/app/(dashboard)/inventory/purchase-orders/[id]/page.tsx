@@ -61,7 +61,7 @@ export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ 
           href="/inventory/purchase-orders"
           className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="h-3.5 w-3.5" />
+          <ArrowLeft className="rtl:-scale-x-100 h-3.5 w-3.5" />
           Purchase orders
         </Link>
         <div className="mt-2 flex items-center gap-3">
@@ -95,10 +95,10 @@ export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ 
           <TableHeader>
             <TableRow>
               <TableHead>Ingredient</TableHead>
-              <TableHead className="text-right">Ordered</TableHead>
-              <TableHead className="text-right">Received</TableHead>
-              <TableHead className="text-right">Cost / unit</TableHead>
-              <TableHead className="text-right">Line total</TableHead>
+              <TableHead className="text-end">Ordered</TableHead>
+              <TableHead className="text-end">Received</TableHead>
+              <TableHead className="text-end">Cost / unit</TableHead>
+              <TableHead className="text-end">Line total</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -107,14 +107,14 @@ export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ 
                 <TableCell className="font-medium text-foreground">
                   {item.ingredient?.name ?? item.ingredientId}
                 </TableCell>
-                <TableCell className="text-right tabular-nums">
+                <TableCell className="text-end tabular-nums">
                   {item.quantityOrdered} {item.ingredient?.unit}
                 </TableCell>
-                <TableCell className="text-right tabular-nums">
+                <TableCell className="text-end tabular-nums">
                   {item.quantityReceived} {item.ingredient?.unit}
                 </TableCell>
-                <TableCell className="text-right tabular-nums">{formatCurrency(item.unitCost)}</TableCell>
-                <TableCell className="text-right tabular-nums">
+                <TableCell className="text-end tabular-nums">{formatCurrency(item.unitCost)}</TableCell>
+                <TableCell className="text-end tabular-nums">
                   {formatCurrency(Number(item.quantityOrdered) * Number(item.unitCost))}
                 </TableCell>
               </TableRow>

@@ -52,7 +52,7 @@ export function CustomerPicker({
             <button
               key={m.id}
               type="button"
-              className="flex w-full flex-col items-start px-3 py-2 text-left text-sm hover:bg-secondary"
+              className="flex w-full flex-col items-start px-3 py-2 text-start text-sm hover:bg-secondary"
               onClick={() => {
                 onSelect(m);
                 setSearch("");

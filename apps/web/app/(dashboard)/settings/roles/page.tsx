@@ -72,7 +72,7 @@ export default function RolesPage() {
                 <TableHead>Role</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Permissions</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="text-end">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -90,7 +90,7 @@ export default function RolesPage() {
                   <TableCell className="text-muted-foreground">
                     {role.permissions.length} granted
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-end">
                     {role.isSystem ? (
                       <span className="text-xs text-muted-foreground">—</span>
                     ) : (

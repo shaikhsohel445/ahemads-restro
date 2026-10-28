@@ -1,28 +1,18 @@
 import type { NextConfig } from "next";
 
-// Browser only ever talks to ONE origin (this Next.js server) — API calls
-// are proxied server-side to the backend. Same reasoning as nodedr-pos:
-// this keeps the session cookie first-party, avoiding the cross-origin
-// cookie fragility that broke that app's very first version. NOTE: Next
-// bakes the rewrite destination at build time, so in Docker this must come
-// from a build ARG, not a runtime env var (see nodedr-pos memory).
-const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:4001";
+// The browser only ever talks to ONE origin. In production on Cloudflare the
+// web Worker (worker.ts) forwards /api/* to the API Worker over a service
+// binding. In local development (`next dev`) the rewrite below does the same
+// job against the API's `wrangler dev` (http://localhost:8787 by default), so
+// the session cookie stays first-party in both. WebSockets cannot be proxied
+// by `next dev`; set NEXT_PUBLIC_WS_URL=ws://localhost:8787 for local runs
+// (see lib/ws-url.ts).
+const API_DEV_URL = process.env.API_DEV_URL ?? "http://localhost:8787";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
-  // socket.io's endpoint is literally "/socket.io/" — the backend 404s on the
-  // slash-less form, so Next must not redirect it.
-  skipTrailingSlashRedirect: true,
   async rewrites() {
-    return [
-      { source: "/api/:path*", destination: `${BACKEND_URL}/api/:path*` },
-      // Realtime push (socket.io) goes through the same origin too: in
-      // production only this web server is reachable, never the backend's
-      // own port. socket.io starts with long-polling, which proxies fine.
-      // Literal first: an empty :path* would drop the trailing slash.
-      { source: "/socket.io/", destination: `${BACKEND_URL}/socket.io/` },
-      { source: "/socket.io/:path+", destination: `${BACKEND_URL}/socket.io/:path+` },
-    ];
+    if (process.env.NODE_ENV !== "development") return [];
+    return [{ source: "/api/:path*", destination: `${API_DEV_URL}/api/:path*` }];
   },
 };
 

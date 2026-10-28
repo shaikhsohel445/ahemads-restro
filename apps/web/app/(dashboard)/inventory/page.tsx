@@ -80,10 +80,10 @@ export default function InventoryPage() {
               <TableRow>
                 <TableHead>Ingredient</TableHead>
                 <TableHead>Unit</TableHead>
-                <TableHead className="text-right">Current stock</TableHead>
-                <TableHead className="text-right">Reorder level</TableHead>
-                <TableHead className="text-right">Avg. cost / unit</TableHead>
-                <TableHead className="text-right">Stock value</TableHead>
+                <TableHead className="text-end">Current stock</TableHead>
+                <TableHead className="text-end">Reorder level</TableHead>
+                <TableHead className="text-end">Avg. cost / unit</TableHead>
+                <TableHead className="text-end">Stock value</TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>
@@ -104,14 +104,14 @@ export default function InventoryPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{i.unit}</TableCell>
-                    <TableCell className="text-right tabular-nums">{i.currentStock}</TableCell>
-                    <TableCell className="text-right tabular-nums text-muted-foreground">
+                    <TableCell className="text-end tabular-nums">{i.currentStock}</TableCell>
+                    <TableCell className="text-end tabular-nums text-muted-foreground">
                       {i.reorderLevel}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    <TableCell className="text-end tabular-nums">
                       {formatCurrency(i.costPerUnit)}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    <TableCell className="text-end tabular-nums">
                       {formatCurrency(Number(i.currentStock) * Number(i.costPerUnit))}
                     </TableCell>
                     <TableCell>

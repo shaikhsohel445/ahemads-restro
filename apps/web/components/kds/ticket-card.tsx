@@ -109,7 +109,7 @@ export function TicketCard({ ticket, branchId }: { ticket: KotTicket; branchId: 
       <button
         type="button"
         onClick={() => setDetailsOpen(true)}
-        className="flex items-center justify-between rounded-md text-left transition hover:opacity-80"
+        className="flex items-center justify-between rounded-md text-start transition hover:opacity-80"
         title="View customer details"
       >
         <div>

@@ -63,9 +63,9 @@ export default function WastePage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Ingredient</TableHead>
-                <TableHead className="text-right">Quantity</TableHead>
+                <TableHead className="text-end">Quantity</TableHead>
                 <TableHead>Reason</TableHead>
-                <TableHead className="text-right">Cost</TableHead>
+                <TableHead className="text-end">Cost</TableHead>
                 <TableHead>Logged by</TableHead>
                 <TableHead>Date</TableHead>
               </TableRow>
@@ -74,13 +74,13 @@ export default function WastePage() {
               {logs.map((log) => (
                 <TableRow key={log.id}>
                   <TableCell className="font-medium text-foreground">{log.ingredient.name}</TableCell>
-                  <TableCell className="text-right tabular-nums">
+                  <TableCell className="text-end tabular-nums">
                     {log.quantity} {log.ingredient.unit}
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">{log.reason.replace("_", " ")}</Badge>
                   </TableCell>
-                  <TableCell className="text-right tabular-nums text-destructive">
+                  <TableCell className="text-end tabular-nums text-destructive">
                     {formatCurrency(Number(log.quantity) * Number(log.unitCostAtWaste))}
                   </TableCell>
                   <TableCell className="text-muted-foreground">{log.createdBy.name}</TableCell>

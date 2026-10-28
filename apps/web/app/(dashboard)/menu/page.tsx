@@ -127,7 +127,7 @@ export default function MenuPage() {
               <button
                 onClick={() => setSelectedCategoryId(undefined)}
                 className={cn(
-                  "flex items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors",
+                  "flex items-center justify-between rounded-lg px-3 py-2 text-start text-sm font-medium transition-colors",
                   !selectedCategoryId
                     ? "bg-accent text-accent-foreground"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -139,7 +139,7 @@ export default function MenuPage() {
                 <div
                   key={cat.id}
                   className={cn(
-                    "group flex items-center justify-between rounded-lg pl-3 pr-1 py-1 text-left text-sm font-medium transition-colors",
+                    "group flex items-center justify-between rounded-lg ps-3 pe-1 py-1 text-start text-sm font-medium transition-colors",
                     selectedCategoryId === cat.id
                       ? "bg-accent text-accent-foreground"
                       : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -147,12 +147,12 @@ export default function MenuPage() {
                 >
                   <button
                     onClick={() => setSelectedCategoryId(cat.id)}
-                    className="min-w-0 flex-1 truncate py-1 text-left"
+                    className="min-w-0 flex-1 truncate py-1 text-start"
                   >
                     {cat.name}
                   </button>
                   {!cat.showOnWebsite && (
-                    <span title="Hidden from website" className="mr-1 shrink-0 text-muted-foreground">
+                    <span title="Hidden from website" className="me-1 shrink-0 text-muted-foreground">
                       <EyeOff className="h-3.5 w-3.5" />
                       <span className="sr-only">Hidden from website</span>
                     </span>
@@ -263,8 +263,8 @@ export default function MenuPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Station</TableHead>
-                  <TableHead className="text-right">Price</TableHead>
-                  <TableHead className="text-right">Tax</TableHead>
+                  <TableHead className="text-end">Price</TableHead>
+                  <TableHead className="text-end">Tax</TableHead>
                   <TableHead className="w-10" />
                 </TableRow>
               </TableHeader>
@@ -297,10 +297,10 @@ export default function MenuPage() {
                         "—"
                       )}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    <TableCell className="text-end tabular-nums">
                       {formatCurrency(item.price)}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums text-muted-foreground">
+                    <TableCell className="text-end tabular-nums text-muted-foreground">
                       {Number(item.taxRatePercent)}%
                     </TableCell>
                     <TableCell>

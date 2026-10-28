@@ -285,7 +285,7 @@ function GeneralSettingsForm({
                       setLogoUrl(null);
                       if (logoInputRef.current) logoInputRef.current.value = "";
                     }}
-                    className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-background/80 text-foreground"
+                    className="absolute end-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-background/80 text-foreground"
                     aria-label="Remove logo"
                   >
                     <X className="h-3 w-3" />
@@ -319,7 +319,7 @@ function GeneralSettingsForm({
               maxLength={RESTAURANT_NAME_MAX_LENGTH}
               required
             />
-            <p className="text-right text-xs text-muted-foreground">
+            <p className="text-end text-xs text-muted-foreground">
               {name.length}/{RESTAURANT_NAME_MAX_LENGTH}
             </p>
           </div>

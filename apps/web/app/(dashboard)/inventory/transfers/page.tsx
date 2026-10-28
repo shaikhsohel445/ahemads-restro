@@ -113,8 +113,8 @@ export default function TransfersPage() {
           <Skeleton className="h-24" />
         ) : data && data.history.length > 0 ? (
           <table className="w-full text-sm">
-            <thead className="text-left text-xs text-muted-foreground">
-              <tr><th className="py-1">When</th><th>Ingredient</th><th>Quantity</th><th>Route</th><th className="text-right">Cost / unit</th></tr>
+            <thead className="text-start text-xs text-muted-foreground">
+              <tr><th className="py-1">When</th><th>Ingredient</th><th>Quantity</th><th>Route</th><th className="text-end">Cost / unit</th></tr>
             </thead>
             <tbody>
               {data.history.map((t) => (
@@ -122,8 +122,8 @@ export default function TransfersPage() {
                   <td className="py-1.5 whitespace-nowrap">{t.createdAt.slice(0, 16).replace("T", " ")}</td>
                   <td>{t.ingredientName}{t.note ? <span className="block text-xs text-muted-foreground">{t.note}</span> : null}</td>
                   <td className="tabular-nums">{t.quantity} {t.unit}</td>
-                  <td><span className="inline-flex items-center gap-1.5">{t.fromBranchName} <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" /> {t.toBranchName}</span></td>
-                  <td className="text-right tabular-nums">{formatCurrency(Number(t.unitCost))}</td>
+                  <td><span className="inline-flex items-center gap-1.5">{t.fromBranchName} <ArrowRight className="rtl:-scale-x-100 h-3.5 w-3.5 text-muted-foreground" /> {t.toBranchName}</span></td>
+                  <td className="text-end tabular-nums">{formatCurrency(Number(t.unitCost))}</td>
                 </tr>
               ))}
             </tbody>

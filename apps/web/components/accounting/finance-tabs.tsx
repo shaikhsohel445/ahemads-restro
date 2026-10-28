@@ -83,7 +83,7 @@ export function BudgetsTab({ branchId }: { branchId: string | null }) {
         ) : data && data.rows.length > 0 ? (
           <>
             <table className="w-full text-sm">
-              <thead className="text-left text-xs text-muted-foreground">
+              <thead className="text-start text-xs text-muted-foreground">
                 <tr><th className="py-1">Category</th><th>Budget</th><th>Spent</th><th>Left</th><th className="w-40">Used</th><th /></tr>
               </thead>
               <tbody>
@@ -102,7 +102,7 @@ export function BudgetsTab({ branchId }: { branchId: string | null }) {
                       </div>
                       <span className="text-[11px] text-muted-foreground">{r.percentUsed}%</span>
                     </td>
-                    <td className="text-right">
+                    <td className="text-end">
                       <button type="button" className="text-xs text-muted-foreground hover:text-destructive" onClick={() => remove.mutate(r.id)}>Remove</button>
                     </td>
                   </tr>
@@ -214,7 +214,7 @@ export function BankTab({ branchId }: { branchId: string | null }) {
       <Card className="flex flex-wrap items-center gap-3 p-4">
         <input ref={fileRef} type="file" accept=".csv,text/csv" className="sr-only" id="bank-csv" onChange={(e) => onFile(e.target.files?.[0])} />
         <Button onClick={() => fileRef.current?.click()} disabled={importCsv.isPending}>
-          <Upload className="mr-2 h-4 w-4" /> Import bank statement (CSV)
+          <Upload className="me-2 h-4 w-4" /> Import bank statement (CSV)
         </Button>
         <Button variant="outline" onClick={() => autoMatch.mutate()} disabled={autoMatch.isPending}>Auto-match</Button>
         <p className="text-xs text-muted-foreground">
@@ -243,8 +243,8 @@ export function BankTab({ branchId }: { branchId: string | null }) {
           <Skeleton className="h-24" />
         ) : data && data.transactions.length > 0 ? (
           <table className="w-full text-sm">
-            <thead className="text-left text-xs text-muted-foreground">
-              <tr><th className="py-1">Date</th><th>Description</th><th className="text-right">Amount</th><th>Status</th><th /></tr>
+            <thead className="text-start text-xs text-muted-foreground">
+              <tr><th className="py-1">Date</th><th>Description</th><th className="text-end">Amount</th><th>Status</th><th /></tr>
             </thead>
             <tbody>
               {data.transactions.map((t) => (
@@ -254,13 +254,13 @@ export function BankTab({ branchId }: { branchId: string | null }) {
                     {t.description}
                     {t.expense && <span className="block text-xs text-muted-foreground">↳ {t.expense.category}{t.expense.note ? ` · ${t.expense.note}` : ""}</span>}
                   </td>
-                  <td className={cn("text-right tabular-nums", t.amount < 0 ? "text-foreground" : "text-emerald-600")}>{formatCurrency(t.amount)}</td>
+                  <td className={cn("text-end tabular-nums", t.amount < 0 ? "text-foreground" : "text-emerald-600")}>{formatCurrency(t.amount)}</td>
                   <td>
                     <span className={cn("rounded-full px-2 py-0.5 text-[11px]", t.status === "MATCHED" ? "bg-emerald-500/15 text-emerald-600" : t.status === "IGNORED" ? "bg-secondary text-muted-foreground" : "bg-amber-500/15 text-amber-600")}>
                       {t.status.toLowerCase()}
                     </span>
                   </td>
-                  <td className="space-x-3 text-right text-xs">
+                  <td className="space-x-3 text-end text-xs">
                     {t.status === "UNMATCHED" && t.amount < 0 && (
                       <button type="button" className="text-primary hover:underline" onClick={() => setPicking(picking === t.id ? null : t.id)}>Match</button>
                     )}
@@ -271,11 +271,11 @@ export function BankTab({ branchId }: { branchId: string | null }) {
                       <button type="button" className="text-muted-foreground hover:underline" onClick={() => setStatus.mutate({ id: t.id, status: "UNMATCHED" })}>Undo</button>
                     )}
                     {picking === t.id && (
-                      <div className="mt-2 flex flex-col gap-1 rounded-lg border border-border bg-card p-2 text-left">
+                      <div className="mt-2 flex flex-col gap-1 rounded-lg border border-border bg-card p-2 text-start">
                         {candidates.isLoading && <span className="text-muted-foreground">Looking…</span>}
                         {candidates.data?.length === 0 && <span className="text-muted-foreground">No unmatched expenses nearby</span>}
                         {candidates.data?.map((c) => (
-                          <button key={c.id} type="button" className="rounded px-2 py-1 text-left hover:bg-secondary" onClick={() => match.mutate({ id: t.id, expenseId: c.id })}>
+                          <button key={c.id} type="button" className="rounded px-2 py-1 text-start hover:bg-secondary" onClick={() => match.mutate({ id: t.id, expenseId: c.id })}>
                             {c.spentOn.slice(0, 10)} · {c.category} · {formatCurrency(Number(c.amount))}
                           </button>
                         ))}

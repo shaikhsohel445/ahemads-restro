@@ -354,7 +354,7 @@ export default function BackupPage() {
                 <TableHead>Started</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Size</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="text-end">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -377,7 +377,7 @@ export default function BackupPage() {
                   <TableCell className="text-muted-foreground">
                     {formatBytes(b.sizeBytes)}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-end">
                     <div className="flex items-center justify-end gap-1">
                       {b.status === "VERIFIED" ? (
                         <Button

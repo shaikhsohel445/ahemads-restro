@@ -63,7 +63,7 @@ export function SettingsTabs() {
             )}
           >
             {tab.label}
-            {badges.settingsTabs[tab.href] ? <NavDot className="ml-0" /> : null}
+            {badges.settingsTabs[tab.href] ? <NavDot className="ms-0" /> : null}
           </Link>
         );
       })}

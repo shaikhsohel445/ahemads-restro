@@ -131,7 +131,7 @@ function HappyHour({ branchId }: { branchId: string | null }) {
               {n}
             </button>
           ))}
-          <Button className="ml-auto" onClick={submit} disabled={createPromotion.isPending}>Create</Button>
+          <Button className="ms-auto" onClick={submit} disabled={createPromotion.isPending}>Create</Button>
         </div>
       </Card>
       <Card className="flex flex-col divide-y divide-border p-2">
@@ -230,7 +230,7 @@ function Campaigns({ branchId }: { branchId: string | null }) {
               </div>
               <div className="flex gap-2">
                 <a href={`/api/v1/marketing/campaigns/${c.id}/audience.csv?branchId=${branchId}`} className="inline-flex h-8 items-center rounded-lg border border-border px-3 text-sm hover:bg-secondary">
-                  <Download className="mr-2 h-4 w-4" /> Audience CSV
+                  <Download className="me-2 h-4 w-4" /> Audience CSV
                 </a>
                 <Button
                   size="sm"

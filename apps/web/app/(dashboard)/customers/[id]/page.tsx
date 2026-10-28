@@ -47,7 +47,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             href="/customers"
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
+            <ArrowLeft className="rtl:-scale-x-100 h-3.5 w-3.5" />
             Customers
           </Link>
           <h1 className="mt-2 text-[32px] font-semibold tracking-tight text-foreground">

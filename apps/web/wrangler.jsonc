@@ -1,0 +1,35 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  // OrderRestro web app — Next.js via OpenNext on Cloudflare Workers + static
+  // assets (see worker.ts). /api/* is forwarded to the API Worker through the
+  // `API` service binding, so set `service` to the API Worker's name for each
+  // environment (apps/api/wrangler.jsonc).
+  "name": "orderrestro-web",
+  "main": "worker.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "observability": { "enabled": true },
+  "services": [
+    { "binding": "WORKER_SELF_REFERENCE", "service": "orderrestro-web" },
+    { "binding": "API", "service": "orderrestro-api" }
+  ],
+  "env": {
+    "staging": {
+      "name": "orderrestro-web-staging",
+      "services": [
+        { "binding": "WORKER_SELF_REFERENCE", "service": "orderrestro-web-staging" },
+        { "binding": "API", "service": "orderrestro-api-staging" }
+      ]
+    },
+    "production": {
+      "name": "orderrestro-web-production",
+      "services": [
+        { "binding": "WORKER_SELF_REFERENCE", "service": "orderrestro-web-production" },
+        { "binding": "API", "service": "orderrestro-api-production" }
+      ]
+      // Attach the production hostname with "routes" or a Custom Domain, e.g.
+      // "routes": [{ "pattern": "app.example.com", "custom_domain": true }]
+    }
+  }
+}

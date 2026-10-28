@@ -91,7 +91,7 @@ function StaffApiKeysCard() {
               <TableHead>Name</TableHead>
               <TableHead>Key</TableHead>
               <TableHead>Last used</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-end">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -102,7 +102,7 @@ function StaffApiKeysCard() {
                 <TableCell className="text-muted-foreground">
                   {key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleString() : "Never"}
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-end">
                   {key.revokedAt ? (
                     <Badge variant="outline">Revoked</Badge>
                   ) : (
@@ -172,7 +172,7 @@ function IntegrationApiKeysCard() {
               <TableHead>Key</TableHead>
               <TableHead>Location</TableHead>
               <TableHead>Permissions</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-end">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -190,7 +190,7 @@ function IntegrationApiKeysCard() {
                     ))}
                   </div>
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-end">
                   {key.revokedAt ? (
                     <Badge variant="outline">Revoked</Badge>
                   ) : (

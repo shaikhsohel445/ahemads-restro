@@ -67,7 +67,7 @@ export function ResponsiveTabs({
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen(true)}
-        className="flex min-h-12 w-full items-center gap-3 rounded-xl border border-border bg-card px-4 text-left shadow-sm transition-colors active:bg-secondary lg:hidden"
+        className="flex min-h-12 w-full items-center gap-3 rounded-xl border border-border bg-card px-4 text-start shadow-sm transition-colors active:bg-secondary lg:hidden"
       >
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</span>
@@ -99,7 +99,7 @@ export function ResponsiveTabs({
                     setOpen(false);
                   }}
                   className={cn(
-                    "flex min-h-12 items-center gap-3 rounded-lg px-3 text-left text-sm transition-colors active:bg-secondary",
+                    "flex min-h-12 items-center gap-3 rounded-lg px-3 text-start text-sm transition-colors active:bg-secondary",
                     active ? "bg-accent font-semibold text-accent-foreground" : "font-medium text-foreground",
                   )}
                 >

@@ -88,7 +88,7 @@ export default function SyncSettingsPage() {
             {data.conflicts.length > 0 && (
               <details className="text-sm">
                 <summary>{data.conflicts.length} change(s) could not be applied</summary>
-                <ul className="mt-2 list-disc pl-5 text-muted-foreground">
+                <ul className="mt-2 list-disc ps-5 text-muted-foreground">
                   {data.conflicts.slice(0, 10).map((c, i) => (
                     <li key={i}>
                       {c.tbl}: {c.error}

@@ -93,7 +93,7 @@ export function EditableTableTile({
         <Users className="h-3 w-3" />
         {table.capacity}
       </span>
-      <div className="absolute -top-3 right-1 flex gap-1">
+      <div className="absolute -top-3 end-1 flex gap-1">
         <Button
           variant="secondary"
           size="icon"

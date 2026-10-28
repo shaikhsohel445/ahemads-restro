@@ -31,7 +31,7 @@ export function PosMockup() {
           <span className="size-2.5 rounded-full bg-destructive/50" />
           <span className="size-2.5 rounded-full bg-warning/50" />
           <span className="size-2.5 rounded-full bg-success/50" />
-          <span className="ml-3 text-xs font-medium text-muted-foreground">Kitchen Display</span>
+          <span className="ms-3 text-xs font-medium text-muted-foreground">Kitchen Display</span>
         </div>
         <div className="grid gap-3 p-4 sm:grid-cols-3">
           {tickets.map((t, i) => (
@@ -66,7 +66,7 @@ export function PosMockup() {
         initial={{ opacity: 0, x: 16, y: 10 }}
         animate={{ opacity: 1, x: 0, y: 0 }}
         transition={{ duration: 0.4, delay: 0.55, ease: [0.22, 1, 0.36, 1] }}
-        className="absolute -right-4 -bottom-6 hidden w-40 rounded-xl border border-border/60 bg-card p-3 shadow-lg sm:block"
+        className="absolute -end-4 -bottom-6 hidden w-40 rounded-xl border border-border/60 bg-card p-3 shadow-lg sm:block"
       >
         <p className="text-[11px] font-medium text-muted-foreground">Table occupancy</p>
         <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">72%</p>

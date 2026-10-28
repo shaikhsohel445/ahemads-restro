@@ -157,8 +157,8 @@ function RunDetail({ branchId, id }: { branchId: string | null; id: string }) {
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="text-left text-xs text-muted-foreground">
-            <tr><th className="py-1">Staff</th><th>Hours</th><th>Base</th><th>Leave −</th><th>Tips</th><th className="text-right">Net</th></tr>
+          <thead className="text-start text-xs text-muted-foreground">
+            <tr><th className="py-1">Staff</th><th>Hours</th><th>Base</th><th>Leave −</th><th>Tips</th><th className="text-end">Net</th></tr>
           </thead>
           <tbody>
             {data.lines.map((l) => (
@@ -168,13 +168,13 @@ function RunDetail({ branchId, id }: { branchId: string | null; id: string }) {
                 <td>{formatCurrency(l.basePay)}</td>
                 <td>{formatCurrency(l.unpaidLeaveDeduction)}</td>
                 <td>{formatCurrency(l.tipShare)}</td>
-                <td className="text-right font-medium">{formatCurrency(l.netPay)}</td>
+                <td className="text-end font-medium">{formatCurrency(l.netPay)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <p className="text-right text-sm font-semibold">Total {formatCurrency(data.totalNet)}</p>
+      <p className="text-end text-sm font-semibold">Total {formatCurrency(data.totalNet)}</p>
     </Card>
   );
 }
@@ -259,7 +259,7 @@ function Payroll({ branchId }: { branchId: string | null }) {
           <button
             type="button"
             onClick={() => setOpen(open === r.id ? null : r.id)}
-            className="flex items-center justify-between rounded-xl border border-border px-4 py-3 text-left text-sm hover:bg-secondary"
+            className="flex items-center justify-between rounded-xl border border-border px-4 py-3 text-start text-sm hover:bg-secondary"
           >
             <span>{fmtDate(r.periodStart)} – {fmtDate(r.periodEnd)} · {r.status.toLowerCase()}</span>
             <span className="font-medium">{formatCurrency(r.totalNet)}</span>
@@ -285,8 +285,8 @@ function Performance({ branchId }: { branchId: string | null }) {
           <Skeleton className="h-16" />
         ) : (
           <table className="w-full text-sm">
-            <thead className="text-left text-xs text-muted-foreground">
-              <tr><th className="py-1">Staff</th><th>Orders</th><th>Sales</th><th>Tips</th><th>Hours</th><th className="text-right">Sales / hour</th></tr>
+            <thead className="text-start text-xs text-muted-foreground">
+              <tr><th className="py-1">Staff</th><th>Orders</th><th>Sales</th><th>Tips</th><th>Hours</th><th className="text-end">Sales / hour</th></tr>
             </thead>
             <tbody>
               {data?.map((r) => (
@@ -296,7 +296,7 @@ function Performance({ branchId }: { branchId: string | null }) {
                   <td>{formatCurrency(r.sales)}</td>
                   <td>{formatCurrency(r.tips)}</td>
                   <td>{r.hoursWorked}</td>
-                  <td className="text-right">{r.salesPerHour == null ? "—" : formatCurrency(r.salesPerHour)}</td>
+                  <td className="text-end">{r.salesPerHour == null ? "—" : formatCurrency(r.salesPerHour)}</td>
                 </tr>
               ))}
             </tbody>

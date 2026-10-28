@@ -129,7 +129,7 @@ export default function AuditLogPage() {
                   <TableHead>Action</TableHead>
                   <TableHead>Entity</TableHead>
                   <TableHead>Timestamp</TableHead>
-                  <TableHead className="text-right">Details</TableHead>
+                  <TableHead className="text-end">Details</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -230,7 +230,7 @@ function AuditLogRow({ entry }: { entry: AuditLogEntry }) {
         <TableCell className="text-muted-foreground">
           {new Date(entry.createdAt).toLocaleString()}
         </TableCell>
-        <TableCell className="text-right">
+        <TableCell className="text-end">
           {hasMetadata ? (
             <Button variant="ghost" size="sm" onClick={() => setExpanded((v) => !v)}>
               {expanded ? "Hide" : "View"}

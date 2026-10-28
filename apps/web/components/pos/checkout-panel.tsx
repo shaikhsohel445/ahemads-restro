@@ -288,7 +288,7 @@ export function CheckoutPanel({
     const { settlement } = completed;
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-        <StatusNote note={note} onClear={clearNote} className="w-full text-left" />
+        <StatusNote note={note} onClear={clearNote} className="w-full text-start" />
         <CheckCircle2 className="h-10 w-10 text-success" />
         <p className="text-lg font-semibold text-foreground">
           Order #{order.orderNumber} paid
@@ -338,7 +338,7 @@ export function CheckoutPanel({
   if (order.status === "CANCELLED" || (order.status === "PAID" && !completed)) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-        <StatusNote note={note} onClear={clearNote} className="w-full text-left" />
+        <StatusNote note={note} onClear={clearNote} className="w-full text-start" />
         <p className="text-sm font-medium text-foreground">
           Order #{order.orderNumber} was {order.status === "CANCELLED" ? "cancelled" : "already paid"}
         </p>
@@ -364,10 +364,10 @@ export function CheckoutPanel({
           type="button"
           variant="ghost"
           size="sm"
-          className="-ml-2 shrink-0 text-muted-foreground"
+          className="-ms-2 shrink-0 text-muted-foreground"
           onClick={onDone}
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="rtl:-scale-x-100 h-4 w-4" />
           Back
         </Button>
         <div className="flex flex-wrap justify-end gap-2">

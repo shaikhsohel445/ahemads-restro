@@ -223,7 +223,7 @@ export default function PublicMenuPage({
   if (!guestName) {
     return (
       <div className="relative flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-6 text-center">
-        <div className="absolute right-4 top-4">
+        <div className="absolute end-4 top-4">
           <LanguageSwitcher compact />
         </div>
         <UtensilsCrossed className="h-8 w-8 text-primary" />
@@ -244,7 +244,7 @@ export default function PublicMenuPage({
             confirmName();
           }}
         >
-          <div className="flex flex-col gap-2 text-left">
+          <div className="flex flex-col gap-2 text-start">
             <Label htmlFor="guest-name">{t("order.whatsYourName")}</Label>
             <Input
               id="guest-name"
@@ -266,7 +266,7 @@ export default function PublicMenuPage({
   return (
     <div className="relative min-h-screen bg-background pb-24">
       <header className="border-b border-border px-5 py-6 text-center">
-        <div className="absolute right-4 top-4">
+        <div className="absolute end-4 top-4">
           <LanguageSwitcher compact />
         </div>
         {isLoading ? (
@@ -383,7 +383,7 @@ export default function PublicMenuPage({
               disabled={requestService.isPending || status.openRequests.includes("WAITER")}
               onClick={() => requestService.mutate("WAITER")}
             >
-              <BellRing className="mr-2 h-4 w-4" />
+              <BellRing className="me-2 h-4 w-4" />
               {status.openRequests.includes("WAITER") ? "Waiter is coming" : "Call waiter"}
             </Button>
             {status.order && (
@@ -393,7 +393,7 @@ export default function PublicMenuPage({
                 disabled={requestService.isPending || status.openRequests.includes("BILL")}
                 onClick={() => requestService.mutate("BILL")}
               >
-                <Receipt className="mr-2 h-4 w-4" />
+                <Receipt className="me-2 h-4 w-4" />
                 {status.openRequests.includes("BILL") ? "Bill requested" : "Request bill"}
               </Button>
             )}

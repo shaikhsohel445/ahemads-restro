@@ -230,8 +230,8 @@ function GstTab({ branchId }: { branchId: string | null }) {
       <Card className="overflow-x-auto p-4">
         {data ? (
           <table className="w-full text-sm">
-            <thead className="text-left text-xs text-muted-foreground">
-              <tr><th className="py-1">Rate</th><th>Taxable value</th><th>Tax</th><th className="text-right">Total</th></tr>
+            <thead className="text-start text-xs text-muted-foreground">
+              <tr><th className="py-1">Rate</th><th>Taxable value</th><th>Tax</th><th className="text-end">Total</th></tr>
             </thead>
             <tbody>
               {data.rows.map((r) => (
@@ -239,14 +239,14 @@ function GstTab({ branchId }: { branchId: string | null }) {
                   <td className="py-1.5">{r.ratePercent}%</td>
                   <td>{formatCurrency(r.taxableValue)}</td>
                   <td>{formatCurrency(r.tax)}</td>
-                  <td className="text-right">{formatCurrency(r.total)}</td>
+                  <td className="text-end">{formatCurrency(r.total)}</td>
                 </tr>
               ))}
               <tr className="border-t border-border font-semibold">
                 <td className="py-1.5">Total</td>
                 <td>{formatCurrency(data.totalTaxable)}</td>
                 <td>{formatCurrency(data.totalTax)}</td>
-                <td className="text-right">{formatCurrency(data.totalTaxable + data.totalTax)}</td>
+                <td className="text-end">{formatCurrency(data.totalTaxable + data.totalTax)}</td>
               </tr>
             </tbody>
           </table>
@@ -270,8 +270,8 @@ function BranchesTab() {
       <RangePicker range={range} onChange={setRange} />
       <Card className="overflow-x-auto p-4">
         <table className="w-full text-sm">
-          <thead className="text-left text-xs text-muted-foreground">
-            <tr><th className="py-1">Branch</th><th>Orders</th><th>Sales</th><th>Open</th><th>Low stock</th><th className="text-right">Inventory value</th></tr>
+          <thead className="text-start text-xs text-muted-foreground">
+            <tr><th className="py-1">Branch</th><th>Orders</th><th>Sales</th><th>Open</th><th>Low stock</th><th className="text-end">Inventory value</th></tr>
           </thead>
           <tbody>
             {data?.map((b) => (
@@ -281,7 +281,7 @@ function BranchesTab() {
                 <td>{formatCurrency(b.sales)}</td>
                 <td>{b.openOrders}</td>
                 <td>{b.lowStockItems}</td>
-                <td className="text-right">{formatCurrency(b.inventoryValue)}</td>
+                <td className="text-end">{formatCurrency(b.inventoryValue)}</td>
               </tr>
             ))}
           </tbody>

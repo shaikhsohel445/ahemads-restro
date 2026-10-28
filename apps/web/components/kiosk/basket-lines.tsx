@@ -44,7 +44,7 @@ export function BasketLines({
               <Plus className="h-5 w-5" aria-hidden />
             </IconButton>
           </div>
-          <p className="w-[5.5rem] shrink-0 text-right text-[1.15rem] font-bold tabular-nums">
+          <p className="w-[5.5rem] shrink-0 text-end text-[1.15rem] font-bold tabular-nums">
             {fmt(Math.round(l.unitPrice * l.quantity * 100) / 100)}
           </p>
         </li>

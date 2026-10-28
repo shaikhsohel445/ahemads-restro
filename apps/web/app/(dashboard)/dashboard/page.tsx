@@ -191,7 +191,7 @@ export default function DashboardPage() {
                   key={order.id}
                   type="button"
                   onClick={() => setViewingOrderId(order.id)}
-                  className="flex items-center justify-between py-2.5 text-left text-sm transition hover:opacity-80"
+                  className="flex items-center justify-between py-2.5 text-start text-sm transition hover:opacity-80"
                   title="View order details"
                 >
                   <div className="flex flex-col">

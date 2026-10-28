@@ -118,7 +118,7 @@ export function EditBillDialog({
                         )}
                       </div>
                       <div className="flex shrink-0 items-center gap-1">
-                        <span className="mr-2 text-sm tabular-nums">{formatCurrency(item.lineTotal)}</span>
+                        <span className="me-2 text-sm tabular-nums">{formatCurrency(item.lineTotal)}</span>
                         <Button
                           type="button"
                           variant="outline"

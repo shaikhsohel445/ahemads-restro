@@ -73,7 +73,7 @@ export default function StaffPage() {
                 <TableHead>Contact</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Branches</TableHead>
-                <TableHead className="text-right">Active</TableHead>
+                <TableHead className="text-end">Active</TableHead>
                 <TableHead className="w-40" />
               </TableRow>
             </TableHeader>
@@ -92,7 +92,7 @@ export default function StaffPage() {
                   <TableCell className="text-muted-foreground">
                     {member.branches.map((b) => b.branch.name).join(", ") || "—"}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-end">
                     <Switch
                       checked={member.isActive}
                       onCheckedChange={(checked) =>

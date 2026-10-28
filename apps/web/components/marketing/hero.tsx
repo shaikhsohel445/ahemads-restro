@@ -63,7 +63,7 @@ export function Hero() {
         >
           <Button size="lg" className="h-11 px-6 text-[15px]" render={<Link href="/signup" />}>
             Get started free
-            <ArrowRight className="size-4" data-icon="inline-end" />
+            <ArrowRight className="rtl:-scale-x-100 size-4" data-icon="inline-end" />
           </Button>
           <Button
             variant="outline"

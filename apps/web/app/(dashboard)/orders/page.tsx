@@ -104,7 +104,7 @@ export default function OrdersPage() {
             }} className={chip(tab === t.key)}>
             {t.label}
             {t.key === "pending" && pendingCount > 0 && (
-              <span className="ml-2 rounded-full bg-destructive px-1.5 text-xs text-white">
+              <span className="ms-2 rounded-full bg-destructive px-1.5 text-xs text-white">
                 {pendingCount}
               </span>
             )}
@@ -232,7 +232,7 @@ function OrderRow({
       )}
     >
       {selectable && (
-        <div className="flex h-full items-center py-4 pl-4">
+        <div className="flex h-full items-center py-4 ps-4">
           <Checkbox
             checked={selected}
             onCheckedChange={onToggle}
@@ -243,7 +243,7 @@ function OrderRow({
     <button
       type="button"
       onClick={() => openEntity("Order", order.id)}
-      className="flex flex-1 items-start justify-between gap-4 rounded-lg px-4 py-3 text-left transition hover:bg-secondary/50"
+      className="flex flex-1 items-start justify-between gap-4 rounded-lg px-4 py-3 text-start transition hover:bg-secondary/50"
     >
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">

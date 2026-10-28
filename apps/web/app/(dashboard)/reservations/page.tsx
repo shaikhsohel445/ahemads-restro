@@ -104,7 +104,7 @@ export default function ReservationsPage() {
               <button
                 type="button"
                 onClick={() => setSelected(r)}
-                className="flex flex-col text-left transition hover:opacity-80"
+                className="flex flex-col text-start transition hover:opacity-80"
                 title="Manage booking"
               >
                 <span className="flex items-center gap-2 text-sm font-medium text-foreground">

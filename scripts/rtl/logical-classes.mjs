@@ -44,7 +44,7 @@ const rules = [
 ];
 
 // <ChevronRight className="h-4 w-4" /> -> add rtl:-scale-x-100 once.
-const ICON = /<(Chevron(?:s)?(?:Left|Right)|Arrow(?:Left|Right)|ArrowUp(?:Left|Right)|ArrowDown(?:Left|Right)|ChevronLeftCircle|ChevronRightCircle|Undo2|Redo2|LogOut|LogIn)\b([^>]*?)(\/?)>/g;
+const ICON = /<((?:Chevron(?:s)?(?:Left|Right)|Arrow(?:Left|Right)|ArrowUp(?:Left|Right)|ArrowDown(?:Left|Right)|ChevronLeftCircle|ChevronRightCircle|Undo2|Redo2|LogOut|LogIn)(?:Icon)?)\b([^>]*?)(\/?)>/g;
 
 function mirrorIcons(src) {
   return src.replace(ICON, (all, name, attrs, slash) => {

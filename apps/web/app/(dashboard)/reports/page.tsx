@@ -71,7 +71,7 @@ export default function ReportsPage() {
                     type="button"
                     onClick={() => setKey(c.key)}
                     className={cn(
-                      "rounded-lg px-3 py-1.5 text-left text-sm transition-colors",
+                      "rounded-lg px-3 py-1.5 text-start text-sm transition-colors",
                       key === c.key ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-secondary",
                     )}
                   >
@@ -87,7 +87,7 @@ export default function ReportsPage() {
             <Input type="date" className="w-40" value={range.from} onChange={(e) => setRange({ ...range, from: e.target.value })} />
             <Input type="date" className="w-40" value={range.to} onChange={(e) => setRange({ ...range, to: e.target.value })} />
             <Button variant="outline" size="sm" onClick={() => window.print()}>
-              <Printer className="mr-2 h-4 w-4" /> Print
+              <Printer className="me-2 h-4 w-4" /> Print
             </Button>
             {canExport &&
               (["xlsx", "pdf", "csv"] as const).map((f) => (
@@ -96,7 +96,7 @@ export default function ReportsPage() {
                   href={`/api/v1/reports/${key}/export?${qs}&format=${f}`}
                   className="inline-flex h-8 items-center rounded-lg border border-border px-3 text-sm hover:bg-secondary"
                 >
-                  <Download className="mr-2 h-4 w-4" /> {f === "xlsx" ? "Excel" : f.toUpperCase()}
+                  <Download className="me-2 h-4 w-4" /> {f === "xlsx" ? "Excel" : f.toUpperCase()}
                 </a>
               ))}
           </div>
@@ -112,10 +112,10 @@ export default function ReportsPage() {
               <p className="text-sm text-destructive">{error instanceof ApiError ? error.message : "Could not load report"}</p>
             ) : data && data.rows.length > 0 ? (
               <table className="w-full text-sm">
-                <thead className="text-left text-xs text-muted-foreground">
+                <thead className="text-start text-xs text-muted-foreground">
                   <tr>
                     {data.columns.map((c) => (
-                      <th key={c} className="py-1 pr-4 font-medium">{c}</th>
+                      <th key={c} className="py-1 pe-4 font-medium">{c}</th>
                     ))}
                   </tr>
                 </thead>
@@ -123,7 +123,7 @@ export default function ReportsPage() {
                   {data.rows.map((r, i) => (
                     <tr key={i} className="border-t border-border">
                       {r.map((cell, j) => (
-                        <td key={j} className="py-1.5 pr-4 tabular-nums">{cell ?? "—"}</td>
+                        <td key={j} className="py-1.5 pe-4 tabular-nums">{cell ?? "—"}</td>
                       ))}
                     </tr>
                   ))}

@@ -144,7 +144,7 @@ export function OrderDetailDialog({
                   </span>
                   <div className="flex gap-2">
                     <a href={`tel:${phone}`} className={cn(buttonVariants({ size: "sm" }), "flex-1")}>
-                      <Phone className="mr-1.5 h-4 w-4" /> Call
+                      <Phone className="me-1.5 h-4 w-4" /> Call
                     </a>
                     <a
                       href={waHref ?? "#"}
@@ -152,7 +152,7 @@ export function OrderDetailDialog({
                       rel="noreferrer"
                       className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex-1")}
                     >
-                      <MessageCircle className="mr-1.5 h-4 w-4" /> WhatsApp
+                      <MessageCircle className="me-1.5 h-4 w-4" /> WhatsApp
                     </a>
                   </div>
                 </>
@@ -174,10 +174,10 @@ export function OrderDetailDialog({
                   disabled={accept.isPending}
                   onClick={() => run(() => accept.mutateAsync(order.id), "Order accepted — sent to the kitchen")}
                 >
-                  <Check className="mr-1.5 h-4 w-4" /> Accept order
+                  <Check className="me-1.5 h-4 w-4" /> Accept order
                 </Button>
                 <Button variant="destructive" className="h-11 flex-1" onClick={() => setDeclineOpen(true)}>
-                  <X className="mr-1.5 h-4 w-4" /> Decline
+                  <X className="me-1.5 h-4 w-4" /> Decline
                 </Button>
               </div>
             )}
@@ -201,12 +201,12 @@ export function OrderDetailDialog({
               <div className="flex gap-2">
                 {canEditRole && (
                   <Button variant="outline" className="flex-1" onClick={() => setEditOpen(true)}>
-                    <Pencil className="mr-1.5 h-4 w-4" /> Edit bill
+                    <Pencil className="me-1.5 h-4 w-4" /> Edit bill
                   </Button>
                 )}
                 {canCancelRole ? (
                   <Button variant="destructive" className="flex-1" onClick={() => setCancelOpen(true)}>
-                    <X className="mr-1.5 h-4 w-4" /> Cancel order
+                    <X className="me-1.5 h-4 w-4" /> Cancel order
                   </Button>
                 ) : (
                   <p className="flex-1 self-center text-xs text-muted-foreground">

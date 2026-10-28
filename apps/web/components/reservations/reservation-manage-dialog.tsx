@@ -96,7 +96,7 @@ export function ReservationManageDialog({
                   </span>
                   <div className="flex gap-2">
                     <a href={`tel:${phone}`} className={cn(buttonVariants({ size: "sm" }), "flex-1")}>
-                      <Phone className="mr-1.5 h-4 w-4" /> Call
+                      <Phone className="me-1.5 h-4 w-4" /> Call
                     </a>
                     <a
                       href={waHref ?? "#"}
@@ -104,7 +104,7 @@ export function ReservationManageDialog({
                       rel="noreferrer"
                       className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex-1")}
                     >
-                      <MessageCircle className="mr-1.5 h-4 w-4" /> WhatsApp
+                      <MessageCircle className="me-1.5 h-4 w-4" /> WhatsApp
                     </a>
                   </div>
                 </>
@@ -120,7 +120,7 @@ export function ReservationManageDialog({
                   disabled={update.isPending}
                   onClick={() => setStatus("CONFIRMED", "Booking accepted")}
                 >
-                  <Check className="mr-1.5 h-4 w-4" /> Accept booking
+                  <Check className="me-1.5 h-4 w-4" /> Accept booking
                 </Button>
                 <Button
                   variant="destructive"
@@ -128,7 +128,7 @@ export function ReservationManageDialog({
                   disabled={update.isPending}
                   onClick={() => setStatus("CANCELLED", "Booking rejected")}
                 >
-                  <X className="mr-1.5 h-4 w-4" /> Reject
+                  <X className="me-1.5 h-4 w-4" /> Reject
                 </Button>
               </div>
             )}
@@ -138,7 +138,7 @@ export function ReservationManageDialog({
                 disabled={update.isPending}
                 onClick={() => setStatus("CANCELLED", "Booking cancelled")}
               >
-                <X className="mr-1.5 h-4 w-4" /> Cancel booking
+                <X className="me-1.5 h-4 w-4" /> Cancel booking
               </Button>
             )}
           </div>

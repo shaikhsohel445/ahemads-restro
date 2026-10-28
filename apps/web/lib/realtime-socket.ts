@@ -10,7 +10,9 @@
 // backoff, and a keep-alive so idle kitchen tablets notice a dead link.
 import { resolveWsUrl } from "@/lib/ws-url";
 
-type Listener = (payload?: unknown) => void;
+// Payloads are server-defined JSON; listeners declare the shape they expect.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Listener = (payload?: any) => void;
 
 const PING_EVERY_MS = 25_000;
 const PONG_TIMEOUT_MS = 10_000;

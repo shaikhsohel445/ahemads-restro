@@ -114,7 +114,7 @@ export function ReviewScreen({
               </KButton>
             ) : (
               <KButton variant="secondary" className="w-full" disabled={pending} onClick={onBack}>
-                <ArrowLeft className="h-5 w-5" aria-hidden />
+                <ArrowLeft className="rtl:-scale-x-100 h-5 w-5" aria-hidden />
                 {t("kiosk.review.back")}
               </KButton>
             )}

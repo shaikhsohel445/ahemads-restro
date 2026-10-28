@@ -59,7 +59,7 @@ function SettingsForm({ branchId, s }: { branchId: string; s: VerifactuSettings 
       </div>
 
       {s.problems.length > 0 && (
-        <ul className="list-disc rounded-xl border border-destructive/30 bg-destructive/5 p-4 pl-8 text-sm text-destructive">
+        <ul className="list-disc rounded-xl border border-destructive/30 bg-destructive/5 p-4 ps-8 text-sm text-destructive">
           {s.problems.map((p) => (
             <li key={p}>{p}</li>
           ))}
@@ -228,24 +228,24 @@ function Records({ branchId, s }: { branchId: string; s: VerifactuSettings }) {
         <p className="text-sm text-muted-foreground">Records appear here as sales are paid.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-start text-sm">
             <thead className="text-xs text-muted-foreground">
               <tr>
-                <th className="py-2 pr-4">Invoice</th>
-                <th className="py-2 pr-4">Date</th>
-                <th className="py-2 pr-4 text-right">Total</th>
-                <th className="py-2 pr-4">Status</th>
+                <th className="py-2 pe-4">Invoice</th>
+                <th className="py-2 pe-4">Date</th>
+                <th className="py-2 pe-4 text-end">Total</th>
+                <th className="py-2 pe-4">Status</th>
               </tr>
             </thead>
             <tbody>
               {data.items.map((r) => (
                 <tr key={r.id} className="border-t border-border align-top">
-                  <td className="py-2 pr-4 font-mono text-xs">
+                  <td className="py-2 pe-4 font-mono text-xs">
                     {r.invoiceNumber} <span className="text-muted-foreground">{r.invoiceType}</span>
                   </td>
-                  <td className="py-2 pr-4">{r.issueDate}</td>
-                  <td className="py-2 pr-4 text-right tabular-nums">{euro(r.totalCents)}</td>
-                  <td className={cn("py-2 pr-4", r.status === "REJECTED" && "text-destructive")}>
+                  <td className="py-2 pe-4">{r.issueDate}</td>
+                  <td className="py-2 pe-4 text-end tabular-nums">{euro(r.totalCents)}</td>
+                  <td className={cn("py-2 pe-4", r.status === "REJECTED" && "text-destructive")}>
                     {STATUS_LABEL[r.status]}
                     {r.errorText && <span className="block text-xs text-muted-foreground">{r.errorCode ? `${r.errorCode}: ` : ""}{r.errorText}</span>}
                   </td>

@@ -47,7 +47,7 @@ function CopyCommand() {
         setCopied(true);
         setTimeout(() => setCopied(false), 1800);
       }}
-      className="group flex w-full max-w-xl items-center justify-between gap-3 rounded-xl border border-border/60 bg-background px-4 py-3 text-left font-mono text-[13px] text-foreground/90 transition-colors hover:border-primary/40"
+      className="group flex w-full max-w-xl items-center justify-between gap-3 rounded-xl border border-border/60 bg-background px-4 py-3 text-start font-mono text-[13px] text-foreground/90 transition-colors hover:border-primary/40"
     >
       <span className="truncate">{INSTALL_COMMAND}</span>
       <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors group-hover:text-foreground">

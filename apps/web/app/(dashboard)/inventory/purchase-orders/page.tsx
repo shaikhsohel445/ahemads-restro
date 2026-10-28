@@ -58,8 +58,8 @@ export default function PurchaseOrdersPage() {
                 <TableHead>PO #</TableHead>
                 <TableHead>Supplier</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Items</TableHead>
-                <TableHead className="text-right">Total</TableHead>
+                <TableHead className="text-end">Items</TableHead>
+                <TableHead className="text-end">Total</TableHead>
                 <TableHead>Created</TableHead>
               </TableRow>
             </TableHeader>
@@ -78,8 +78,8 @@ export default function PurchaseOrdersPage() {
                   <TableCell>
                     <Badge variant={STATUS_VARIANT[po.status]}>{po.status.replace("_", " ")}</Badge>
                   </TableCell>
-                  <TableCell className="text-right tabular-nums">{po.items.length}</TableCell>
-                  <TableCell className="text-right tabular-nums">{formatCurrency(po.totalAmount)}</TableCell>
+                  <TableCell className="text-end tabular-nums">{po.items.length}</TableCell>
+                  <TableCell className="text-end tabular-nums">{formatCurrency(po.totalAmount)}</TableCell>
                   <TableCell className="text-muted-foreground">
                     {new Date(po.createdAt).toLocaleDateString()}
                   </TableCell>

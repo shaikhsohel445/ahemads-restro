@@ -50,7 +50,7 @@ export function KioskHeader({
         </div>
       )}
       <div role="group" aria-label={languageLabel} className="flex items-center gap-1">
-        <Globe className="mr-1 h-5 w-5 text-muted-foreground" aria-hidden />
+        <Globe className="me-1 h-5 w-5 text-muted-foreground" aria-hidden />
         {locales.map((l) => (
           <button
             key={l}

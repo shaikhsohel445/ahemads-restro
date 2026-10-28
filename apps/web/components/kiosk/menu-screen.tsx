@@ -84,7 +84,7 @@ export function MenuScreen({
         {/* categories: rail on wide screens, scrolling row on narrow ones */}
         <nav
           aria-label={t("kiosk.menu.categories")}
-          className="flex shrink-0 gap-2 overflow-x-auto border-b border-border p-3 md:w-[15rem] md:flex-col md:overflow-y-auto md:overflow-x-hidden md:border-b-0 md:border-r"
+          className="flex shrink-0 gap-2 overflow-x-auto border-b border-border p-3 md:w-[15rem] md:flex-col md:overflow-y-auto md:overflow-x-hidden md:border-b-0 md:border-e"
         >
           {menu.categories.map((c) => {
             const on = !deferredQuery && c.id === categoryId;
@@ -98,7 +98,7 @@ export function MenuScreen({
                   setCategoryId(c.id);
                 }}
                 className={cn(
-                  "shrink-0 touch-manipulation select-none rounded-2xl px-4 text-left text-[1.2rem] font-semibold leading-tight",
+                  "shrink-0 touch-manipulation select-none rounded-2xl px-4 text-start text-[1.2rem] font-semibold leading-tight",
                   "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40",
                   "py-3",
                   on ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground hover:bg-muted",
@@ -114,7 +114,7 @@ export function MenuScreen({
           <div className="p-3 pb-0">
             <label className="relative block">
               <span className="sr-only">{t("kiosk.menu.search")}</span>
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-6 w-6 -translate-y-1/2 text-muted-foreground" aria-hidden />
+              <Search className="pointer-events-none absolute start-4 top-1/2 h-6 w-6 -translate-y-1/2 text-muted-foreground" aria-hidden />
               <input
                 type="search"
                 inputMode="search"
@@ -124,7 +124,7 @@ export function MenuScreen({
                 onChange={(e) => setQuery(e.target.value.slice(0, 40))}
                 placeholder={t("kiosk.menu.search")}
                 className={cn(
-                  "w-full select-text rounded-2xl border-2 border-border bg-card pl-12 pr-14 text-[1.15rem] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/30",
+                  "w-full select-text rounded-2xl border-2 border-border bg-card ps-12 pe-14 text-[1.15rem] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/30",
                   "py-3",
                 )}
               />
@@ -133,7 +133,7 @@ export function MenuScreen({
                   type="button"
                   aria-label={t("kiosk.menu.clearSearch")}
                   onClick={() => setQuery("")}
-                  className={cn("absolute right-1 top-1/2 flex -translate-y-1/2 items-center justify-center rounded-full", TOUCH)}
+                  className={cn("absolute end-1 top-1/2 flex -translate-y-1/2 items-center justify-center rounded-full", TOUCH)}
                 >
                   <X className="h-6 w-6" aria-hidden />
                 </button>
@@ -167,7 +167,7 @@ export function MenuScreen({
                             <Plus className="h-5 w-5" aria-hidden />
                             {t("kiosk.menu.add")}
                             {qty > 0 && (
-                              <span className="ml-1 rounded-full bg-primary-foreground/25 px-2 text-[0.95rem] tabular-nums">×{qty}</span>
+                              <span className="ms-1 rounded-full bg-primary-foreground/25 px-2 text-[0.95rem] tabular-nums">×{qty}</span>
                             )}
                           </KButton>
                         </div>
@@ -181,7 +181,7 @@ export function MenuScreen({
         </main>
 
         {/* basket: side panel on wide screens */}
-        <aside className="hidden w-[26rem] shrink-0 flex-col border-l border-border bg-card lg:flex">
+        <aside className="hidden w-[26rem] shrink-0 flex-col border-s border-border bg-card lg:flex">
           <h2 className="flex items-center gap-3 border-b border-border p-4 text-[1.5rem] font-bold">
             <ShoppingBag className="h-6 w-6 text-primary" aria-hidden />
             {t("kiosk.basket.title")}

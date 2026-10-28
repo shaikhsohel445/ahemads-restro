@@ -65,7 +65,7 @@ export function AppShell({
   return (
     <div className="flex min-h-screen bg-background">
       {/* Desktop sidebar */}
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
+      <aside className="hidden w-64 shrink-0 flex-col border-e border-sidebar-border bg-sidebar lg:flex">
         <div className="flex h-16 items-center gap-2 px-5">
           <RestaurantBrand />
         </div>

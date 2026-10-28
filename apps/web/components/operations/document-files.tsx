@@ -53,7 +53,7 @@ export function DocumentFiles({ branchId, docId, files }: { branchId: string | n
           }}
         />
         <Button size="sm" variant="outline" disabled={upload.isPending} onClick={() => ref.current?.click()}>
-          <Paperclip className="mr-1.5 h-3.5 w-3.5" /> {upload.isPending ? "Uploading…" : "Attach file"}
+          <Paperclip className="me-1.5 h-3.5 w-3.5" /> {upload.isPending ? "Uploading…" : "Attach file"}
         </Button>
       </div>
       {files.length === 0 ? (

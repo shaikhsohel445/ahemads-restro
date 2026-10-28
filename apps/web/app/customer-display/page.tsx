@@ -35,7 +35,7 @@ export default function CustomerDisplayPage() {
       onClick={() => setSoundOn(true)}
     >
       {!soundOn && (
-        <p className="absolute right-4 top-4 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
+        <p className="absolute end-4 top-4 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
           Tap anywhere to enable payment sound
         </p>
       )}
@@ -53,7 +53,7 @@ export default function CustomerDisplayPage() {
             {state.lines.map((l, i) => (
               <li key={i} className="flex items-baseline justify-between gap-6 py-4 text-3xl">
                 <span>
-                  <span className="mr-4 text-muted-foreground">{l.quantity}×</span>
+                  <span className="me-4 text-muted-foreground">{l.quantity}×</span>
                   {l.name}
                 </span>
                 <span className="tabular-nums">{formatCurrency(l.total)}</span>

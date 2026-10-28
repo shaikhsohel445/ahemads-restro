@@ -53,8 +53,8 @@ function EquipmentTab({ branchId }: { branchId: string | null }) {
               <div>
                 <p className="font-medium text-foreground">
                   {e.name}
-                  {e.overdue && <span className="ml-2 rounded-full bg-destructive/10 px-2 py-0.5 text-xs text-destructive">Overdue</span>}
-                  {e.dueSoon && <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">Due soon</span>}
+                  {e.overdue && <span className="ms-2 rounded-full bg-destructive/10 px-2 py-0.5 text-xs text-destructive">Overdue</span>}
+                  {e.dueSoon && <span className="ms-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">Due soon</span>}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {e.location && `${e.location} · `}
@@ -101,7 +101,7 @@ function DocumentsTab({ branchId }: { branchId: string | null }) {
       <Card className="flex flex-col gap-1 p-2">
         <Button size="sm" className="m-2" onClick={startNew}>New document</Button>
         {isLoading ? <Skeleton className="m-2 h-10" /> : data?.map((d) => (
-          <button key={d.id} type="button" onClick={() => { setOpenId(d.id); setDraft(null); }} className={cn("rounded-lg px-3 py-2 text-left text-sm hover:bg-secondary", openId === d.id && "bg-secondary")}>
+          <button key={d.id} type="button" onClick={() => { setOpenId(d.id); setDraft(null); }} className={cn("rounded-lg px-3 py-2 text-start text-sm hover:bg-secondary", openId === d.id && "bg-secondary")}>
             <span className="block font-medium text-foreground">{d.title}</span>
             <span className="text-xs text-muted-foreground">{d.category.toLowerCase()}</span>
           </button>

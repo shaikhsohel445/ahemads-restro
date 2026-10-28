@@ -60,7 +60,7 @@ export function UserMenu({ user }: { user?: SessionUser }) {
           <DropdownMenuItem
             onClick={() => logout.mutate(undefined, { onSuccess: () => router.push("/login") })}
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="rtl:-scale-x-100 h-4 w-4" />
             Sign out
           </DropdownMenuItem>
         </DropdownMenuContent>

@@ -93,7 +93,7 @@ export default function KdsPage() {
         <section aria-label="Incoming orders" className="flex flex-col gap-2">
           <h2 className="text-sm font-semibold text-foreground">
             Incoming - needs a decision{" "}
-            <span className="ml-1 rounded-full bg-destructive px-2 py-0.5 text-xs text-white">{pendingOrders.length}</span>
+            <span className="ms-1 rounded-full bg-destructive px-2 py-0.5 text-xs text-white">{pendingOrders.length}</span>
           </h2>
           <div className="flex gap-3 overflow-x-auto pb-2">
             {pendingOrders.map((order) => (

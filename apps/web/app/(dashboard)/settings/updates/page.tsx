@@ -134,7 +134,7 @@ export default function UpdatesPage() {
               )}
               {data.updateAvailable ? (
                 <Badge className="gap-2">
-                  <NavDot className="ml-0 h-2 w-2" label="Update available" />
+                  <NavDot className="ms-0 h-2 w-2" label="Update available" />
                   Update available
                 </Badge>
               ) : data.building ? (

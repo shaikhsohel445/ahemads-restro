@@ -243,7 +243,7 @@ export function PrinterDiagnosticsCard() {
         <Button
           variant="outline"
           size="sm"
-          className="ml-2"
+          className="ms-2"
           disabled={testKot.isPending}
           onClick={() =>
             testKot.mutate(undefined, {
@@ -258,7 +258,7 @@ export function PrinterDiagnosticsCard() {
         <Button
           variant="outline"
           size="sm"
-          className="ml-2"
+          className="ms-2"
           disabled={openDrawer.isPending}
           onClick={() =>
             openDrawer.mutate(branchId, {

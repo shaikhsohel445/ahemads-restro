@@ -48,7 +48,7 @@ export function ContactDetailsDialog({
           {phone && (
             <div className="mt-1 flex gap-2">
               <a href={`tel:${phone}`} className={cn(buttonVariants({ size: "sm" }), "flex-1")}>
-                <Phone className="mr-1.5 h-4 w-4" /> Call
+                <Phone className="me-1.5 h-4 w-4" /> Call
               </a>
               <a
                 href={waHref ?? "#"}
@@ -56,7 +56,7 @@ export function ContactDetailsDialog({
                 rel="noreferrer"
                 className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex-1")}
               >
-                <MessageCircle className="mr-1.5 h-4 w-4" /> WhatsApp
+                <MessageCircle className="me-1.5 h-4 w-4" /> WhatsApp
               </a>
             </div>
           )}

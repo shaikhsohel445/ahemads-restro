@@ -9,7 +9,7 @@
 // (ms-/me-/ps-/pe-/start-/end-, text-start/end) mirrors automatically, and
 // it updates the defaults used by formatCurrency/formatDateTime.
 //
-// Usage: const { t } = useI18n(); t("pos.checkout.title", { n: 3 }).
+// Usage: const { t } = useI18n(); t("<namespace>.<key>", { n: 3 }).
 // Outside React (mutation toasts in hooks, lib code): translate("…").
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";

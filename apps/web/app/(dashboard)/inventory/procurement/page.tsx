@@ -94,7 +94,7 @@ function PurchaseRequestsSection({ branchId }: { branchId: string | null }) {
               <TableHead>Request #</TableHead>
               <TableHead>Requested by</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Items</TableHead>
+              <TableHead className="text-end">Items</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -108,7 +108,7 @@ function PurchaseRequestsSection({ branchId }: { branchId: string | null }) {
                   <TableCell>
                     <Badge variant="secondary">{r.status.replace("_", " ")}</Badge>
                   </TableCell>
-                  <TableCell className="text-right tabular-nums">{r.items.length}</TableCell>
+                  <TableCell className="text-end tabular-nums">{r.items.length}</TableCell>
                   <TableCell className="w-10">
                     {next.length > 0 && (
                       <DropdownMenu>
@@ -173,7 +173,7 @@ function QuotationsSection({ branchId }: { branchId: string | null }) {
               <TableHead>Quote #</TableHead>
               <TableHead>Supplier</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Items</TableHead>
+              <TableHead className="text-end">Items</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -187,7 +187,7 @@ function QuotationsSection({ branchId }: { branchId: string | null }) {
                   <TableCell>
                     <Badge variant="secondary">{q.status}</Badge>
                   </TableCell>
-                  <TableCell className="text-right tabular-nums">{q.items.length}</TableCell>
+                  <TableCell className="text-end tabular-nums">{q.items.length}</TableCell>
                   <TableCell className="w-10">
                     {next.length > 0 && (
                       <DropdownMenu>
@@ -251,8 +251,8 @@ function SupplierInvoicesSection({ branchId }: { branchId: string | null }) {
               <TableHead>Invoice #</TableHead>
               <TableHead>Supplier</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Total</TableHead>
-              <TableHead className="text-right">Paid</TableHead>
+              <TableHead className="text-end">Total</TableHead>
+              <TableHead className="text-end">Paid</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -264,10 +264,10 @@ function SupplierInvoicesSection({ branchId }: { branchId: string | null }) {
                 <TableCell>
                   <Badge variant={INVOICE_BADGE[inv.status]}>{inv.status.replace("_", " ")}</Badge>
                 </TableCell>
-                <TableCell className="text-right tabular-nums">
+                <TableCell className="text-end tabular-nums">
                   {formatCurrency(Number(inv.totalAmount))}
                 </TableCell>
-                <TableCell className="text-right tabular-nums">
+                <TableCell className="text-end tabular-nums">
                   {formatCurrency(Number(inv.amountPaid))}
                 </TableCell>
                 <TableCell className="w-32">

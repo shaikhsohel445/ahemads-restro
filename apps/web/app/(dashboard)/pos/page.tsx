@@ -298,9 +298,9 @@ function PosPageInner() {
             <button
               type="button"
               onClick={() => setCartOpen(false)}
-              className="mb-3 -ml-1 flex items-center gap-1 text-sm font-medium text-muted-foreground lg:hidden"
+              className="mb-3 -ms-1 flex items-center gap-1 text-sm font-medium text-muted-foreground lg:hidden"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="rtl:-scale-x-100 h-4 w-4" />
               Back to menu
             </button>
             {activeOrder ? (
