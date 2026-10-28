@@ -1,12 +1,13 @@
 import { probeNetworkPrinter, sendViaNetwork } from './escpos-network';
 import { sendToBranchPrinter } from './printer-transport';
 import { PrinterNotFoundError, sendRaw } from './escpos-usb';
-// Resolved to test/stubs/cloudflare-sockets.ts by the Jest moduleNameMapper.
-import { __setConnectBehaviour } from 'cloudflare:sockets';
+// The same stub module escpos-network.ts gets for 'cloudflare:sockets'
+// (Jest moduleNameMapper).
+import { __setConnectBehaviour } from '../../../test/stubs/cloudflare-sockets';
 
 describe('network printer transport (Cloudflare TCP sockets)', () => {
   it('delivers the exact bytes to the printer', async () => {
-    let got = new Uint8Array();
+    let got: Uint8Array = new Uint8Array();
     __setConnectBehaviour({ kind: 'accept', onData: (b) => (got = b) });
     const payload = Buffer.from([0x1b, 0x40, 0x41, 0x42, 0x0a]);
     await sendViaNetwork({ host: 'printer.example.test', port: 9100 }, payload);

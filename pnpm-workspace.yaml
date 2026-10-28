@@ -1,6 +1,7 @@
 packages:
   - "apps/*"
   - "packages/*"
+  - "scripts/migration"
 overrides:
   lodash: ^4.18.1
   postcss: ^8.5.25

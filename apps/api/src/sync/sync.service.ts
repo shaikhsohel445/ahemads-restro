@@ -99,7 +99,7 @@ export class SyncService {
     return Promise.resolve();
   }
 
-  runOnce(): Promise<never> {
+  runOnce(): Promise<Record<string, unknown>> {
     return Promise.reject(new NotImplementedException(SYNC_UNAVAILABLE));
   }
 }

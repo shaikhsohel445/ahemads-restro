@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { CartItemDto } from '@nodedr-restaurant/types';
+import { resolveTaxLabel, type CartItemDto } from '@nodedr-restaurant/types';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RealtimeGateway } from '../../realtime/realtime.gateway';
@@ -17,7 +17,9 @@ export class PublicMenuService {
   private async resolveTable(qrToken: string) {
     const table = await this.prisma.table.findUnique({
       where: { qrToken },
-      include: { floor: { include: { branch: true } } },
+      include: {
+        floor: { include: { branch: { include: { restaurant: true } } } },
+      },
     });
     if (!table) throw new NotFoundException('This QR code is not recognized');
     return table;
@@ -30,6 +32,12 @@ export class PublicMenuService {
     return {
       branchName: branch.name,
       tableName: table.name ?? `Table ${table.number}`,
+      // Presentation hints for the guest page (same fields the kiosk menu
+      // already sends): price formatting and the tax wording.
+      currency: branch.restaurant.currency,
+      country: branch.country,
+      taxMode: branch.taxMode,
+      taxLabel: resolveTaxLabel(branch.taxRegime, branch.taxLabel),
       categories,
     };
   }
