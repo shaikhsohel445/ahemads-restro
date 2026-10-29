@@ -12,7 +12,7 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:1
 export const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "";
 export const GSC_VERIFICATION = process.env.NEXT_PUBLIC_GSC_VERIFICATION ?? "";
 export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? BRAND.developer.email ?? "";
-export const SOURCE_CODE_URL = process.env.NEXT_PUBLIC_SOURCE_CODE_URL ?? BRAND.upstream.url;
+export const SOURCE_CODE_URL = process.env.NEXT_PUBLIC_SOURCE_CODE_URL ?? BRAND.repository;
 
 export const SITE_LOCALES = BRAND.locales;
 export type { SiteLocale };

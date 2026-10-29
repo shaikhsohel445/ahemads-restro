@@ -51,6 +51,8 @@ export const BRAND = {
     license: "AGPL-3.0-only",
     copyright: "Nodedr Infotech Private Limited and Raktim Ranjit",
   },
+  /** This edition's public source repository (the AGPL-3.0 source offer). */
+  repository: "https://github.com/shaikhsohel445/ahemads-restro",
   locales: ["en", "ar"] as const,
   defaultLocale: "en" as const,
   defaultCurrency: "SAR",

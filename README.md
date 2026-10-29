@@ -262,7 +262,7 @@ from `packages/types/src/region.ts` and the database schema defaults.
 | Name | Where | Required | Purpose |
 |---|---|---|---|
 | `NEXT_PUBLIC_SITE_URL` | web build environment | **yes, for a public build** | Canonical origin for canonical URLs, hreflang, Open Graph, `sitemap.xml` and `robots.txt`. Falls back to `http://localhost:1995`. |
-| `NEXT_PUBLIC_SOURCE_CODE_URL` | web build environment | **yes, before going public** | Repository linked from the site footer as the AGPL-3.0 source offer. Falls back to the upstream repository, which does not contain this edition's changes. |
+| `NEXT_PUBLIC_SOURCE_CODE_URL` | web build environment | only for a fork | Repository linked from the site footer, the app sidebar and the in-app docs as the AGPL-3.0 source offer. Defaults to this repository (`BRAND.repository`, https://github.com/shaikhsohel445/ahemads-restro); set it if you deploy code from a different repository. |
 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | web build environment | no | Google Analytics 4 id. Analytics loads only when set and only after the visitor consents. |
 | `NEXT_PUBLIC_GSC_VERIFICATION` | web build environment | no | Google Search Console HTML-tag token (DNS verification needs nothing). |
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | web build environment | no | Public support address in the site footer; nothing is shown while unset. |
@@ -513,9 +513,9 @@ see [NOTICE](NOTICE) and [docs/LICENSE-REVIEW.md](docs/LICENSE-REVIEW.md).
 
 **Network use (AGPL-3.0 section 13).** Anyone who runs a modified version of
 this software for users over a network must offer those users the
-corresponding source code. The public site's footer links to
-`NEXT_PUBLIC_SOURCE_CODE_URL` for that purpose; set it to the repository that
-holds the exact code you deploy.
+corresponding source code. The site footer, the app sidebar and the in-app docs link to
+https://github.com/shaikhsohel445/ahemads-restro for that purpose; if you
+deploy from another repository, set `NEXT_PUBLIC_SOURCE_CODE_URL` to it.
 
 ## Designed and developed by Wem Studios
 

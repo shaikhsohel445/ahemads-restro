@@ -12,7 +12,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 // to the Cloudflare edition and were removed; the app links to its source
 // repository directly (NEXT_PUBLIC_SOURCE_CODE_URL).
 const DOWNLOAD_CHANNELS: Record<string, string> = {
-  github: BRAND.upstream.url,
+  github: BRAND.repository,
 };
 
 export type DownloadChannel = keyof typeof DOWNLOAD_CHANNELS;

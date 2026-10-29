@@ -29,7 +29,7 @@ Section numbers refer to the licence text.
 | **Keep the licence and notices.** Keep LICENSE, the upstream copyright notice and notices that the AGPL applies, intact. | §4, §5 | LICENSE is unmodified and carries the upstream copyright line. [NOTICE](../NOTICE), README and MAINTAINERS credit the upstream. `BRAND.upstream` in `packages/types/src/brand.ts` holds the attribution for the website. |
 | **Mark your changes.** Modified files must carry prominent notices that you changed them, with a relevant date. | §5(a) | [NOTICE](../NOTICE) lists the changes, [CHANGELOG.md](../CHANGELOG.md) dates them, and the git history records every change per file and date. Counsel should confirm whether this is sufficient or whether per-file headers are wanted. |
 | **License the whole work under the AGPL.** Derivative works must be licensed as a whole under AGPL-3.0, with no additional restrictions. | §5(c), §7, §10 | All workspace packages are AGPL-3.0-only. |
-| **Offer source to network users.** If you modify the program and let users interact with it remotely (a hosted service), you must prominently offer those users the Corresponding Source of the version you run, free of charge, from a network server. | §13 | The marketing site footer links to `NEXT_PUBLIC_SOURCE_CODE_URL`. **That variable must be set to a public repository with the exact deployed code before going live**; unset, the footer points to the upstream repository, which does not contain this edition's changes. The restaurant application does not have its own source link today (see §5 below). |
+| **Offer source to network users.** If you modify the program and let users interact with it remotely (a hosted service), you must prominently offer those users the Corresponding Source of the version you run, free of charge, from a network server. | §13 | The marketing site footer links to `NEXT_PUBLIC_SOURCE_CODE_URL`. It defaults to this edition's public repository (https://github.com/shaikhsohel445/ahemads-restro); a deployment built from other code must set it to a public repository holding that exact code. The same link appears in the restaurant application's sidebar and in-app docs. |
 | **Provide Corresponding Source when conveying.** If you distribute copies (e.g. to a customer who self-hosts), include or offer the complete source, including build scripts. | §6 | Publishing this repository satisfies this for the code in it. |
 | **No additional restrictions.** You may not add terms that restrict recipients' AGPL rights (for example "no redistribution", "no modification", or use-limited licences for the code). | §7, §10 | Commercial terms in `apps/web/content/site/legal/terms.ts` must be checked by counsel so that they cover services (hosting, support) and not the code itself. |
 | **No patent or DRM tricks.** Contributors grant a patent licence; you may not use technical measures to stop users exercising their rights. | §3, §11 | Nothing in the repository restricts this. |
@@ -139,11 +139,11 @@ the command after dependency changes and before a release.
 
 ## 6. Recommended actions before a public launch
 
-1. Set `NEXT_PUBLIC_SOURCE_CODE_URL` to the public repository of the exact
-   deployed code, and keep that repository in step with each deployment.
-2. Consider adding a "Source code" link inside the restaurant application as
-   well (for example in the sidebar footer or Settings → About), so that
-   every network user — not only website visitors — sees the §13 offer.
+1. Keep https://github.com/shaikhsohel445/ahemads-restro in step with each
+   deployment, or set `NEXT_PUBLIC_SOURCE_CODE_URL` to the public repository
+   of the exact deployed code.
+2. Done: the restaurant application links to the source in its sidebar
+   footer and in-app docs, so every network user sees the §13 offer.
    (A code change; not made here.)
 3. Resolve the `buffers@0.1.1` licence question.
 4. Have counsel review: this document, NOTICE, the terms of service

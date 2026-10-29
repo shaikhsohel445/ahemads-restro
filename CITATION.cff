@@ -5,6 +5,7 @@ title: "Ahemad's Restro"
 authors:
   - name: "Wem Studios"
     website: "https://wemstudios.in/"
+repository-code: "https://github.com/shaikhsohel445/ahemads-restro"
 license: AGPL-3.0-only
 abstract: "Restaurant management software for POS, orders, tables, kitchen display, QR ordering, billing and reports, in English and Arabic, running on Cloudflare Workers, D1, R2 and Durable Objects. A fork of Nodedr OrderRestro with Saudi VAT and ZATCA Phase 1 QR support."
 keywords:
@@ -21,4 +22,5 @@ references:
         given-names: Raktim
       - name: "Nodedr Infotech Private Limited"
     repository-code: "https://github.com/Raktim94/nodedr-restaurant-pos"
-    license: AGPL-3.0-only
+    repository-code: "https://github.com/shaikhsohel445/ahemads-restro"
+license: AGPL-3.0-only
