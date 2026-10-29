@@ -27,6 +27,7 @@ import { RestaurantsModule } from './modules/restaurants/restaurants.module';
 import { ReservationsModule } from './modules/reservations/reservations.module';
 import { WaitlistModule } from './modules/waitlist/waitlist.module';
 import { PublicModule } from './modules/public/public.module';
+import { LeadsModule } from './modules/leads/leads.module';
 import { DownloadsModule } from './modules/downloads/downloads.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { GiftCardsModule } from './modules/gift-cards/gift-cards.module';
@@ -70,6 +71,7 @@ import { VerifactuModule } from './modules/verifactu/verifactu.module';
     ReservationsModule,
     WaitlistModule,
     PublicModule,
+    LeadsModule,
     DownloadsModule,
     CustomersModule,
     GiftCardsModule,

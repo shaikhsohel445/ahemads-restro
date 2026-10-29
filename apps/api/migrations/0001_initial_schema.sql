@@ -1,4 +1,4 @@
--- Initial Cloudflare D1 schema for Nodedr OrderRestro.
+-- Initial Cloudflare D1 schema for Ahemad's Restro.
 -- Generated from prisma/schema.prisma (itself converted from the PostgreSQL
 -- schema by scripts/migration/convert-prisma-schema.mjs). Replaces the 38
 -- PostgreSQL migrations, which cannot run on D1 (kept for reference in

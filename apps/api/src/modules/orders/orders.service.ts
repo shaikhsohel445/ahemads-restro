@@ -19,7 +19,7 @@ import {
   type SessionUser,
   type UpdateOrderDto,
   type UpdateOrderItemDto,
-} from '@nodedr-restaurant/types';
+} from '@ahemads-restro/types';
 import { AuditService } from '../../audit/audit.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { GiftCardsService } from '../gift-cards/gift-cards.service';
@@ -42,10 +42,10 @@ import {
   settlePayments,
   type Bill,
 } from './settlement';
-import type { TaxMode } from '@nodedr-restaurant/types';
+import type { TaxMode } from '@ahemads-restro/types';
 import { VerifactuService } from '../verifactu/verifactu.service';
 import { findZoneForPincode } from '../delivery/zone-lookup';
-import { DEFAULT_REGION, formatMoney } from '@nodedr-restaurant/types';
+import { DEFAULT_REGION, formatMoney } from '@ahemads-restro/types';
 import { detach } from '../../cloudflare/bindings';
 
 const KOT_FORWARD_STATUSES = [

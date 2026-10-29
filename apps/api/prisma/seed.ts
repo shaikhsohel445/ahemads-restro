@@ -3,7 +3,7 @@
 // platform proxy, which hands this script the same `DB` binding the Worker
 // gets, and a Node build of the Prisma client (prisma/generated-node).
 //
-//   pnpm --filter @nodedr-restaurant/api db:seed:local
+//   pnpm --filter @ahemads-restro/api db:seed:local
 import { PrismaD1 } from '@prisma/adapter-d1';
 import bcrypt from 'bcryptjs';
 import { getPlatformProxy } from 'wrangler';
@@ -12,7 +12,7 @@ import {
   DEFAULT_ROLE_PERMISSIONS,
   PERMISSIONS,
   STAFF_ROLES,
-} from '@nodedr-restaurant/types';
+} from '@ahemads-restro/types';
 
 // Same tax-inclusive math as OrdersService.priceLine, kept tiny and
 // duplicated on purpose so the seed has no dependency on src/.
@@ -63,7 +63,7 @@ async function seed() {
     update: {},
     create: {
       id: 'demo-restaurant',
-      name: 'مطعم نودر التجريبي — Nodedr Bistro (Demo)',
+      name: 'مطعم الواحة — Al Waha Bistro (Demo)',
       currency: 'SAR',
       timezone: 'Asia/Riyadh',
     },

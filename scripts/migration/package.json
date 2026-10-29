@@ -1,8 +1,8 @@
 {
-  "name": "@nodedr-restaurant/migration-tools",
+  "name": "@ahemads-restro/migration-tools",
   "version": "0.1.0",
   "private": true,
-  "description": "PostgreSQL -> Cloudflare D1/R2 data migration for Nodedr OrderRestro",
+  "description": "PostgreSQL -> Cloudflare D1/R2 data migration for Ahemad's Restro",
   "type": "module",
   "license": "AGPL-3.0-only",
   "engines": {
@@ -17,5 +17,6 @@
   },
   "dependencies": {
     "pg": "^8.23.1"
-  }
+  },
+  "author": "Wem Studios (https://wemstudios.in/)"
 }

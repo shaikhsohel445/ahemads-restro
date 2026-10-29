@@ -9,7 +9,7 @@ import type {
   RestoreBackupDto,
   SessionUser,
   SetBackupConfigDto,
-} from '@nodedr-restaurant/types';
+} from '@ahemads-restro/types';
 import { AuditService } from '../audit/audit.service';
 import { workerEnv } from '../cloudflare/bindings';
 import type { NotifyPayload } from '../notifications/notifications.service';

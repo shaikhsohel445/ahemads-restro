@@ -133,7 +133,7 @@ export class ReportSchedulesService {
       stringArray(s.recipients).map((to_) => ({
         to: to_,
         subject,
-        text: `Your scheduled ${result.title} report for ${from} to ${to} is attached.\n\nSent by NodeDR OrderRestro.`,
+        text: `Your scheduled ${result.title} report for ${from} to ${to} is attached.\n\nSent by Ahemad's Restro.`,
         attachments: [
           {
             filename: `${s.reportKey}_${from}_${to}.${t.ext}`,

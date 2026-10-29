@@ -118,7 +118,7 @@ exercised in a desktop browser, not on the RK3576 / the real devices.**
 
 ## 7. Tests and how to run them
 ```bash
-pnpm install && pnpm --filter @nodedr-restaurant/types build
+pnpm install && pnpm --filter @ahemads-restro/types build
 (cd apps/backend && npx tsc --noEmit && npx jest)                        # unit incl. kiosk service
 (cd apps/web && npx tsc --noEmit && npx eslint . && npm test)            # node:test: basket, flow reducer, scan, ticket
 # API integration against a real, migrated + seeded Postgres:

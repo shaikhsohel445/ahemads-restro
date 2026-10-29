@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type { CreateStaffDto, UpdateStaffDto } from '@nodedr-restaurant/types';
+import type { CreateStaffDto, UpdateStaffDto } from '@ahemads-restro/types';
 import { Prisma } from '../../generated/prisma/client';
 import bcrypt from 'bcryptjs';
 import { AuditService } from '../../audit/audit.service';

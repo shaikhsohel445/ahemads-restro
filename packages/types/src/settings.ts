@@ -65,3 +65,12 @@ export const branchSettingsSchema = z.object({
   printerPort: z.number().int().min(1).max(65535).optional(),
 });
 export type BranchSettingsDto = z.infer<typeof branchSettingsSchema>;
+
+// New branch (Settings › Branches). Tax/country setup is copied from the
+// branch the request is made from, so a new branch starts consistent.
+export const createBranchSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  address: z.string().trim().max(300).optional(),
+  phone: z.string().trim().max(30).optional(),
+});
+export type CreateBranchDto = z.infer<typeof createBranchSchema>;

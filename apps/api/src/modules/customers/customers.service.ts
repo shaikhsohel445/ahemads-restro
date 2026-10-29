@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { CustomerDto } from '@nodedr-restaurant/types';
+import type { CustomerDto } from '@ahemads-restro/types';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()

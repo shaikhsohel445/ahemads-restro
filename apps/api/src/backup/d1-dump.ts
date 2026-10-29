@@ -184,7 +184,7 @@ export async function restoreDump(db: D1Database, ndjson: string) {
     tables?: string[];
   };
   if (header.format !== DUMP_FORMAT)
-    throw new Error(`Not an OrderRestro D1 backup (format ${header.format})`);
+    throw new Error(`Not an Ahemad's Restro D1 backup (format ${header.format})`);
 
   const live = await listTables(db);
   const order = await tablesInDependencyOrder(db, live);

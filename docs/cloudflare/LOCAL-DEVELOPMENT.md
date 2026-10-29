@@ -12,7 +12,7 @@ Durable Objects) — no Cloudflare account is needed.
 
 ```bash
 pnpm install                                   # also runs `prisma generate`
-pnpm --filter @nodedr-restaurant/types build
+pnpm --filter @ahemads-restro/types build
 cp apps/api/.dev.vars.example apps/api/.dev.vars
 #   then put a value in JWT_SECRET:  openssl rand -hex 32
 pnpm db:migrate:local                          # creates the local D1 schema
@@ -26,28 +26,28 @@ Demo sign-in after seeding: `owner@demo.local` / `Password123!` (local data only
 Production-like (both Workers, joined by the service binding):
 
 ```bash
-pnpm --filter @nodedr-restaurant/api dev            # API on http://localhost:8787
-pnpm --filter @nodedr-restaurant/web preview        # OpenNext build + web Worker on http://localhost:1995
+pnpm --filter @ahemads-restro/api dev            # API on http://localhost:8787
+pnpm --filter @ahemads-restro/web preview        # OpenNext build + web Worker on http://localhost:1995
 ```
 
 Fast frontend iteration with hot reload:
 
 ```bash
-pnpm --filter @nodedr-restaurant/api dev
+pnpm --filter @ahemads-restro/api dev
 cp apps/web/.env.example apps/web/.env.local
-pnpm --filter @nodedr-restaurant/web dev            # next dev on http://localhost:1995
+pnpm --filter @ahemads-restro/web dev            # next dev on http://localhost:1995
 ```
 
 `next dev` proxies `/api/*` to the API; WebSockets go straight to
 `ws://localhost:8787` (see `apps/web/.env.example`).
 
 The API Worker is a bundle: after changing API code, restart
-`wrangler dev` (it re-runs `build.mjs`), or run `pnpm --filter @nodedr-restaurant/api build`.
+`wrangler dev` (it re-runs `build.mjs`), or run `pnpm --filter @ahemads-restro/api build`.
 
 Cron Triggers do not fire on their own locally. Trigger one with:
 
 ```bash
-curl -X POST "http://127.0.0.1:8787/cdn-cgi/local/explorer/api/local/scheduled?worker=orderrestro-api" \
+curl -X POST "http://127.0.0.1:8787/cdn-cgi/local/explorer/api/local/scheduled?worker=ahemads-restro-api" \
   -H 'content-type: application/json' -d '{"cron":"* * * * *"}'
 ```
 
@@ -55,9 +55,9 @@ curl -X POST "http://127.0.0.1:8787/cdn-cgi/local/explorer/api/local/scheduled?w
 
 ```bash
 pnpm typecheck
-pnpm --filter @nodedr-restaurant/api test          # Jest
-pnpm --filter @nodedr-restaurant/web test          # node:test
-pnpm --filter @nodedr-restaurant/migration-tools test
+pnpm --filter @ahemads-restro/api test          # Jest
+pnpm --filter @ahemads-restro/web test          # node:test
+pnpm --filter @ahemads-restro/migration-tools test
 pnpm i18n:check                                    # English/Arabic key parity
 pnpm test:smoke                                    # end-to-end against the running API (port 8787)
 pnpm test:migration                                # PostgreSQL -> D1 round trip (needs PostgreSQL binaries)

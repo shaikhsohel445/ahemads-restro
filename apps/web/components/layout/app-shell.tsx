@@ -1,6 +1,6 @@
 "use client";
 
-import type { SessionUser } from "@nodedr-restaurant/types";
+import { BRAND, type SessionUser } from "@ahemads-restro/types";
 import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -42,14 +42,14 @@ function RestaurantBrand({ collapsed = false }: { collapsed?: boolean }) {
           className="size-9 shrink-0 rounded-xl bg-white object-contain p-0.5"
         />
       ) : (
-        <Logo size={36} className="rounded-xl bg-white p-0.5" />
+        <Logo size={36} className="rounded-xl" />
       )}
       {!collapsed && (
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold tracking-tight text-sidebar-foreground">
-            {restaurant?.name ?? "Nodedr OrderRestro"}
+            {restaurant?.name ?? BRAND.productName}
           </span>
-          <span className="block truncate text-[11px] text-sidebar-foreground/55">OrderRestro</span>
+          <span className="block truncate text-[11px] text-sidebar-foreground/55">{BRAND.productName}</span>
         </span>
       )}
     </>

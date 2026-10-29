@@ -10,6 +10,20 @@ import type { NextConfig } from "next";
 const API_DEV_URL = process.env.API_DEV_URL ?? "http://localhost:8787";
 
 const nextConfig: NextConfig = {
+  // "/" picks the marketing site's language: Arabic for browsers that prefer
+  // Arabic, English otherwise (also the x-default in hreflang). Temporary
+  // redirects, so search engines index /en and /ar themselves.
+  async redirects() {
+    return [
+      {
+        source: "/",
+        has: [{ type: "header", key: "accept-language", value: "(?:ar)(?:[-_][A-Za-z]+)?(?:[,;].*)?" }],
+        destination: "/ar",
+        permanent: false,
+      },
+      { source: "/", destination: "/en", permanent: false },
+    ];
+  },
   async rewrites() {
     if (process.env.NODE_ENV !== "development") return [];
     return [{ source: "/api/:path*", destination: `${API_DEV_URL}/api/:path*` }];

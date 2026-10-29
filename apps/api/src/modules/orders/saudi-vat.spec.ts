@@ -2,7 +2,7 @@ import {
   decodeZatcaQr,
   TAX_REGIME_PRESETS,
   zatcaQrBase64,
-} from '@nodedr-restaurant/types';
+} from '@ahemads-restro/types';
 import { priceLine, toEffectiveInclusiveUnitPrice } from './pricing';
 import { buildReceiptHtml } from './receipt.html';
 import { computeBill } from './settlement';

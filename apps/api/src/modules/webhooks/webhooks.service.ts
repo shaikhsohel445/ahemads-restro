@@ -229,7 +229,7 @@ export class WebhooksService {
         payload: {
           event: 'test',
           createdAt: new Date().toISOString(),
-          data: { message: 'Hello from OrderRestro' },
+          data: { message: "Hello from Ahemad's Restro" },
         },
       },
     });
@@ -364,7 +364,8 @@ export class WebhooksService {
         signal: AbortSignal.timeout(TIMEOUT_MS),
         headers: {
           'Content-Type': 'application/json',
-          'User-Agent': 'OrderRestro-Webhooks/1',
+          // Header names stay X-OrderRestro-* so existing receivers keep verifying.
+          'User-Agent': 'AhemadsRestro-Webhooks/1',
           ...headers,
         },
         body,

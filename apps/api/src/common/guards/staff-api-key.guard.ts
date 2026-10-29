@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { createHash } from 'node:crypto';
-import type { SessionUser } from '@nodedr-restaurant/types';
+import type { SessionUser } from '@ahemads-restro/types';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { AuthenticatedRequest } from '../types/authenticated-request';
 import { detach } from '../../cloudflare/bindings';

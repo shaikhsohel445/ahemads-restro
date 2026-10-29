@@ -8,7 +8,7 @@
 // Multi-region tax (2026-09-27): which tax rows get shown, and whether the
 // top line reads as a tax-inclusive subtotal or a pre-tax one, now follows
 // the branch's taxRegime/taxMode — see resolveTaxLabel/resolveTaxIdLabel
-// in @nodedr-restaurant/types. This file only changes labels and which
+// in @ahemads-restro/types. This file only changes labels and which
 // rows are shown; order.subtotal/taxAmount/totalAmount are unchanged
 // (computed once, correctly, in pricing.ts — see its own multi-region
 // note) and are never recomputed here.
@@ -24,7 +24,7 @@ import {
   zatcaQrBase64,
   type TaxMode,
   type TaxRegime,
-} from '@nodedr-restaurant/types';
+} from '@ahemads-restro/types';
 
 // Saudi Arabia (2026, Cloudflare edition): a SA_VAT branch prints a ZATCA
 // *simplified tax invoice* — English and Arabic labels side by side, the

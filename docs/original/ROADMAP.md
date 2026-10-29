@@ -415,7 +415,7 @@ reach it (tax code masters, delivery-platform rate cards, etc.).
   applied directly via `psql` against a real local Postgres (all prior
   migrations replayed first) to confirm it's syntactically and
   semantically correct against the actual schema — but **run
-  `pnpm --filter @nodedr-restaurant/types build && cd apps/backend && npx
+  `pnpm --filter @ahemads-restro/types build && cd apps/backend && npx
   prisma generate && npx prisma migrate deploy` for real once, and re-run
   the backend's own test suite, before trusting this in production.**
   `packages/types` and all of `apps/web` (including every file touched

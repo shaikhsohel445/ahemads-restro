@@ -33,7 +33,6 @@ import en_layout from "../../messages/en/layout.json";
 import en_errors from "../../messages/en/errors.json";
 import en_customerDisplay from "../../messages/en/customerDisplay.json";
 import en_docs from "../../messages/en/docs.json";
-import en_landing from "../../messages/en/landing.json";
 import ar_common from "../../messages/ar/common.json";
 import ar_nav from "../../messages/ar/nav.json";
 import ar_auth from "../../messages/ar/auth.json";
@@ -61,7 +60,6 @@ import ar_layout from "../../messages/ar/layout.json";
 import ar_errors from "../../messages/ar/errors.json";
 import ar_customerDisplay from "../../messages/ar/customerDisplay.json";
 import ar_docs from "../../messages/ar/docs.json";
-import ar_landing from "../../messages/ar/landing.json";
 import es_common from "../../messages/es/common.json";
 import es_nav from "../../messages/es/nav.json";
 import es_auth from "../../messages/es/auth.json";
@@ -89,7 +87,6 @@ import es_layout from "../../messages/es/layout.json";
 import es_errors from "../../messages/es/errors.json";
 import es_customerDisplay from "../../messages/es/customerDisplay.json";
 import es_docs from "../../messages/es/docs.json";
-import es_landing from "../../messages/es/landing.json";
 import fr_common from "../../messages/fr/common.json";
 import fr_nav from "../../messages/fr/nav.json";
 import fr_auth from "../../messages/fr/auth.json";
@@ -117,9 +114,8 @@ import fr_layout from "../../messages/fr/layout.json";
 import fr_errors from "../../messages/fr/errors.json";
 import fr_customerDisplay from "../../messages/fr/customerDisplay.json";
 import fr_docs from "../../messages/fr/docs.json";
-import fr_landing from "../../messages/fr/landing.json";
 
-export const NAMESPACES = ["common", "nav", "auth", "dashboard", "pos", "orders", "tables", "kds", "menu", "inventory", "settings", "team", "attendance", "accounting", "marketing", "reservations", "customers", "reports", "operations", "delivery", "kiosk", "order", "notifications", "layout", "errors", "customerDisplay", "docs", "landing"] as const;
+export const NAMESPACES = ["common", "nav", "auth", "dashboard", "pos", "orders", "tables", "kds", "menu", "inventory", "settings", "team", "attendance", "accounting", "marketing", "reservations", "customers", "reports", "operations", "delivery", "kiosk", "order", "notifications", "layout", "errors", "customerDisplay", "docs"] as const;
 
 type Flat = Record<string, string>;
 
@@ -160,7 +156,6 @@ export const MESSAGES = {
     errors: en_errors,
     customerDisplay: en_customerDisplay,
     docs: en_docs,
-    landing: en_landing,
   }),
   ar: flatten({
     common: ar_common,
@@ -190,7 +185,6 @@ export const MESSAGES = {
     errors: ar_errors,
     customerDisplay: ar_customerDisplay,
     docs: ar_docs,
-    landing: ar_landing,
   }),
   es: flatten({
     common: es_common,
@@ -220,7 +214,6 @@ export const MESSAGES = {
     errors: es_errors,
     customerDisplay: es_customerDisplay,
     docs: es_docs,
-    landing: es_landing,
   }),
   fr: flatten({
     common: fr_common,
@@ -250,6 +243,5 @@ export const MESSAGES = {
     errors: fr_errors,
     customerDisplay: fr_customerDisplay,
     docs: fr_docs,
-    landing: fr_landing,
   }),
 };

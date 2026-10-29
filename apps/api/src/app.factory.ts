@@ -3,6 +3,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import { BRAND } from '@ahemads-restro/types';
 import { AppModule } from './app.module';
 import { mountSwaggerUi } from './common/swagger/swagger-ui';
 
@@ -75,9 +76,9 @@ export async function createApp(): Promise<NestExpressApplication> {
     process.env.ENABLE_SWAGGER === 'true'
   ) {
     const config = new DocumentBuilder()
-      .setTitle('Nodedr OrderRestro API')
+      .setTitle(`${BRAND.productName} API`)
       .setDescription(
-        'REST API for the Nodedr OrderRestro management system (Cloudflare Workers + D1)',
+        `REST API of ${BRAND.productName}, restaurant management software (Cloudflare Workers + D1). Designed & developed by ${BRAND.developer.name} (${BRAND.developer.url}).`,
       )
       .setVersion('2.0')
       .addCookieAuth('nodedr_session')

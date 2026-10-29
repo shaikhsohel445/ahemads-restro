@@ -35,7 +35,7 @@ export async function buildXlsx(
   subtitle: string,
 ): Promise<Buffer> {
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'NodeDR OrderRestro';
+  wb.creator = "Ahemad's Restro";
   const ws = wb.addWorksheet(r.title.slice(0, 31));
   ws.addRow([r.title]).font = { bold: true, size: 14 };
   ws.addRow([subtitle]).font = { color: { argb: 'FF666666' } };
@@ -95,7 +95,7 @@ export async function buildPdf(
 ): Promise<Buffer> {
   const pdf = await PDFDocument.create();
   pdf.registerFontkit(fontkit);
-  pdf.setCreator('NodeDR OrderRestro');
+  pdf.setCreator("Ahemad's Restro");
   pdf.setTitle(r.title);
   const regular = await pdf.embedFont(PDF_FONTS.regular, { subset: true });
   const bold = await pdf.embedFont(PDF_FONTS.bold, { subset: true });

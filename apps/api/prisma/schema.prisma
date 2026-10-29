@@ -2319,3 +2319,25 @@ model SyncChange {
   @@index([tbl, pkKey], map: "sync_changes_row_idx")
   @@map("sync_changes")
 }
+
+// Demo requests from the public marketing site (the software vendor's
+// leads — not tied to any restaurant). Read with GET /api/v1/leads/demo-requests
+// and the LEADS_ACCESS_TOKEN secret.
+model DemoRequest {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String
+  company   String
+  country   String
+  branches  String
+  message   String   @default("")
+  locale    String   @default("en")
+  ipCountry String?
+  userAgent String?
+  notified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("demo_requests")
+}

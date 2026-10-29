@@ -14,7 +14,7 @@ import {
   restoreBackupSchema,
   setBackupConfigSchema,
   type SessionUser,
-} from '@nodedr-restaurant/types';
+} from '@ahemads-restro/types';
 import { Auth } from '../common/decorators/auth.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
@@ -82,7 +82,7 @@ export class BackupController {
   @Get('export')
   async exportLocal(@CurrentUser() user: SessionUser, @Res() res: Response) {
     const dump = await this.backupService.prepareLocalExport(user);
-    const filename = `orderrestro-backup-${new Date().toISOString().replace(/[:.]/g, '-')}.ndjson.gz`;
+    const filename = `ahemads-restro-backup-${new Date().toISOString().replace(/[:.]/g, '-')}.ndjson.gz`;
     res.setHeader('Content-Type', 'application/gzip');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(Buffer.from(dump));

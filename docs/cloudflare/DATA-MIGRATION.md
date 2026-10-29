@@ -1,6 +1,6 @@
 # Moving an existing installation's data (PostgreSQL → D1 + R2)
 
-Tooling: `scripts/migration/pg-to-d1/` (package `@nodedr-restaurant/migration-tools`).
+Tooling: `scripts/migration/pg-to-d1/` (package `@ahemads-restro/migration-tools`).
 
 | Step | Script | Touches |
 |---|---|---|

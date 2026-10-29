@@ -16,9 +16,9 @@ for both environments.
 
 ```bash
 cd apps/api
-pnpm exec wrangler d1 create orderrestro-staging          # copy database_id into env.staging
-pnpm exec wrangler r2 bucket create orderrestro-uploads-staging
-pnpm exec wrangler r2 bucket create orderrestro-backups-staging
+pnpm exec wrangler d1 create ahemads-restro-staging          # copy database_id into env.staging
+pnpm exec wrangler r2 bucket create ahemads-restro-uploads-staging
+pnpm exec wrangler r2 bucket create ahemads-restro-backups-staging
 ```
 
 Repeat with `production`. Replace each `REPLACE_WITH_*` in
@@ -42,7 +42,7 @@ production unless `ENABLE_SWAGGER=true`.
 ## 3. Database
 
 ```bash
-pnpm --filter @nodedr-restaurant/api db:migrate:staging
+pnpm --filter @ahemads-restro/api db:migrate:staging
 ```
 
 New installation: done — the first sign-up creates the restaurant and owner.
@@ -51,8 +51,8 @@ Moving an existing self-hosted installation: follow DATA-MIGRATION.md now.
 ## 4. Deploy (API first, so the web Worker's service binding resolves)
 
 ```bash
-pnpm --filter @nodedr-restaurant/api deploy:staging
-pnpm --filter @nodedr-restaurant/web deploy:staging
+pnpm --filter @ahemads-restro/api deploy:staging
+pnpm --filter @ahemads-restro/web deploy:staging
 # or both: pnpm deploy:staging
 ```
 

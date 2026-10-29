@@ -1,6 +1,6 @@
 "use client";
 
-import type { TableStatusDto } from "@nodedr-restaurant/types";
+import type { TableStatusDto } from "@ahemads-restro/types";
 import { Armchair, LayoutGrid, Users } from "lucide-react";
 import { useState } from "react";
 import { ElapsedTimer } from "@/components/tables/elapsed-timer";

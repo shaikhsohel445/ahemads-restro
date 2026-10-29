@@ -1,6 +1,6 @@
 "use client";
 
-import type { TableStatusDto } from "@nodedr-restaurant/types";
+import type { TableStatusDto } from "@ahemads-restro/types";
 import {
   ClipboardList,
   Merge,

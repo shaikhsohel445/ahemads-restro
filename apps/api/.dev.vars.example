@@ -1,6 +1,6 @@
 # Local secrets for `wrangler dev` (copy to apps/api/.dev.vars, never commit
 # the real file). In staging/production set each one with
-#   pnpm --filter @nodedr-restaurant/api exec wrangler secret put <NAME> --env <staging|production>
+#   pnpm --filter @ahemads-restro/api exec wrangler secret put <NAME> --env <staging|production>
 # Non-secret settings live in "vars" in wrangler.jsonc.
 
 # Required. Signs session cookies. 32+ random characters: openssl rand -hex 32

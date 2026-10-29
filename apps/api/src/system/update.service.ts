@@ -16,7 +16,9 @@ export interface VersionInfo {
   checkedAt: string;
 }
 
-const GITHUB_REPO = 'Raktim94/nodedr-restaurant-pos';
+// Release feed for the "new version" notice: the product's own GitHub
+// repository ("owner/name"), set with RELEASES_REPO. Unset = no check.
+const GITHUB_REPO = () => (process.env.RELEASES_REPO ?? '').trim();
 // Avoid hammering GitHub's unauthenticated rate limit (60 req/hr per IP,
 // shared across every self-hosted install behind the same egress IP in the
 // worst case) — a check this infrequent is still fast enough to surface a
@@ -64,7 +66,7 @@ export class UpdateService {
       updateAvailable: newer && imagePublished,
       building: newer && !imagePublished,
       releaseUrl: latestVersion
-        ? `https://github.com/${GITHUB_REPO}/releases/tag/${latestVersion}`
+        ? `https://github.com/${GITHUB_REPO()}/releases/tag/${latestVersion}`
         : null,
       checkedAt: new Date().toISOString(),
     };
@@ -159,7 +161,7 @@ export class UpdateService {
   // than a clear 404 means "can't tell", and the tag is trusted.
   private async imageTagExists(tag: string): Promise<boolean | null> {
     try {
-      const repo = 'raktim94/nodedr-restaurant-pos-backend';
+      const repo = `${GITHUB_REPO().toLowerCase()}-backend`;
       const version = tag.replace(/^v/i, '');
       const tokRes = await fetch(
         `https://ghcr.io/token?scope=repository:${repo}:pull`,
@@ -187,12 +189,13 @@ export class UpdateService {
   }
 
   private async fetchLatestTag(): Promise<string | null> {
+    if (!GITHUB_REPO()) return null;
     const res = await fetch(
-      `https://api.github.com/repos/${GITHUB_REPO}/tags?per_page=1`,
+      `https://api.github.com/repos/${GITHUB_REPO()}/tags?per_page=1`,
       {
         headers: {
           Accept: 'application/vnd.github+json',
-          'User-Agent': 'nodedr-restaurant-pos-update-check',
+          'User-Agent': 'ahemads-restro-update-check',
         },
         signal: AbortSignal.timeout(5000),
       },

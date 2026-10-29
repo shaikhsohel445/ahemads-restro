@@ -20,20 +20,20 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Build shared types
-        run: pnpm --filter @nodedr-restaurant/types build
+        run: pnpm --filter @ahemads-restro/types build
       - name: Type check
         run: pnpm typecheck
       - name: Unit tests (API, web, migration tooling)
         run: |
-          pnpm --filter @nodedr-restaurant/api test
-          pnpm --filter @nodedr-restaurant/web test
-          pnpm --filter @nodedr-restaurant/migration-tools test
+          pnpm --filter @ahemads-restro/api test
+          pnpm --filter @ahemads-restro/web test
+          pnpm --filter @ahemads-restro/migration-tools test
       - name: Translations complete (en/ar)
         run: pnpm i18n:check
       - name: Bundle the API Worker
-        run: pnpm --filter @nodedr-restaurant/api exec wrangler deploy --dry-run --outdir /tmp/api-bundle
+        run: pnpm --filter @ahemads-restro/api exec wrangler deploy --dry-run --outdir /tmp/api-bundle
       - name: Build the web Worker (OpenNext)
-        run: pnpm --filter @nodedr-restaurant/web build:cf
+        run: pnpm --filter @ahemads-restro/web build:cf
       - name: End-to-end smoke test on local D1
         run: |
           cd apps/api

@@ -1,6 +1,6 @@
 "use client";
 
-import type { RestoreBackupDto, SetBackupConfigDto } from "@nodedr-restaurant/types";
+import type { RestoreBackupDto, SetBackupConfigDto } from "@ahemads-restro/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 

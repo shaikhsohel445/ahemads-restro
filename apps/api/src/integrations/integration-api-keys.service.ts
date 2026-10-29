@@ -7,7 +7,7 @@ import {
 import type {
   CreateIntegrationApiKeyDto,
   SessionUser,
-} from '@nodedr-restaurant/types';
+} from '@ahemads-restro/types';
 import { PrismaService } from '../prisma/prisma.service';
 import { BranchAccessService } from '../common/services/branch-access.service';
 

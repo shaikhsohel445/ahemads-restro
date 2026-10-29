@@ -23,3 +23,5 @@ export * from "./marketing";
 export * from "./order-lifecycle";
 export * from "./region";
 export * from "./zatca";
+export * from "./brand";
+export * from "./leads";

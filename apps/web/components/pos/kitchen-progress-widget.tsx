@@ -1,6 +1,6 @@
 "use client";
 
-import type { KotStatusDto } from "@nodedr-restaurant/types";
+import type { KotStatusDto } from "@ahemads-restro/types";
 import { ChefHat, RefreshCw } from "lucide-react";
 import { KOT_STATUS_TONE } from "@/components/ui/status-pill";
 import { useKdsProgress } from "@/hooks/use-kds";

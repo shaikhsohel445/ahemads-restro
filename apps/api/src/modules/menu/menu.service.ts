@@ -7,10 +7,10 @@ import type {
   MenuCategoryDto,
   MenuItemDto,
   ModifierGroupDto,
-} from '@nodedr-restaurant/types';
+} from '@ahemads-restro/types';
 import { AuditService } from '../../audit/audit.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { TAX_REGIME_PRESETS } from '@nodedr-restaurant/types';
+import { TAX_REGIME_PRESETS } from '@ahemads-restro/types';
 
 @Injectable()
 export class MenuService {

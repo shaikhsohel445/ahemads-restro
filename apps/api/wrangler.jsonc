@@ -8,7 +8,7 @@
   // printed by the matching `wrangler … create` command
   // (docs/cloudflare/DEPLOYMENT.md). Secrets (JWT_SECRET, SMTP_URL, …) are
   // never written here: `wrangler secret put <NAME> --env <env>`.
-  "name": "orderrestro-api",
+  "name": "ahemads-restro-api",
   "main": "dist/worker.js",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
@@ -29,14 +29,14 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "orderrestro-dev",
+      "database_name": "ahemads-restro-dev",
       "database_id": "00000000-0000-0000-0000-000000000000",
       "migrations_dir": "migrations"
     }
   ],
   "r2_buckets": [
-    { "binding": "UPLOADS", "bucket_name": "orderrestro-uploads-dev" },
-    { "binding": "BACKUPS", "bucket_name": "orderrestro-backups-dev" }
+    { "binding": "UPLOADS", "bucket_name": "ahemads-restro-uploads-dev" },
+    { "binding": "BACKUPS", "bucket_name": "ahemads-restro-backups-dev" }
   ],
   "ratelimits": [
     { "name": "AUTH_RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } },
@@ -65,18 +65,18 @@
   },
   "env": {
     "staging": {
-      "name": "orderrestro-api-staging",
+      "name": "ahemads-restro-api-staging",
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "orderrestro-staging",
+          "database_name": "ahemads-restro-staging",
           "database_id": "REPLACE_WITH_STAGING_D1_ID",
           "migrations_dir": "migrations"
         }
       ],
       "r2_buckets": [
-        { "binding": "UPLOADS", "bucket_name": "orderrestro-uploads-staging" },
-        { "binding": "BACKUPS", "bucket_name": "orderrestro-backups-staging" }
+        { "binding": "UPLOADS", "bucket_name": "ahemads-restro-uploads-staging" },
+        { "binding": "BACKUPS", "bucket_name": "ahemads-restro-backups-staging" }
       ],
       "ratelimits": [
         { "name": "AUTH_RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } },
@@ -94,7 +94,7 @@
       "vars": {
         "NODE_ENV": "production",
         "ENABLE_SWAGGER": "true",
-        "CORS_ORIGIN": "https://staging.orderrestro.example",
+        "CORS_ORIGIN": "https://staging.example.com",
         "DEFAULT_COUNTRY": "SA",
         "DEFAULT_CURRENCY": "SAR",
         "DEFAULT_TIMEZONE": "Asia/Riyadh",
@@ -103,18 +103,18 @@
       }
     },
     "production": {
-      "name": "orderrestro-api-production",
+      "name": "ahemads-restro-api-production",
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "orderrestro-production",
+          "database_name": "ahemads-restro-production",
           "database_id": "REPLACE_WITH_PRODUCTION_D1_ID",
           "migrations_dir": "migrations"
         }
       ],
       "r2_buckets": [
-        { "binding": "UPLOADS", "bucket_name": "orderrestro-uploads-production" },
-        { "binding": "BACKUPS", "bucket_name": "orderrestro-backups-production" }
+        { "binding": "UPLOADS", "bucket_name": "ahemads-restro-uploads-production" },
+        { "binding": "BACKUPS", "bucket_name": "ahemads-restro-backups-production" }
       ],
       "ratelimits": [
         { "name": "AUTH_RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } },
@@ -131,7 +131,7 @@
       },
       "vars": {
         "NODE_ENV": "production",
-        "CORS_ORIGIN": "https://app.orderrestro.example",
+        "CORS_ORIGIN": "https://app.example.com",
         "DEFAULT_COUNTRY": "SA",
         "DEFAULT_CURRENCY": "SAR",
         "DEFAULT_TIMEZONE": "Asia/Riyadh",

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { DEFAULT_REGION } from '@nodedr-restaurant/types';
+import { DEFAULT_REGION } from '@ahemads-restro/types';
 
 /** Looks up the restaurant timezone a branch's reports should be cut in. */
 @Injectable()

@@ -1,18 +1,11 @@
 {
-  "name": "nodedr-orderrestro",
+  "name": "ahemads-restro",
   "private": true,
-  "version": "0.1.0",
-  "description": "Nodedr OrderRestro — restaurant management on Cloudflare (Workers, D1, R2, Durable Objects), Saudi Arabia edition",
-  "author": "Raktim Ranjit <mail@raktimranjit.com> (https://github.com/Raktim94)",
+  "version": "2.0.0",
+  "description": "Ahemad's Restro: restaurant management software on Cloudflare, in English and Arabic",
+  "author": "Wem Studios (https://wemstudios.in/)",
   "license": "AGPL-3.0-only",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Raktim94/nodedr-restaurant-pos.git"
-  },
-  "bugs": {
-    "url": "https://github.com/Raktim94/nodedr-restaurant-pos/issues"
-  },
-  "homepage": "https://orderrestro.nodedr.com/",
+  "homepage": "https://wemstudios.in/",
   "keywords": [
     "restaurant-management",
     "restaurant-pos",
@@ -36,13 +29,13 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "i18n:check": "pnpm --filter @nodedr-restaurant/web i18n:check",
-    "db:migrate:local": "pnpm --filter @nodedr-restaurant/api db:migrate:local",
-    "db:seed:local": "pnpm --filter @nodedr-restaurant/api db:seed:local",
+    "i18n:check": "pnpm --filter @ahemads-restro/web i18n:check",
+    "db:migrate:local": "pnpm --filter @ahemads-restro/api db:migrate:local",
+    "db:seed:local": "pnpm --filter @ahemads-restro/api db:seed:local",
     "test:smoke": "node scripts/verify/smoke-api.mjs",
     "test:migration": "scripts/migration/test/run-local.sh",
-    "deploy:staging": "pnpm --filter @nodedr-restaurant/api deploy:staging && pnpm --filter @nodedr-restaurant/web deploy:staging",
-    "deploy:production": "pnpm --filter @nodedr-restaurant/api deploy:production && pnpm --filter @nodedr-restaurant/web deploy:production"
+    "deploy:staging": "pnpm --filter @ahemads-restro/api deploy:staging && pnpm --filter @ahemads-restro/web deploy:staging",
+    "deploy:production": "pnpm --filter @ahemads-restro/api deploy:production && pnpm --filter @ahemads-restro/web deploy:production"
   },
   "devDependencies": {
     "turbo": "^2.10.9",
@@ -51,5 +44,8 @@
   "packageManager": "pnpm@11.10.0",
   "engines": {
     "node": ">=22.12 <23 || >=24"
-  }
+  },
+  "contributors": [
+    "Raktim Ranjit and Nodedr Infotech Private Limited, original Nodedr OrderRestro (AGPL-3.0)"
+  ]
 }

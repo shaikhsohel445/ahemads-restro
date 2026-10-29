@@ -1,6 +1,6 @@
 "use client";
 
-import { PERMISSIONS } from "@nodedr-restaurant/types";
+import { PERMISSIONS } from "@ahemads-restro/types";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useI18n } from "@/lib/i18n/context";
 

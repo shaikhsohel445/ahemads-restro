@@ -1,10 +1,10 @@
 # Architecture (Cloudflare edition)
 
 ```
- browser ──HTTPS──► orderrestro-web  (Worker: OpenNext build of apps/web + static assets)
+ browser ──HTTPS──► ahemads-restro-web  (Worker: OpenNext build of apps/web + static assets)
                       │  /api/*  and  /api/realtime   (service binding "API", same origin)
                       ▼
-                    orderrestro-api  (Worker: NestJS app from apps/api)
+                    ahemads-restro-api  (Worker: NestJS app from apps/api)
                       ├── D1  "DB"           all application data (SQLite dialect)
                       ├── R2  "UPLOADS"      menu photos, logos (uploads/), document attachments (documents/)
                       ├── R2  "BACKUPS"      gzip NDJSON database exports

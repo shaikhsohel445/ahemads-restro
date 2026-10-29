@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Ahemad's Restro">
+  <title>Ahemad's Restro</title>
+  <defs>
+    <linearGradient id="mk-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#13775E"/>
+      <stop offset="1" stop-color="#083B2F"/>
+    </linearGradient>
+    <linearGradient id="mk-gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E2C487"/>
+      <stop offset="1" stop-color="#C9A35A"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#mk-bg)"/>
+  <rect x="8" y="8" width="496" height="496" rx="110" fill="none" stroke="#fff" stroke-opacity="0.08" stroke-width="4"/>
+  
+  <defs>
+    <mask id="mk-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">
+      <rect width="512" height="512" fill="#fff"/>
+      <g fill="#000"><rect x="196" y="260" width="30" height="46" rx="8"/><rect x="241" y="232" width="30" height="74" rx="8"/><rect x="286" y="204" width="30" height="102" rx="8"/></g>
+    </mask>
+  </defs>
+  <path d="M118 330 C118 238 180 176 256 176 C332 176 394 238 394 330 Z" fill="#FBF7EF" mask="url(#mk-cut)"/>
+  
+  <g fill="#FBF7EF"><rect x="92" y="344" width="328" height="30" rx="15"/></g>
+  <circle cx="256" cy="150" r="20" fill="url(#mk-gold)"/>
+</svg>

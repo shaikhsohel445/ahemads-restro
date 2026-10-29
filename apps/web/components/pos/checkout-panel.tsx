@@ -1,6 +1,6 @@
 "use client";
 
-import { kitchenProgress, type PaymentMethodDto } from "@nodedr-restaurant/types";
+import { kitchenProgress, type PaymentMethodDto } from "@ahemads-restro/types";
 import {
   ArrowLeft,
   CheckCircle2,

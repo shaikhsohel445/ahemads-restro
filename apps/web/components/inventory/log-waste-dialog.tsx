@@ -3,7 +3,7 @@
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { WasteReason } from "@nodedr-restaurant/types";
+import type { WasteReason } from "@ahemads-restro/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

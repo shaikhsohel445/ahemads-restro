@@ -31,15 +31,15 @@ test to build a source database). D1 has its own ordered history in
 `apps/api/migrations/`, applied by Wrangler:
 
 ```bash
-pnpm --filter @nodedr-restaurant/api db:migrate:local
-pnpm --filter @nodedr-restaurant/api db:migrate:staging
-pnpm --filter @nodedr-restaurant/api db:migrate:production
+pnpm --filter @ahemads-restro/api db:migrate:local
+pnpm --filter @ahemads-restro/api db:migrate:staging
+pnpm --filter @ahemads-restro/api db:migrate:production
 ```
 
 To change the schema: edit `prisma/schema.prisma`, then
 
 ```bash
-pnpm --filter @nodedr-restaurant/api db:new-migration add_something
+pnpm --filter @ahemads-restro/api db:new-migration add_something
 ```
 
 which diffs the existing migrations against the schema with

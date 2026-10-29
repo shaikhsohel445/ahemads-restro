@@ -28,12 +28,12 @@ Requires Node 24 (or 22.12+) and pnpm 11.
 
 ```bash
 pnpm install
-pnpm --filter @nodedr-restaurant/types build
+pnpm --filter @ahemads-restro/types build
 cp apps/api/.dev.vars.example apps/api/.dev.vars    # set JWT_SECRET (openssl rand -hex 32)
 pnpm db:migrate:local
 pnpm db:seed:local                                  # demo: owner@demo.local / Password123!
-pnpm --filter @nodedr-restaurant/api dev            # API  -> http://localhost:8787
-pnpm --filter @nodedr-restaurant/web preview        # app  -> http://localhost:1995
+pnpm --filter @ahemads-restro/api dev            # API  -> http://localhost:8787
+pnpm --filter @ahemads-restro/web preview        # app  -> http://localhost:1995
 ```
 
 More: [local development](docs/cloudflare/LOCAL-DEVELOPMENT.md) ·

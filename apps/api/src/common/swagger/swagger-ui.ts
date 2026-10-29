@@ -20,7 +20,7 @@ export function mountSwaggerUi(app: INestApplication, document: OpenAPIObject) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Nodedr OrderRestro API</title>
+  <title>Ahemad's Restro API</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/${SWAGGER_UI_VERSION}/swagger-ui.min.css" />
 </head>
 <body>

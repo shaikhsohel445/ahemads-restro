@@ -59,7 +59,7 @@ s = s.replace(/BigInt(\s+)@id(\s+)@default\(autoincrement\(\)\)/g, "Int$1@id$2@d
 
 s = s.replace(
   /^\/\/ Nodedr OrderRestro — Phase 0\/1 core schema\.\n/,
-  "// Nodedr OrderRestro — Cloudflare D1 (SQLite) schema.\n// GENERATED from the PostgreSQL schema by scripts/migration/convert-prisma-schema.mjs,\n// then maintained here. See docs/cloudflare/DATABASE.md.\n",
+  "// Ahemad's Restro — Cloudflare D1 (SQLite) schema.\n// GENERATED from the PostgreSQL schema by scripts/migration/convert-prisma-schema.mjs,\n// then maintained here. See docs/cloudflare/DATABASE.md.\n",
 );
 
 writeFileSync(out, s);

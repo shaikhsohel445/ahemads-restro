@@ -6,7 +6,7 @@
 //
 // Runs from apps/api so Wrangler picks up its bindings (DB, UPLOADS). The
 // target database must be freshly migrated and EMPTY (run
-// `pnpm --filter @nodedr-restaurant/api db:migrate:<env>` first); importing
+// `pnpm --filter @ahemads-restro/api db:migrate:<env>` first); importing
 // twice fails on primary keys rather than duplicating rows.
 // Never point this at production without a fresh D1 Time Travel bookmark
 // (docs/cloudflare/DATA-MIGRATION.md).

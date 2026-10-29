@@ -45,6 +45,7 @@ interface SettingsTab {
 
 const TABS: SettingsTab[] = [
   { labelKey: "settings.tabs.general", href: "/settings", icon: SlidersHorizontal, group: "business" },
+  { labelKey: "settings.tabs.branches", href: "/settings/branches", icon: Building2, group: "business", permission: "settings.manage" },
   { labelKey: "settings.tabs.staff", href: "/settings/staff", icon: Users, group: "people", permission: "users.manage" },
   { labelKey: "settings.tabs.roles", href: "/settings/roles", icon: ShieldCheck, group: "people", permission: "roles.manage" },
   { labelKey: "settings.tabs.security", href: "/settings/security", icon: LockKeyhole, group: "people" },

@@ -6,7 +6,7 @@
 // Exits non-zero on any problem in 1–3. Spanish/French gaps are only counted
 // (they fall back to English by design).
 //
-//   pnpm --filter @nodedr-restaurant/web i18n:check
+//   pnpm --filter @ahemads-restro/web i18n:check
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 
