@@ -2,7 +2,7 @@
 
 <img src="apps/web/public/brand-lockup.png" alt="Nodedr OrderRestro" width="520">
 
-<img src="docs/orderrestro-cover.jpg" alt="Illustrative evening scene in an independent restaurant" width="100%">
+<img src="orderrestro-cover.jpg" alt="Illustrative evening scene in an independent restaurant" width="100%">
 
 **Open-source, self-hosted restaurant POS & management system** — billing
 with **UPI QR payments**, tables, kitchen display (KDS), reservations,
@@ -26,7 +26,7 @@ Developed by [NodeDR Infotech Private Limited](https://www.nodedr.com/)
 **[Try OrderRestro](https://orderrestro.nodedr.com/)** · **[Case study](https://www.raktimranjit.com/projects/orderrestro)** · **[Maintainer: Raktim Ranjit](https://www.raktimranjit.com/)**
 
 <p align="center">
-  <img src="docs/assets/hero-animated.svg" alt="Nodedr OrderRestro: animated overview with an illustrative sample screen" width="100%">
+  <img src="assets/hero-animated.svg" alt="Nodedr OrderRestro: animated overview with an illustrative sample screen" width="100%">
 </p>
 
 
@@ -219,7 +219,7 @@ management tools with **56 screenshots of the app**.
 <p align="center">
   <a href="./TUTORIAL.md"><strong>Open the complete tutorial →</strong></a>
   &nbsp; · &nbsp;
-  <a href="./docs/orderrestro-user-manual.pdf">Download the user manual</a>
+  <a href="./orderrestro-user-manual.pdf">Download the user manual</a>
 </p>
 
 ## Screenshots
@@ -300,7 +300,7 @@ Postgres over the originally-specced SQLite — is in
 ## Quick start
 
 <p align="center">
-  <img src="docs/assets/install-animated.svg" alt="Animated terminal: clone the repo and run install.sh" width="100%">
+  <img src="assets/install-animated.svg" alt="Animated terminal: clone the repo and run install.sh" width="100%">
 </p>
 
 

@@ -81,7 +81,7 @@ export const arabicRestaurantSoftware: SolutionPage = {
         body: "Request a demo and Wem Studios will contact you to show the POS, kitchen display and receipts in Arabic with your items.",
       },
       image: {
-        src: "/images/product/screens/menu-en.png",
+        src: "/images/product/screens/menu-en.webp",
         alt: "Menu management screen with categories and bilingual Arabic and English item names",
       },
     },
@@ -157,7 +157,7 @@ export const arabicRestaurantSoftware: SolutionPage = {
         body: "اطلب عرضًا تجريبيًا وسيتواصل معك فريق Wem Studios ليعرض لك نقطة البيع وشاشة المطبخ والإيصالات بالعربية مع أصنافك.",
       },
       image: {
-        src: "/images/product/screens/menu-ar.png",
+        src: "/images/product/screens/menu-ar.webp",
         alt: "شاشة إدارة القائمة بالعربية مع الفئات وأسماء الأصناف بالعربية والإنجليزية",
       },
     },

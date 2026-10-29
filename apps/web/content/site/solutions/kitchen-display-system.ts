@@ -78,7 +78,7 @@ export const kitchenDisplaySystem: SolutionPage = {
         body: "Request a demo and Wem Studios will contact you to set up stations like yours and show how tickets flow from the POS and QR orders to the kitchen screen.",
       },
       image: {
-        src: "/images/product/screens/kds-en.png",
+        src: "/images/product/screens/kds-en.webp",
         alt: "Kitchen display with tickets in New, Accepted, Preparing and Ready columns and a station picker",
       },
     },
@@ -153,7 +153,7 @@ export const kitchenDisplaySystem: SolutionPage = {
         body: "اطلب عرضًا تجريبيًا وسيتواصل معك فريق Wem Studios ليجهّز محطات مثل محطات مطبخك ويعرض كيف تنتقل التذاكر من الكاشير وطلبات QR إلى شاشة المطبخ.",
       },
       image: {
-        src: "/images/product/screens/kds-ar.png",
+        src: "/images/product/screens/kds-ar.webp",
         alt: "شاشة المطبخ بالعربية مع أعمدة التذاكر الجديدة والمقبولة وقيد التحضير والجاهزة واختيار المحطة",
       },
     },

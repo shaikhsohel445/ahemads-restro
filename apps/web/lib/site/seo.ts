@@ -44,7 +44,11 @@ export function pageMetadata({
   const languages: Record<string, string> = {};
   for (const l of available) languages[HREFLANG[l]] = absoluteUrl(sitePath(l, path));
   languages["x-default"] = absoluteUrl(sitePath(available.includes("en") ? "en" : available[0], path));
-  const ogImage = absoluteUrl(image ?? BRAND.assets.ogImage);
+  // Share previews use PNG (WebP is not shown everywhere, e.g. WhatsApp);
+  // every screenshot has a PNG twin. Only the default card is 1200x630.
+  const ogImage = absoluteUrl(
+    image ? image.replace(/\.webp$/, ".png") : lang === "ar" ? BRAND.assets.ogImageAr : BRAND.assets.ogImage,
+  );
 
   return {
     metadataBase: new URL(SITE_URL),
@@ -61,7 +65,7 @@ export function pageMetadata({
       description,
       locale: OG_LOCALE[lang],
       alternateLocale: available.filter((l) => l !== lang).map((l) => OG_LOCALE[l]),
-      images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
+      images: [image ? { url: ogImage, alt: title } : { url: ogImage, width: 1200, height: 630, alt: title }],
     },
     twitter: { card: "summary_large_image", title, description, images: [ogImage] },
     ...(GSC_VERIFICATION ? { verification: { google: GSC_VERIFICATION } } : {}),

@@ -5,10 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import {
-  permissionSatisfied,
-  type PermissionKey,
-} from '@ahemads-restro/types';
+import { permissionSatisfied, type PermissionKey } from '@ahemads-restro/types';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
 import type { AuthenticatedRequest } from '../types/authenticated-request';
 

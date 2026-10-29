@@ -88,14 +88,14 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             </div>
             <div className="relative">
               <BrowserFrame
-                src={`/images/product/screens/dashboard-${lang}.png`}
+                src={`/images/product/screens/dashboard-${lang}.webp`}
                 alt={h.hero.imageAlt}
                 priority
                 sizes="(min-width: 1024px) 55vw, 100vw"
               />
               <div className="absolute -bottom-6 hidden w-[34%] overflow-hidden rounded-2xl border-4 border-white shadow-2xl sm:block ltr:-left-6 rtl:-right-6">
                 <Image
-                  src={`/images/product/screens/mobile-pos-${lang}.png`}
+                  src={`/images/product/screens/mobile-pos-${lang}.webp`}
                   alt=""
                   width={390}
                   height={844}
@@ -195,7 +195,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               <p className="mt-2 text-sm text-white/55">{h.saudi.note}</p>
             </div>
             <BrowserFrame
-              src={`/images/product/screens/receipt-${lang}.png`}
+              src={`/images/product/screens/receipt-${lang}.webp`}
               alt={lang === "ar" ? "إيصال فاتورة ضريبية مبسطة ثنائية اللغة مع رمز QR" : "Bilingual simplified tax invoice receipt with QR code"}
               width={1000}
               height={1100}

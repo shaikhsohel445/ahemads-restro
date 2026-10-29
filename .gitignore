@@ -26,3 +26,5 @@ apps/api/src/generated/
 .open-next/
 apps/api/prisma/generated-node/
 .migration-test/
+# Scratch files of the asset generators (scripts/assets/graphics.mjs)
+scripts/assets/.tmp/

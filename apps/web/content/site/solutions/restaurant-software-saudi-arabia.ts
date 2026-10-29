@@ -95,7 +95,7 @@ export const restaurantSoftwareSaudiArabia: SolutionPage = {
         body: "Request a demo and Wem Studios will contact you to show Arabic screens, VAT-inclusive pricing and the simplified tax invoice with your own items.",
       },
       image: {
-        src: "/images/product/screens/receipt-en.png",
+        src: "/images/product/screens/receipt-en.webp",
         alt: "Bilingual simplified tax invoice with seller VAT number, VAT total and the ZATCA QR code",
       },
     },
@@ -186,7 +186,7 @@ export const restaurantSoftwareSaudiArabia: SolutionPage = {
         body: "اطلب عرضًا تجريبيًا وسيتواصل معك فريق Wem Studios ليعرض لك الشاشات العربية والأسعار الشاملة للضريبة والفاتورة الضريبية المبسطة بأصنافك.",
       },
       image: {
-        src: "/images/product/screens/receipt-ar.png",
+        src: "/images/product/screens/receipt-ar.webp",
         alt: "فاتورة ضريبية مبسطة ثنائية اللغة مع الرقم الضريبي للبائع ومبلغ الضريبة ورمز QR الخاص بالهيئة",
       },
     },

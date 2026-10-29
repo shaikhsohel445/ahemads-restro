@@ -11,6 +11,8 @@ export function MobileNav({
   switchLabel,
   switchLang,
   signIn,
+  demoHref,
+  demoLabel,
 }: {
   links: { href: string; label: string }[];
   label: string;
@@ -18,6 +20,8 @@ export function MobileNav({
   switchLabel: string;
   switchLang: string;
   signIn: string;
+  demoHref: string;
+  demoLabel: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -55,7 +59,14 @@ export function MobileNav({
               </li>
             ))}
           </ul>
-          <div className="mt-2 flex gap-2 border-t border-border pt-4">
+          <a
+            href={demoHref}
+            onClick={() => setOpen(false)}
+            className="mt-2 flex h-12 items-center justify-center rounded-xl bg-primary font-semibold text-primary-foreground"
+          >
+            {demoLabel}
+          </a>
+          <div className="mt-3 flex gap-2 border-t border-border pt-4">
             <Link href={switchHref} hrefLang={switchLang} lang={switchLang} className="flex h-11 flex-1 items-center justify-center rounded-xl border border-border font-medium">
               {switchLabel}
             </Link>

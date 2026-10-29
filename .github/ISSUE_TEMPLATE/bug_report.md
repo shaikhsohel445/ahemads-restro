@@ -6,6 +6,8 @@ labels: bug
 assignees: ""
 ---
 
+<!-- Security vulnerabilities must NOT be reported here. See SECURITY.md. -->
+
 **Describe the bug**
 A clear, concise description of what's wrong.
 
@@ -15,24 +17,29 @@ Exact steps, not "sometimes happens":
 2. Click on '...'
 3. See error
 
-**Expected behavior**
+**Expected behaviour**
 What you expected to happen instead.
 
 **Screenshots / logs**
-If applicable — especially for anything visual, or a server-side error
-(include the relevant backend log lines, not just the frontend toast).
+For anything visual, a screenshot (say whether the UI was in English or
+Arabic). For server-side errors, the relevant lines from the API Worker log
+(`wrangler dev` output, or `wrangler tail` / Workers Logs when deployed), not
+just the message shown in the browser.
 
 **Environment**
-- Setup: Docker / local dev (see `CONTRIBUTING.md`)
+- Where: local (`wrangler dev` / `next dev` / `preview`) or a deployment (staging / production)
+- Commit or version (Settings shows `APP_VERSION`):
 - Node version:
 - pnpm version:
-- Postgres version (if not using the bundled Docker service):
-- Browser (if a frontend bug):
+- Wrangler version (`pnpm --filter @ahemads-restro/api exec wrangler --version`):
+- Browser and device (for frontend bugs):
+- Interface language: English / Arabic
+- Restaurant settings that matter (currency, tax regime, tax-inclusive or not), if relevant:
 
-**Is this a money-correctness or RBAC bug?**
-(e.g. a total that doesn't match line items, a permission that doesn't
-actually gate an action) — flag it here, these are treated as high
-priority per `CONTRIBUTING.md`.
+**Is this a money-correctness or permission bug?**
+For example a total that does not match its lines, wrong VAT, or a
+permission that does not actually block an action. Say so here; these are
+treated as high priority.
 
 **Additional context**
 Anything else relevant.

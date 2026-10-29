@@ -6,14 +6,35 @@
 # Required. Signs session cookies. 32+ random characters: openssl rand -hex 32
 JWT_SECRET=
 
-# Optional. Separate key for sealing webhook secrets / 2FA secrets at rest
+# Optional. Separate key for sealing webhook signing secrets at rest
 # (falls back to JWT_SECRET). openssl rand -hex 32
 # WEBHOOK_KEY=
 
-# Optional. Outgoing email (report schedules, marketing campaigns).
+# Optional. Separate key for encrypting users' 2FA (TOTP) secrets at rest
+# (falls back to JWT_SECRET). Keep it stable once set, or existing
+# authenticator codes stop working. openssl rand -hex 32
+# TWO_FACTOR_KEY=
+
+# Optional. Outgoing email (report schedules, marketing campaigns,
+# demo-request notifications).
 # EMAIL_PROVIDER=resend        # or: sendgrid
 # EMAIL_API_KEY=
 # EMAIL_FROM="My Restaurant <orders@example.com>"
 
 # Optional. Show Swagger UI at /api/docs even when NODE_ENV=production.
 # ENABLE_SWAGGER=true
+
+# Optional. Bearer token for reading the marketing site's demo requests:
+#   GET /api/v1/leads/demo-requests   Authorization: Bearer <token>
+# Must be at least 24 characters; while it is unset (or shorter) that
+# endpoint always answers 401. openssl rand -hex 32
+# LEADS_ACCESS_TOKEN=
+
+# Optional. Address that receives an e-mail for each new demo request.
+# Only used when EMAIL_API_KEY and EMAIL_FROM are also set; requests are
+# stored in D1 either way.
+# DEMO_NOTIFY_EMAIL=
+
+# Optional. GitHub repository ("owner/name") whose releases feed the
+# "new version available" notice. Leave unset to disable the update check.
+# RELEASES_REPO=

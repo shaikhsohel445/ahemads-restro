@@ -1,4 +1,4 @@
-# Deploying to Cloudflare
+# Deploying Ahemad's Restro to Cloudflare
 
 Nothing in this repository has been deployed to a Cloudflare account. These
 steps are written against the configuration in `apps/api/wrangler.jsonc` and
@@ -35,9 +35,32 @@ pnpm exec wrangler secret put WEBHOOK_KEY --env staging        # optional
 pnpm exec wrangler secret put EMAIL_API_KEY --env staging      # optional (Resend/SendGrid)
 ```
 
+Optional secrets: `TWO_FACTOR_KEY` (2FA secret encryption; falls back to
+`JWT_SECRET`) and `LEADS_ACCESS_TOKEN` (24+ characters; enables
+`GET /api/v1/leads/demo-requests` for reading the website's demo requests).
+
 Set `CORS_ORIGIN` (the web origin), `EMAIL_FROM`/`EMAIL_PROVIDER` if e-mail is
-used, and `COOKIE_SECURE=true` in each environment's `vars`. Swagger is off in
-production unless `ENABLE_SWAGGER=true`.
+used, `DEMO_NOTIFY_EMAIL` if demo requests should be e-mailed, `RELEASES_REPO`
+if the update notice should follow a GitHub repository, and
+`COOKIE_SECURE=true` in each environment's `vars`. Swagger is off in
+production unless `ENABLE_SWAGGER=true`. The full list is in the README's
+environment variable table.
+
+### Website build settings
+
+The web Worker's public site reads `NEXT_PUBLIC_*` variables **at build
+time**, so export them in the shell (or CI job) that runs
+`deploy:staging` / `deploy:production`, or put them in
+`apps/web/.env.production.local` (git-ignored):
+
+```bash
+export NEXT_PUBLIC_SITE_URL=https://<public-host>              # required for a public site
+export NEXT_PUBLIC_SOURCE_CODE_URL=https://<public-repository> # AGPL-3.0 §13 source offer
+# optional: NEXT_PUBLIC_GA_MEASUREMENT_ID, NEXT_PUBLIC_GSC_VERIFICATION, NEXT_PUBLIC_SUPPORT_EMAIL
+```
+
+See `apps/web/.env.example` and
+[../marketing/ANALYTICS-AND-SEARCH-CONSOLE.md](../marketing/ANALYTICS-AND-SEARCH-CONSOLE.md).
 
 ## 3. Database
 
@@ -46,7 +69,12 @@ pnpm --filter @ahemads-restro/api db:migrate:staging
 ```
 
 New installation: done — the first sign-up creates the restaurant and owner.
-Moving an existing self-hosted installation: follow DATA-MIGRATION.md now.
+Sign-up stays open afterwards (every sign-up creates another restaurant);
+restrict `/signup` and `POST /api/v1/auth/register` (for example with a
+Cloudflare WAF rule or Cloudflare Access) if the deployment is not meant to
+accept new restaurants.
+Moving an existing self-hosted Nodedr OrderRestro (upstream) installation:
+follow DATA-MIGRATION.md now.
 
 ## 4. Deploy (API first, so the web Worker's service binding resolves)
 

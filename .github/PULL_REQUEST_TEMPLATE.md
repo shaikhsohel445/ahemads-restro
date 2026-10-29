@@ -1,7 +1,6 @@
 ## What changed
 
-<!-- What this PR does, and why — the why matters more than the what,
-     the diff already shows the what. -->
+<!-- What this PR does, and why. The diff already shows the what; explain the why. -->
 
 ## Related issue
 
@@ -9,17 +8,25 @@
 
 ## How I tested this
 
-<!-- Steps you actually ran. For apps/web UI changes, attach a screenshot
-     or short clip — this project holds UI to a real visual bar
-     (see DESIGN_SYSTEM.md), "trust me, it looks fine" isn't reviewable. -->
+<!-- Steps you actually ran. For apps/web UI changes, attach screenshots in
+     English and Arabic, at phone and desktop widths (see DESIGN_SYSTEM.md). -->
 
 ## Checklist
 
-- [ ] `pnpm lint` passes
 - [ ] `pnpm typecheck` passes
-- [ ] `pnpm build` passes
-- [ ] If this touches money/pricing, RBAC, or realtime: I re-read the
-      relevant rule in `CONTRIBUTING.md` and this PR follows it
-- [ ] If this closes a `ROADMAP.md` item, I checked it off (or noted the
-      deviation) in the same PR
+- [ ] `pnpm lint` passes
+- [ ] `pnpm test` passes
+- [ ] `pnpm i18n:check` passes (every new key exists in English and Arabic)
+- [ ] If this changes API behaviour: `pnpm test:smoke` passes against a local API
+- [ ] If this changes `apps/api/prisma/schema.prisma`: a new migration from
+      `pnpm --filter @ahemads-restro/api db:new-migration <name>` is included and reviewed
+- [ ] If this touches money/tax, permissions or realtime: I re-read the
+      matching rule in `CONTRIBUTING.md` and this PR follows it
+- [ ] Layouts work right-to-left (logical utilities only)
+- [ ] Docs updated where behaviour, configuration or limitations changed
+      (README, `docs/cloudflare/`, `CHANGELOG.md` under Unreleased)
+- [ ] No secrets, `.dev.vars` or `.env*.local` files committed
 - [ ] Screenshots attached for any `apps/web` UI change
+
+By submitting this pull request I agree that my contribution is licensed
+under AGPL-3.0-only.

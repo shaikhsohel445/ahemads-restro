@@ -1,4 +1,4 @@
-// Nodedr OrderRestro — Cloudflare D1 (SQLite) schema.
+// Ahemad's Restro — Cloudflare D1 (SQLite) schema (from the upstream Nodedr OrderRestro).
 // GENERATED from the PostgreSQL schema by scripts/migration/convert-prisma-schema.mjs,
 // then maintained here. See docs/cloudflare/DATABASE.md.
 

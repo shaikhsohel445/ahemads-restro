@@ -1,8 +1,9 @@
 # Feature migration checklist
 
-Every module of the original application (audited from `apps/backend/src` and
-`apps/web/app` in the source repository), its status on Cloudflare, and how it
-was verified. "Smoke" = `scripts/verify/smoke-api.mjs` against the Worker on a
+Every module of Nodedr OrderRestro (upstream; audited from `apps/backend/src`
+and `apps/web/app` in the source repository), its status in Ahemad's Restro on
+Cloudflare, and how it was verified, followed by the features added in this
+edition. "Smoke" = `scripts/verify/smoke-api.mjs` against the Worker on a
 local D1 (17/17 steps passing); "unit" = Jest/node tests; "browser" = checked
 in a browser against both Workers running locally (`wrangler dev`).
 
@@ -68,7 +69,7 @@ Legend: ✅ migrated · ⚠️ migrated with a documented difference · ⛔ not 
 
 | Item | Status | Verified |
 |---|---|---|
-| English + Arabic UI, language switcher, persisted choice | ✅ 2,183 keys in each language | `pnpm i18n:check`, browser |
+| English + Arabic UI, language switcher, persisted choice | ✅ 2,183 keys in each language at migration time; 2,342 after the redesign and rebrand | `pnpm i18n:check`, browser |
 | RTL layout (`<html dir>`, logical utilities, mirrored icons) | ✅ | browser (login, dashboard, POS) |
 | Arabic font (IBM Plex Sans Arabic) in UI, PDFs, receipts | ✅ | browser, unit |
 | SAR formatting, Asia/Riyadh times | ✅ | unit, browser |
@@ -77,3 +78,13 @@ Legend: ✅ migrated · ⚠️ migrated with a documented difference · ⛔ not 
 | ZATCA Phase 2 (Fatoora integration) | ⛔ not implemented | — |
 | Saudi payment methods (mada, STC Pay, Apple Pay) | ✅ recorded by staff | smoke |
 | Saudi-inspired theme (emerald / gold / sand), light and dark | ✅ | browser |
+
+## Added in this edition
+
+| Feature | Status | Notes | Verified |
+|---|---|---|---|
+| Redesigned application shell and screens | ✅ | grouped collapsible sidebar, mobile tab bar, shared UI primitives | browser, real screenshots (`scripts/assets/screenshots.mjs`) |
+| Add a branch from the app (`POST /api/v1/branches`, Settings → Branches) | ✅ | multi-branch was data-model only before | — |
+| Public marketing site `/en`, `/ar` (home, solution pages, blog, privacy, terms) | ✅ | canonical, hreflang, Open Graph, JSON-LD, sitemap, robots | build |
+| Demo requests (`POST /api/v1/public/demo-requests`, lead list behind `LEADS_ACCESS_TOKEN`) | ✅ | stored in D1 (migration 0002); e-mail only when configured | — |
+| Consent-gated GA4 on the marketing site | ✅ | only when `NEXT_PUBLIC_GA_MEASUREMENT_ID` is set | — |

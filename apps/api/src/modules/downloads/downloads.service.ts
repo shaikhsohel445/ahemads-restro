@@ -1,5 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
+import { BRAND } from '@ahemads-restro/types';
 import { PrismaService } from '../../prisma/prisma.service';
 
 // Fixed, server-side whitelist: the ONLY URLs this endpoint will ever
@@ -7,12 +8,11 @@ import { PrismaService } from '../../prisma/prisma.service';
 // URL), so this can never become an open redirect — see the security
 // hardening report's "unsafe URL handling / open redirects" check, which
 // this is deliberately built to keep passing.
+// The self-hosted installers (install script, Docker, CasaOS) do not apply
+// to the Cloudflare edition and were removed; the app links to its source
+// repository directly (NEXT_PUBLIC_SOURCE_CODE_URL).
 const DOWNLOAD_CHANNELS: Record<string, string> = {
-  github: 'https://github.com/Raktim94/nodedr-restaurant-pos',
-  'install-script':
-    'https://raw.githubusercontent.com/Raktim94/nodedr-restaurant-pos/master/install.sh',
-  docker: 'https://github.com/Raktim94/nodedr-restaurant-pos#one-click-install',
-  casaos: 'https://github.com/IceWhaleTech/CasaOS-AppStore',
+  github: BRAND.upstream.url,
 };
 
 export type DownloadChannel = keyof typeof DOWNLOAD_CHANNELS;

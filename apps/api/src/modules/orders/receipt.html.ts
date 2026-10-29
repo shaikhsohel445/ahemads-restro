@@ -193,11 +193,16 @@ export function buildReceiptHtml({
       const modifierLines = item.modifiers
         .map((m) => `<div class="sub">+ ${esc(m.nameSnapshot)}</div>`)
         .join('');
+      // Name on its own full-width line: on 80 mm paper four columns leave
+      // too little room, and bilingual names broke mid-word.
       return `
-        <tr>
-          <td>${esc(item.nameSnapshot)}${modifierLines}${
+        <tr class="item-name">
+          <td colspan="4">${esc(item.nameSnapshot)}${modifierLines}</td>
+        </tr>
+        <tr class="item-nums">
+          <td class="sub">${
             Number(item.taxRateSnapshot) > 0
-              ? `<div class="sub">${esc(zatca ? 'VAT' : taxLabel)} @ ${item.taxRateSnapshot}%</div>`
+              ? `${esc(zatca ? 'VAT' : taxLabel)} @ ${item.taxRateSnapshot}%`
               : ''
           }</td>
           <td class="num">${item.quantity}</td>
@@ -300,6 +305,9 @@ export function buildReceiptHtml({
   .num { text-align: end; white-space: nowrap; padding-inline-start: 6px; direction: ltr; unicode-bidi: isolate; }
   .zatca-title { text-align: center; font-weight: 700; font-size: 12px; margin: 2px 0 4px; }
   .sub { font-size: 10px; color: #777; }
+  .item-name td { padding-top: 3px; font-weight: 600; }
+  .item-nums td { padding-bottom: 2px; }
+  .item-nums .sub { white-space: nowrap; }
   .totals td { padding: 1px 0; }
   .grand td { font-weight: 700; font-size: 13px; border-top: 1px solid #111; padding-top: 3px; }
   .vf { text-align: center; font-size: 11px; }

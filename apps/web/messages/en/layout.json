@@ -18,5 +18,6 @@
   "redirecting": "Redirecting…",
   "selectBranch": "Select branch",
   "toggleTheme": "Toggle theme",
-  "whatBranches": "your branches"
+  "whatBranches": "your branches",
+  "sourceCode": "Source code (AGPL-3.0)"
 }

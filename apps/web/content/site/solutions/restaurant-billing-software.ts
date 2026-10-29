@@ -83,7 +83,7 @@ export const restaurantBillingSoftware: SolutionPage = {
         body: "Tell us how you price, discount and split bills. Wem Studios will contact you and walk through the same cases in Ahemad's Restro.",
       },
       image: {
-        src: "/images/product/screens/receipt-en.png",
+        src: "/images/product/screens/receipt-en.webp",
         alt: "Printed restaurant receipt with items, VAT, total and the ZATCA QR code",
       },
     },
@@ -162,7 +162,7 @@ export const restaurantBillingSoftware: SolutionPage = {
         body: "أخبرنا كيف تسعّر وتخصم وتقسّم الفواتير، وسيتواصل معك فريق Wem Studios ليجرب الحالات نفسها معك على Ahemad's Restro.",
       },
       image: {
-        src: "/images/product/screens/receipt-ar.png",
+        src: "/images/product/screens/receipt-ar.webp",
         alt: "إيصال مطعم مطبوع بالعربية مع الأصناف وضريبة القيمة المضافة والإجمالي ورمز QR الخاص بالهيئة",
       },
     },

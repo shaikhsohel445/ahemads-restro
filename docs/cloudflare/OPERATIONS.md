@@ -19,6 +19,8 @@ Bookmark before risky operations: `wrangler d1 time-travel info DB --env product
   VERIFIED. Keeps the newest `retainCount` (default 2), deleting older ones
   only after a newer one is verified.
 - Download a stored backup, or export a fresh one straight to your computer.
+  The file format is identified as `orderrestro-d1/1`, a name kept from the
+  upstream so existing backups stay restorable.
 - Restore (Owner only, type RESTORE): replaces every table's rows with the
   backup's. It runs in D1 batches and is **not** atomic as a whole — take a
   Time Travel bookmark first. Photos/attachments in R2 are not affected.

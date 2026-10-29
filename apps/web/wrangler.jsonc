@@ -1,6 +1,6 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
-  // OrderRestro web app — Next.js via OpenNext on Cloudflare Workers + static
+  // Ahemad's Restro web app — Next.js via OpenNext on Cloudflare Workers + static
   // assets (see worker.ts). /api/* is forwarded to the API Worker through the
   // `API` service binding, so set `service` to the API Worker's name for each
   // environment (apps/api/wrangler.jsonc).

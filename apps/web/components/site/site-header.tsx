@@ -60,7 +60,7 @@ export function SiteHeader({ lang, alternatePath }: { lang: SiteLocale; alternat
           <TrackedLink
             href={`${home}#demo`}
             event="header_demo"
-            className="inline-flex h-10 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            className="hidden h-10 items-center whitespace-nowrap rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:inline-flex"
           >
             {c.cta.demo}
           </TrackedLink>
@@ -71,6 +71,8 @@ export function SiteHeader({ lang, alternatePath }: { lang: SiteLocale; alternat
             switchLabel={c.switchLanguage}
             switchLang={other}
             signIn={c.cta.signIn}
+            demoHref={`${home}#demo`}
+            demoLabel={c.cta.demo}
           />
         </div>
       </div>

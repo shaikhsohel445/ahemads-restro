@@ -1,8 +1,11 @@
 # Migration report
 
-Source: `nodedr-restaurant-pos` (self-hosted: Next.js 16 + NestJS 11 +
-PostgreSQL/Prisma 6 + Socket.IO, Docker/CasaOS/Windows packaging) — left
-unchanged. Target: this repository, a Cloudflare-hosted Saudi Arabia edition.
+Source: Nodedr OrderRestro (upstream, repository `nodedr-restaurant-pos`;
+self-hosted: Next.js 16 + NestJS 11 + PostgreSQL/Prisma 6 + Socket.IO,
+Docker/CasaOS/Windows packaging) — left unchanged. Target: this repository,
+Ahemad's Restro, a Cloudflare-hosted Saudi Arabia edition. (The product was
+renamed after this report's migration work; resource names below use the
+current `ahemads-restro-*` names.)
 The migration reused the existing code; it was not a rewrite.
 
 ## Approach in one paragraph
@@ -63,7 +66,7 @@ Every dependent frontend screen was updated for these.
 | Migration tooling unit tests | 6 passed |
 | Type check (types, api, web, migration) | pass |
 | Lint (api, web) | 0 errors (warnings remain, as in the original) |
-| Translation check | en 2,183 = ar 2,183 keys, all used keys defined |
+| Translation check | en 2,183 = ar 2,183 keys, all used keys defined (2,342 each after the later redesign and rebrand) |
 | End-to-end smoke test on local Workers + D1 (`scripts/verify/smoke-api.mjs`) | 17/17: health, sign-up with Arabic names, Saudi defaults, VAT number, login, category, item at 15 %, floor, table, dine-in order (VAT 6.00 on 46.00), KDS ticket, bill preview with discount, mada checkout, bilingual ZATCA receipt with QR, report, realtime refusal without session, realtime event delivery |
 | PostgreSQL → D1 migration (`scripts/migration/test/run-local.sh`) | pass: original 38 migrations + fixture → D1; counts, sums and foreign keys match; app signed in and served the migrated data |
 | Backup → verify → download → restore (local R2/D1) | pass; smoke test 17/17 afterwards |
@@ -93,7 +96,7 @@ Arabic.
 8. **E-mail** needs a Resend or SendGrid account and a verified sender domain.
 9. **VERI\*FACTU (Spain)** submission would need an mTLS certificate binding; out of scope.
 10. **Real data migration** must still be run against the production PostgreSQL (DATA-MIGRATION.md).
-11. **Landing page gate:** like the original, `/` switches to a short sign-in page once the deployment has a restaurant (one deployment per operator). For a shared multi-tenant service, remove that gate in `apps/web/app/page.tsx`.
+11. **Open sign-up:** `/` now redirects to the marketing site (`/en` or `/ar`) and the application is at `/login`. `/signup` (`POST /api/v1/auth/register`, rate-limited) lets anyone create a new restaurant on the deployment; there is no setting to close it. Restrict it at the edge (WAF rule or Cloudflare Access) if the deployment should not accept new restaurants. (The original's `/` sign-in gate no longer exists.)
 12. **Tax:** confirm the 15 % rate and item treatments with ZATCA/a tax adviser; nothing here is tax advice.
 13. **Arabic plural forms** are simplified; server-generated messages are English.
 14. **Delivery zone defaults** in the form (fee 40) are a leftover from the original and should be reviewed for SAR.

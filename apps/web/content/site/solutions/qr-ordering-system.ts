@@ -79,7 +79,7 @@ export const qrOrderingSystem: SolutionPage = {
         body: "Request a demo and Wem Studios will contact you to show the guest page, order approval and the kitchen display working together.",
       },
       image: {
-        src: "/images/product/screens/tables-en.png",
+        src: "/images/product/screens/tables-en.webp",
         alt: "Table management screen with live table status, guest requests and quick actions",
       },
     },
@@ -154,7 +154,7 @@ export const qrOrderingSystem: SolutionPage = {
         body: "اطلب عرضًا تجريبيًا وسيتواصل معك فريق Wem Studios ليعرض صفحة الضيف وقبول الطلبات وشاشة المطبخ وهي تعمل معًا.",
       },
       image: {
-        src: "/images/product/screens/tables-ar.png",
+        src: "/images/product/screens/tables-ar.webp",
         alt: "شاشة إدارة الطاولات بالعربية مع حالة كل طاولة وطلبات الضيوف والإجراءات السريعة",
       },
     },

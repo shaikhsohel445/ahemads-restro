@@ -122,8 +122,13 @@ for (let i = 0; i < 42; i++) {
 paidIds.forEach((id, i) => {
   const day = 13 - (i % 14);
   const hour = [12, 13, 14, 19, 20, 21][i % 6];
-  const ts = `strftime('%Y-%m-%dT%H:%M:%S.000+00:00', 'now', '-${day} days', 'start of day', '+${hour - 3} hours', '+${(i * 7) % 50} minutes')`;
-  sql(`UPDATE orders SET createdAt = ${ts}, updatedAt = ${ts} WHERE id = '${id}'; UPDATE payments SET createdAt = ${ts} WHERE orderId = '${id}'; UPDATE kots SET createdAt = ${ts}, acceptedAt = ${ts}, readyAt = ${ts}, servedAt = ${ts} WHERE orderId = '${id}';`);
+  // Today's share lands in the last few hours so nothing is in the future.
+  const when =
+    day === 0
+      ? `'now', '-${20 + i * 3} minutes'`
+      : `'now', '-${day} days', 'start of day', '+${hour - 3} hours', '+${(i * 7) % 50} minutes'`;
+  const ts = `strftime('%Y-%m-%dT%H:%M:%S.000+00:00', ${when})`;
+  sql(`UPDATE orders SET createdAt = ${ts}, updatedAt = ${ts}, billedAt = ${ts} WHERE id = '${id}'; UPDATE payments SET createdAt = ${ts} WHERE orderId = '${id}'; UPDATE kots SET status = 'SERVED', createdAt = ${ts}, acceptedAt = ${ts}, readyAt = ${ts}, servedAt = ${ts} WHERE orderId = '${id}';`);
 });
 
 // ---- live service: occupied tables and kitchen tickets in every state -----

@@ -1,4 +1,7 @@
-# Cloudflare + Saudi edition — documentation
+# Ahemad's Restro — Cloudflare documentation
+
+How Ahemad's Restro runs on Cloudflare and what changed from Nodedr
+OrderRestro (upstream). Start with the [repository README](../../README.md).
 
 | Document | Read it for |
 |---|---|
@@ -12,3 +15,7 @@
 | [REALTIME.md](REALTIME.md) | the Durable Object WebSocket hub that replaced Socket.IO |
 | [SAUDI-LOCALIZATION.md](SAUDI-LOCALIZATION.md) | Arabic/RTL, SAR, VAT, ZATCA, payments, theme |
 | [OPERATIONS.md](OPERATIONS.md) | backups, Time Travel, cron jobs, monitoring |
+
+Related: [../marketing/](../marketing/) (website keywords, editorial plan,
+asset inventory, analytics), [../LICENSE-REVIEW.md](../LICENSE-REVIEW.md),
+and [../original/](../original/README.md) (upstream documentation).

@@ -1,12 +1,24 @@
 cff-version: 1.2.0
-message: "If you use Nodedr OrderRestro in research, teaching, or a public project, please cite it."
+message: "If you use Ahemad's Restro in research, teaching, or a public project, please cite it, and cite the upstream Nodedr OrderRestro it is based on."
 type: software
-title: "Nodedr OrderRestro"
+title: "Ahemad's Restro"
 authors:
-  - family-names: Ranjit
-    given-names: Raktim
-    website: https://www.raktimranjit.com/
-repository-code: https://github.com/Raktim94/nodedr-restaurant-pos
-url: https://orderrestro.nodedr.com/
+  - name: "Wem Studios"
+    website: "https://wemstudios.in/"
 license: AGPL-3.0-only
-abstract: "Offline-first, self-hosted restaurant management software with point of sale, tables, kitchen display, reservations, and inventory."
+abstract: "Restaurant management software for POS, orders, tables, kitchen display, QR ordering, billing and reports, in English and Arabic, running on Cloudflare Workers, D1, R2 and Durable Objects. A fork of Nodedr OrderRestro with Saudi VAT and ZATCA Phase 1 QR support."
+keywords:
+  - restaurant-management
+  - point-of-sale
+  - kitchen-display-system
+  - cloudflare-workers
+  - arabic
+references:
+  - type: software
+    title: "Nodedr OrderRestro"
+    authors:
+      - family-names: Ranjit
+        given-names: Raktim
+      - name: "Nodedr Infotech Private Limited"
+    repository-code: "https://github.com/Raktim94/nodedr-restaurant-pos"
+    license: AGPL-3.0-only

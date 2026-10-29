@@ -69,6 +69,19 @@ D1 does not support interactive transactions, and Prisma 7 rejects
   throw mid-way needs an unexpected failure (for example a D1 outage). This is
   the main known behavioural difference from PostgreSQL.
 
+## Query batching across requests
+
+Prisma normally merges concurrent `findUnique` calls into one query on the
+next tick, across every in-flight request sharing the client. On Workers that
+merged query runs in the I/O context of the request that scheduled it; if
+that request is cancelled (a browser navigating away), the other requests'
+promises never settle and the runtime kills them after about 60 s.
+`PrismaService` (`src/prisma/prisma.service.ts`) therefore keeps batching
+only inside an array `$transaction`, which always belongs to one request.
+The patch uses a Prisma internal; if a Prisma upgrade removes it, the API
+fails at startup with "Prisma internals changed" rather than running
+unprotected, so re-test after every Prisma upgrade.
+
 ## Limits to keep in mind
 
 - 100 bound parameters per statement (Prisma's D1 adapter chunks large `createMany`/`in` lists).

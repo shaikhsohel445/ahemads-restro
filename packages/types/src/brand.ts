@@ -30,6 +30,7 @@ export const BRAND = {
     mark: "/brand/mark.svg",
     markPng: "/brand/mark-512.png",
     ogImage: "/images/product/marketing/og-default.png",
+    ogImageAr: "/images/product/marketing/og-default-ar.png",
   },
   developer: {
     name: "Wem Studios",

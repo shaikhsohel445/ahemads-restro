@@ -79,7 +79,7 @@ export const multiBranchRestaurantManagement: SolutionPage = {
         body: "Tell us how many branches you run and how they share stock and staff. Wem Studios will contact you and show how the setup would look in Ahemad's Restro.",
       },
       image: {
-        src: "/images/product/screens/reports-en.png",
+        src: "/images/product/screens/reports-en.webp",
         alt: "Reports catalogue with sales, item, staff, tax and inventory reports for the selected branch",
       },
     },
@@ -154,7 +154,7 @@ export const multiBranchRestaurantManagement: SolutionPage = {
         body: "أخبرنا بعدد فروعك وكيف تتشارك المخزون والموظفين، وسيتواصل معك فريق Wem Studios ليعرض كيف سيبدو الإعداد في Ahemad's Restro.",
       },
       image: {
-        src: "/images/product/screens/reports-ar.png",
+        src: "/images/product/screens/reports-ar.webp",
         alt: "دليل التقارير بالعربية مع تقارير المبيعات والأصناف والموظفين والضريبة والمخزون للفرع المحدد",
       },
     },

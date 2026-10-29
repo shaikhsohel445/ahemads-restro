@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { DocPage, DocSection } from "@/components/marketing/doc-page";
 import { linkTo, rich } from "@/components/marketing/rich-text";
-import { downloadHref } from "@/lib/downloads";
+import { SOURCE_CODE_URL } from "@/lib/site/config";
 import { useI18n } from "@/lib/i18n/context";
 
 export function DocsIndexContent() {
@@ -45,7 +45,7 @@ export function DocsIndexContent() {
       </DocSection>
 
       <DocSection heading={t("docs.index.source.heading")}>
-        <p>{rich(t("docs.index.source.body"), { link: linkTo(downloadHref("github"), true) })}</p>
+        <p>{rich(t("docs.index.source.body"), { link: linkTo(SOURCE_CODE_URL, true) })}</p>
       </DocSection>
     </DocPage>
   );

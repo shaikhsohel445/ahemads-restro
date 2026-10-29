@@ -1,18 +1,33 @@
 # Maintainers
 
-| Name | Role | Contact |
+## This edition (Ahemad's Restro)
+
+| Maintainer | Role | Contact |
 |---|---|---|
-| Raktim Ranjit | Lead Maintainer | mail@raktimranjit.com · [@Raktim94](https://github.com/Raktim94) |
+| [Wem Studios](https://wemstudios.in/) | Design, development and maintenance of Ahemad's Restro: the Cloudflare migration, Saudi localisation, redesign, brand and website | <https://wemstudios.in/> · [+91 8308042362](tel:+918308042362) |
 
-## Copyright
+Security reports: [SECURITY.md](SECURITY.md). Conduct reports:
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md#enforcement).
 
-Copyright © 2026 [Nodedr Infotech Private Limited](https://www.nodedr.com/)
-and Raktim Ranjit. Licensed under the
-[GNU Affero General Public License v3.0](./LICENSE) — see
-[`LICENSE`](./LICENSE) for the full text and [`README.md`](./README.md#license)
-for what that means in practice for users and contributors.
+## Upstream (Nodedr OrderRestro)
 
-Nodedr Infotech Private Limited builds and maintains Nodedr OrderRestro
-and its sister projects (see [`nodedr-pos`](https://github.com/Raktim94/nodedr-pos))
-as free, self-hosted software — no subscription, no vendor lock-in. See
-[`CONTRIBUTING.md`](./CONTRIBUTING.md) for how to get involved.
+Ahemad's Restro is based on
+[Nodedr OrderRestro](https://github.com/Raktim94/nodedr-restaurant-pos),
+Copyright (C) 2026 Nodedr Infotech Private Limited and Raktim Ranjit, licensed
+AGPL-3.0-only. Its lead maintainer is Raktim Ranjit
+([@Raktim94](https://github.com/Raktim94)). The upstream maintainers wrote
+the original business logic, API and screens; they do not maintain this
+edition, and questions about it should go to Wem Studios.
+
+## Copyright and licence
+
+- Upstream code: Copyright (C) 2026 Nodedr Infotech Private Limited and
+  Raktim Ranjit.
+- Changes made in this edition: by their respective authors, as recorded in
+  the git history.
+- Contributions: each contributor keeps the copyright on their own
+  contribution.
+
+Everything is licensed under the
+[GNU Affero General Public License v3.0 only](LICENSE). See [NOTICE](NOTICE)
+for attribution, the list of changes and trademark notes.

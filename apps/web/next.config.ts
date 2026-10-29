@@ -10,6 +10,9 @@ import type { NextConfig } from "next";
 const API_DEV_URL = process.env.API_DEV_URL ?? "http://localhost:8787";
 
 const nextConfig: NextConfig = {
+  // Screenshots and graphics ship pre-sized as WebP (scripts/assets), so the
+  // site does not need the Cloudflare Images binding for next/image.
+  images: { unoptimized: true },
   // "/" picks the marketing site's language: Arabic for browsers that prefer
   // Arabic, English otherwise (also the x-default in hreflang). Temporary
   // redirects, so search engines index /en and /ar themselves.

@@ -1,35 +1,39 @@
 # Accessibility statement
 
-Last updated 15 August 2026. Also published as a live page at `/docs/accessibility` on any running deployment.
+Last updated 29 October 2026. A version of this statement is also served as a page at `/docs/accessibility` by the application.
 
 ## Our target
 
-Nodedr OrderRestro targets **WCAG 2.1 Level AA** across the marketing site and the product application (POS, dashboard, kitchen display, settings). This is the standard referenced by India's Rights of Persons with Disabilities Act, 2016 and its associated accessibility rules, and is the de facto baseline for software sold or deployed in India today.
+Ahemad's Restro targets **WCAG 2.1 Level AA** across the marketing site and the product application (POS, dashboard, kitchen display, settings), in both English and Arabic (right-to-left).
 
-This statement is a good-faith, current snapshot — not a certification. We have not engaged a third-party auditor or obtained formal WCAG-AA certification for this product.
+This statement is a good-faith snapshot, not a certification. No third-party auditor has been engaged and no formal WCAG AA certification has been obtained for this product.
 
-## What we actually do
+## What the product does
 
-- Semantic HTML and landmark regions (`header`/`main`/`nav`) throughout, not div soup with click handlers standing in for real interactive elements.
-- Keyboard navigation for every interactive control, including the mobile navigation menu, tab panels, and form flows — nothing is mouse-only.
-- Visible focus indicators (focus-visible rings) on all interactive elements, not suppressed via `outline: none`.
-- Color contrast checked against the design system's own light and dark token pairs (see [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)) for text-on-background combinations used in primary UI.
-- All animation respects `prefers-reduced-motion` — page transitions, scroll reveals, and counters resolve instantly instead of animating when the OS setting requests it.
-- Alt text on informative images; decorative graphics are marked `aria-hidden` so screen readers don't announce them.
-- Forms (login, signup, checkout) associate every input with a visible label and surface validation errors as text, not color alone.
+- Semantic HTML and landmark regions (`header`/`main`/`nav`), with real buttons and links rather than clickable `div`s.
+- Keyboard navigation for interactive controls, including the mobile navigation, tab panels and form flows.
+- Visible focus indicators (focus-visible rings) on interactive elements.
+- Colour contrast checked against the design system's light and dark token pairs (see [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)) for the text-on-background combinations used in the primary UI.
+- Animation respects `prefers-reduced-motion`.
+- Alt text on informative images; decorative graphics are marked `aria-hidden`.
+- Form inputs (sign-in, sign-up, checkout) have visible labels, and validation errors are shown as text, not by colour alone.
+- Arabic pages set `lang="ar"` and `dir="rtl"` on the document before first paint, so assistive technology announces the right language and reading order.
+- Touch targets of at least 44 px on service screens (POS, KDS, tables).
 
-## How we test
+## How it is tested
 
-We run automated accessibility audits (axe-core based tooling) against live pages during development, and review keyboard-only and screen-reader navigation manually for new or substantially changed screens before shipping them.
+The statement above was inherited from the upstream project, Nodedr OrderRestro, which ran automated audits (axe-core based tooling) and manual keyboard and screen-reader reviews of new screens. The interface of this edition was redesigned on 29 October 2026 and has **not** had a separate accessibility audit since.
 
-We have not yet performed a full manual audit with users who rely on assistive technology day-to-day. That is the single biggest gap between an automated-clean audit and genuine accessibility, and we are not going to claim otherwise.
+No full manual audit with people who rely on assistive technology every day has been performed. That is the largest gap between an automated check and real accessibility.
 
 ## Known gaps
 
-- No dedicated screen-reader testing pass on the Kitchen Display / real-time ticket views yet — the live-update pattern (sockets pushing new tickets) needs an `aria-live` region audit.
-- No published VPAT (Voluntary Product Accessibility Template) yet.
-- Third-party components (browser print dialogs, OS file pickers) inherit their accessibility from the host OS/browser, outside our control.
+- No screen-reader pass in Arabic yet.
+- No dedicated screen-reader pass on the kitchen display and other live-updating views; new tickets arriving over WebSockets need an `aria-live` audit.
+- The redesigned screens (October 2026) have not been audited.
+- No published VPAT (Voluntary Product Accessibility Template).
+- Third-party surfaces (browser print dialogs, operating-system file pickers) inherit their accessibility from the browser or operating system.
 
 ## Reporting a problem
 
-If you encounter an accessibility barrier anywhere in this product, please [open an issue on GitHub](https://github.com/Raktim94/nodedr-restaurant-pos/issues) with as much detail as you can (page, assistive technology used, what you expected vs. what happened). This is an open-source project — accessibility fixes are treated as real bugs, not feature requests.
+If you meet an accessibility barrier, please open an issue in this repository with as much detail as you can: the page, the language, the assistive technology and browser you used, what you expected and what happened. Accessibility problems are treated as bugs. You can also contact the maintainers, Wem Studios, through <https://wemstudios.in/> or by phone at [+91 8308042362](tel:+918308042362).

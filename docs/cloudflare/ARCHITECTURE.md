@@ -1,4 +1,4 @@
-# Architecture (Cloudflare edition)
+# Architecture — Ahemad's Restro on Cloudflare
 
 ```
  browser ──HTTPS──► ahemads-restro-web  (Worker: OpenNext build of apps/web + static assets)
@@ -36,9 +36,9 @@
 5. Express/Nest handle the request exactly as before (guards, pipes, interceptors, filters).
 6. Work that is deliberately not awaited (webhook fan-out, audit writes from an interceptor, realtime pushes) goes through `detach()` / `waitUntil()`. On Workers, I/O a request leaves running after its response is cancelled; an orphaned D1 query would stall the shared Prisma client.
 
-## What stayed the same
+## What stayed the same as Nodedr OrderRestro (upstream)
 
 - Every REST route, request/response shape and status code under `/api/v1`.
-- Authentication (httpOnly `nodedr_session` JWT cookie, PIN quick-switch, TOTP 2FA, API keys), RBAC permission keys and branch-access checks.
+- Authentication (httpOnly JWT cookie, still named `nodedr_session` for compatibility with existing sessions and clients; PIN quick-switch, TOTP 2FA, API keys), RBAC permission keys and branch-access checks.
 - Server-authoritative pricing, discounts, tax, loyalty, settlement and the order/KOT/billing state machines.
 - The frontend's screens, routes and workflows.

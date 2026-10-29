@@ -1,6 +1,6 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
-  // OrderRestro API — NestJS on Cloudflare Workers (see src/worker.ts).
+  // Ahemad's Restro API — NestJS on Cloudflare Workers (see src/worker.ts).
   //
   // Top level = local development (`wrangler dev`). `env.staging` and
   // `env.production` repeat every binding because Wrangler does not inherit

@@ -92,7 +92,7 @@ export const restaurantSoftwareIndia: SolutionPage = {
         body: "Request a demo and Wem Studios will contact you to set up a branch with your GST rates, UPI ID and menu, and walk through billing and KOTs.",
       },
       image: {
-        src: "/images/product/screens/mobile-pos-en.png",
+        src: "/images/product/screens/mobile-pos-en.webp",
         alt: "Ahemad's Restro POS on a phone with menu items and the current order",
       },
     },

@@ -1,6 +1,14 @@
 # Spain VERI\*FACTU
 
-**Status: implemented, not certified.** OrderRestro now keeps the records Spain's anti-fraud rules require and can report them to the tax agency (AEAT). It has **not** been run against the live AEAT portal, and NODEDR INFOTECH PRIVATE LIMITED has **not** issued the *Declaración Responsable* that the law requires from the software producer. Do not tell a customer it is "compliant" until both are done.
+> Inherited from Nodedr OrderRestro (upstream). Spain is **outside the scope**
+> of Ahemad's Restro: the code is kept, but on Cloudflare (a) the PostgreSQL
+> triggers that made the record log append-only do not exist in D1, so the
+> "non-alterable" guarantee below is enforced by application code only;
+> (b) submission to AEAT needs a Workers mTLS certificate binding, which is
+> not configured; (c) the integration test suite needs PostgreSQL and is
+> skipped. Treat this module as unavailable unless that work is done.
+
+**Status (upstream): implemented, not certified.** The module keeps the records Spain's anti-fraud rules require and can report them to the tax agency (AEAT). It has **not** been run against the live AEAT portal, and the upstream producer (Nodedr Infotech Private Limited) had **not** issued the *Declaración Responsable* that the law requires from the software producer; neither has anyone for this edition. Do not tell a customer it is "compliant" until both are done.
 
 Background: Real Decreto 1007/2023 and Orden HAC/1177/2024. AEAT's note (updated 13 October 2026) gives 1 January 2027 for corporate-income-tax payers and 1 July 2027 for everyone else; check AEAT for the current position.
 

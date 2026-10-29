@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability
+    url: https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability
+    about: Do not open a public issue. Use "Security → Report a vulnerability" on this repository and follow SECURITY.md.
+  - name: Wem Studios (maintainers of this edition)
+    url: https://wemstudios.in/
+    about: Questions about Ahemad's Restro that are not bugs or feature requests.
+  - name: Nodedr OrderRestro (upstream, self-hosted original)
+    url: https://github.com/Raktim94/nodedr-restaurant-pos/issues
+    about: Problems that also affect the self-hosted original belong in the upstream project.

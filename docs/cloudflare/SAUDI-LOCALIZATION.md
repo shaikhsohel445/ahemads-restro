@@ -1,15 +1,17 @@
-# Saudi Arabia localization
+# Saudi Arabia localization — Ahemad's Restro
 
 ## Languages and RTL
 
-- English and Arabic are complete: **2,183 keys each**
+- English and Arabic are complete: **2,342 keys each** (2,183 at migration time)
   (`apps/web/messages/{en,ar}/<area>.json`, one file per screen area).
   `pnpm i18n:check` fails if any key is missing in Arabic or used in code
   without an English source. Spanish and French from the original app remain
-  as partial translations and fall back to English.
+  as partial translations and fall back to English. The public marketing
+  site's copy is separate, in `apps/web/content/site/` (English and Arabic).
 - Switcher in the sidebar, on sign-in/sign-up, on the landing site, the QR
   order page and the kiosk. The choice is saved in `localStorage`
-  (`nodedr-locale`); first visit follows the browser language. The kiosk
+  (`nodedr-locale`, a key name kept from the upstream so existing devices keep
+  their language); first visit follows the browser language. The kiosk
   starts every customer in Arabic and never remembers a choice
   (`components/kiosk/kiosk-locales.ts`, `KIOSK_DEFAULT_LOCALE`).
 - Choosing Arabic sets `<html lang="ar" dir="rtl">` before first paint
@@ -90,7 +92,8 @@ webhook verification) would be new work and needs provider credentials.
 
 ## Design
 
-Deep emerald primary (`#0B5D4A`), restrained gold accent (`#B08A3E`, used
-for small highlights only), warm sand backgrounds, charcoal text; light and
-dark themes (`apps/web/app/globals.css`). Components, spacing and workflows
-are the original shadcn/ui ones so existing users keep their bearings.
+Deep emerald primary (`#0B5D4A`), restrained gold accent (`#B08A3E` in the
+UI, used for small highlights only; the logo and marketing graphics use the
+brand gold `#C9A35A`), warm sand backgrounds, charcoal text; light and
+dark themes (`apps/web/app/globals.css`). The interface was redesigned afterwards (see DESIGN_SYSTEM.md); workflows
+are the original ones so existing users keep their bearings.

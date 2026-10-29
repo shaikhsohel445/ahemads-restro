@@ -2,12 +2,12 @@
 
 import { DocList, DocPage, DocSection } from "@/components/marketing/doc-page";
 import { inlineCode, linkTo, rich, strong } from "@/components/marketing/rich-text";
-import { downloadHref } from "@/lib/downloads";
+import { SOURCE_CODE_URL } from "@/lib/site/config";
 import { useI18n } from "@/lib/i18n/context";
 
 export function AccessibilityContent() {
   const { t } = useI18n();
-  const tags = { b: strong, code: inlineCode, link: linkTo(downloadHref("github"), true) };
+  const tags = { b: strong, code: inlineCode, link: linkTo(SOURCE_CODE_URL, true) };
 
   return (
     <DocPage title={t("docs.a11y.title")} updated="2026-10-29">

@@ -1,254 +1,225 @@
-# Contributing to Nodedr OrderRestro
+# Contributing to Ahemad's Restro
 
-First off — thank you for considering a contribution. This is a young,
-fast-moving project (Phases 0-3 of a 20-module scope are done; see
-[`ROADMAP.md`](./ROADMAP.md)), which means two things for you as a
-contributor: there's a lot of surface area to help with, and the project
-docs are the actual source of truth, updated every session — read them
-before you read the code.
+Thank you for considering a contribution. This repository is the Cloudflare
+and Saudi Arabia edition of [Nodedr OrderRestro](https://github.com/Raktim94/nodedr-restaurant-pos)
+(upstream), maintained by [Wem Studios](https://wemstudios.in/). Changes that
+apply to the self-hosted original are better proposed upstream.
 
-This guide covers environment setup, the non-negotiable conventions the
-codebase already leans on, and the process for issues/PRs/discussions. If
-anything here is out of date, trust [`PROJECT.md`](./PROJECT.md) and
-`git log` over this file, and please open a PR fixing the drift.
-
-## Table of contents
+## Contents
 
 - [Code of Conduct](#code-of-conduct)
+- [Licence of contributions](#licence-of-contributions)
 - [Before you start](#before-you-start)
 - [Development setup](#development-setup)
 - [Project structure](#project-structure)
 - [Conventions that are not optional](#conventions-that-are-not-optional)
-- [Design bar](#design-bar)
-- [Making a change](#making-a-change)
-- [Commit messages](#commit-messages)
-- [Opening a pull request](#opening-a-pull-request)
-- [Reporting bugs](#reporting-bugs)
-- [Proposing features / architecture changes](#proposing-features--architecture-changes)
-- [Questions & discussion](#questions--discussion)
+- [Translations (English and Arabic)](#translations-english-and-arabic)
+- [Database changes](#database-changes)
+- [User interface](#user-interface)
+- [Checks to run](#checks-to-run)
+- [Branches, commits and pull requests](#branches-commits-and-pull-requests)
+- [Reporting bugs and requesting features](#reporting-bugs-and-requesting-features)
 
 ## Code of Conduct
 
-This project follows the [Contributor Covenant](./CODE_OF_CONDUCT.md). By
-participating, you agree to uphold it. Report unacceptable behavior to
-**mail@raktimranjit.com**.
+This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md). By
+participating you agree to uphold it. Report unacceptable behaviour as
+described there.
 
-## Maintainers & copyright
+## Licence of contributions
 
-See [`MAINTAINERS.md`](./MAINTAINERS.md) — Raktim Ranjit is the lead
-maintainer; project copyright is held jointly by
-[Nodedr Infotech Private Limited](https://www.nodedr.com/) and Raktim
-Ranjit. By submitting a PR, you agree your contribution is licensed under
-the same [AGPL-3.0](./LICENSE) as the rest of the project; you retain
-copyright on your own contribution.
+The project is licensed under [AGPL-3.0-only](LICENSE). By submitting a pull
+request you agree that your contribution is licensed under AGPL-3.0-only as
+well. You keep the copyright on your own contribution. No contributor
+licence agreement or sign-off is required.
+
+Do not submit code you are not allowed to license this way, and do not add
+dependencies whose licence is incompatible with AGPL-3.0 (see
+[docs/LICENSE-REVIEW.md](docs/LICENSE-REVIEW.md)).
 
 ## Before you start
 
-Read, in this order:
+Read these first; they are the source of truth for how this edition works:
 
-1. [`PROJECT.md`](./PROJECT.md) — what this is, the non-negotiable product
-   principles, the full 20-module scope, and current status. This is the
-   source of truth; don't silently re-litigate a decision recorded here —
-   if you think it's wrong, open a discussion (see below) and update it.
-2. [`ARCHITECTURE.md`](./ARCHITECTURE.md) — tech stack and, more
-   importantly, *why* each choice was made (NestJS over Express, Postgres
-   over the originally-specced SQLite, the offline/multi-branch sync
-   model stated honestly). Reading the rationale saves you from proposing
-   something already considered and rejected for a documented reason.
-3. [`ROADMAP.md`](./ROADMAP.md) — the phased build plan and living TODO.
-   Checkboxes here (and `git log`) are the ground truth for what's
-   actually done vs. planned — trust them over prose elsewhere.
-4. [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md) — visual language, tokens,
-   component inventory, and the acceptance bar for UI work ("a screen
-   that looks like a generic admin template is not done").
+1. [README.md](README.md) — overview, setup, environment variables, limitations.
+2. [docs/cloudflare/ARCHITECTURE.md](docs/cloudflare/ARCHITECTURE.md) — the
+   Workers, D1, R2 and Durable Objects layout and why.
+3. [docs/cloudflare/DATABASE.md](docs/cloudflare/DATABASE.md) — D1
+   migrations, and how transactions and isolation differ from PostgreSQL.
+4. [docs/cloudflare/FEATURE-CHECKLIST.md](docs/cloudflare/FEATURE-CHECKLIST.md)
+   and [docs/cloudflare/MIGRATION-REPORT.md](docs/cloudflare/MIGRATION-REPORT.md)
+   — what works, how it was verified, known limitations.
+5. [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) — UI kit, tokens and layout rules.
+
+The documents in [docs/original/](docs/original/) describe the self-hosted
+upstream (Docker, PostgreSQL, Socket.IO). Where they disagree with
+`docs/cloudflare/`, the Cloudflare documents are correct for this repository.
+
+For a large change (a new module, a change to an architecture decision),
+open an issue first to agree on the approach.
 
 ## Development setup
 
-**Prerequisites:** Node.js 22+, [pnpm](https://pnpm.io), Docker (for
-Postgres, or the whole stack), and a Postgres instance if not using
-Docker for it.
-
-### Option A — full stack via Docker
-
-```bash
-git clone https://github.com/Raktim94/nodedr-restaurant-pos.git
-cd nodedr-restaurant-pos
-cp .env.example .env                 # edit JWT_SECRET / POSTGRES_PASSWORD for anything beyond local dev
-docker compose up -d --build
-docker exec nodedr-restaurant-backend npx ts-node prisma/seed.ts   # first run only — demo data + login
-```
-
-Open <http://localhost:1995> and sign in with `owner@demo.local` /
-`Password123!` (seeded demo account — never use this in a real
-deployment). The backend API and Swagger docs (`/api/docs`) are reachable
-only through the web app's `/api` proxy, matching `nodedr-pos`'s pattern —
-they are not published directly to the host.
-
-### Option B — local dev (apps run on the host, Postgres in Docker)
+Requirements: Node.js 24 (or 22.12+; not 23) and pnpm 11 (`corepack enable`).
+No Cloudflare account is needed for development.
 
 ```bash
 pnpm install
-docker compose up -d postgres                               # just the DB
-cp apps/backend/.env.example apps/backend/.env               # point DATABASE_URL at your Postgres
 pnpm --filter @ahemads-restro/types build
-cd apps/backend && npx prisma migrate dev && npx ts-node prisma/seed.ts && cd ../..
-pnpm dev   # runs backend (:4001) and web (:1995) together via Turborepo
+cp apps/api/.dev.vars.example apps/api/.dev.vars     # set JWT_SECRET (openssl rand -hex 32)
+pnpm db:migrate:local
+pnpm db:seed:local                                   # demo: owner@demo.local / Password123! (local only)
+pnpm --filter @ahemads-restro/api dev                # API on :8787
+pnpm --filter @ahemads-restro/web preview            # web Worker on :1995
 ```
 
-### Before opening a PR, locally run
+For frontend work with hot reload, copy `apps/web/.env.example` to
+`apps/web/.env.local` and run `pnpm --filter @ahemads-restro/web dev`
+instead of `preview`. After changing API code, restart `wrangler dev` (the
+API is a bundle built by `apps/api/build.mjs`). Full details:
+[docs/cloudflare/LOCAL-DEVELOPMENT.md](docs/cloudflare/LOCAL-DEVELOPMENT.md).
 
-```bash
-pnpm lint
-pnpm typecheck
-pnpm build
-```
-
-There is no CI workflow wired up yet (tracked in `PROJECT.md`/`ROADMAP.md`
-— a good first contribution if you want one) — until it lands, a green
-local `lint` + `typecheck` + `build` is the actual gate, so run all three
-before requesting review.
+Never commit `apps/api/.dev.vars`, `apps/web/.env.local` or any real secret.
 
 ## Project structure
 
 ```
-apps/backend    NestJS API — REST (/api/v1), Swagger at /api/docs, Socket.IO gateways
-apps/web        Next.js — back-office, POS, KDS, public QR-ordering site
-packages/types  Shared Zod schemas / TS types (DTOs) used by both apps
-docker/         Container assets
-docs/           Screenshots and supplementary docs
+apps/api          NestJS API on Workers; one NestJS module per domain in src/modules/<domain>
+apps/web          Next.js application (app/(app)) and marketing site (app/(site))
+packages/types    shared Zod schemas, tax regimes, regional defaults, ZATCA QR, brand config
+scripts/          asset generators, PostgreSQL -> D1 migration tooling, smoke test
+docs/             Cloudflare, marketing and original (upstream) documentation
 ```
 
-Each backend domain is its own NestJS module
-(`apps/backend/src/modules/<domain>`) with its own controllers, services,
-and DTOs, wired together at `AppModule`. Adding a new domain means adding
-a module, not threading new routes through a shared app — see
-`ARCHITECTURE.md` for why.
+A new backend domain is a new NestJS module wired into `AppModule`, not new
+routes threaded through an existing one.
 
 ## Conventions that are not optional
 
-These are documented, previously-learned-the-hard-way rules (some
-inherited from this project's sister repo, `nodedr-pos`, which hit these
-bugs in production). PRs that violate them will be asked to change before
-merge, regardless of otherwise-good code:
+Pull requests that break these rules will be asked to change before merge.
 
-- **Server-authoritative money.** All pricing, tax, discount, and loyalty
-  math is computed server-side — never trust a total/amount from the
-  client. Menu prices are tax-inclusive; GST/VAT is backed out, never
-  added on top (see `apps/backend/src/modules/orders/pricing.ts`).
-- **Round, then `set` — never DB-side `increment`.** Any running money
-  balance (loyalty points, gift card balance, wallet credit) is updated
-  via a rounded read-modify-write `set`. `increment` on a Float column
-  drifts over many transactions — this is a real bug this project
-  inherited a lesson from, not a style preference.
-- **One Zod schema per DTO, shared.** Validation schemas live in
-  `packages/types` and drive both the NestJS `ZodValidationPipe` and the
-  frontend's `react-hook-form` resolvers. Don't hand-roll a parallel
-  frontend-only or backend-only shape for something that already has a
-  shared schema.
-- **RBAC via decorator, never a hardcoded role check.** Every
-  permission-gated action uses `@Auth('permission.key')`
-  (JwtAuthGuard + PermissionsGuard combined). If the permission you need
-  doesn't exist yet, add it to the seeded permission list — don't branch
-  on `user.role === 'owner'` in business logic.
-- **Realtime via the gateway + hook, not polling.** `RealtimeGateway`
-  (Socket.IO) pushes KOT/table/order events into a per-branch room; the
-  frontend's `useRealtime` hook invalidates the matching TanStack Query
-  cache. If you need a screen to update live, wire into this pattern
-  rather than adding a `setInterval` poll.
+- **Server-authoritative money.** Prices, tax, discounts, loyalty and totals
+  are computed on the server (`apps/api/src/modules/orders/pricing.ts`,
+  `settlement.ts`). Never trust an amount, total or tax value sent by a
+  client. Whether a menu price includes tax is a per-branch setting
+  (inclusive for `SA_VAT`); tax is backed out of inclusive prices, never
+  added on top.
+- **Round before you store.** Money amounts are rounded to the minor unit
+  (`round2`) before they are written. Prefer an atomic Prisma `increment`
+  with an already-rounded amount or an integer (as for loyalty points and
+  store-credit refunds) over a read-modify-write, and never accumulate
+  unrounded floating-point values in the database.
+- **One shared Zod schema per DTO.** Validation schemas live in
+  `packages/types` and drive both the API's `ZodValidationPipe` and the
+  frontend forms. Do not write a parallel frontend-only or backend-only shape
+  for something that already has a shared schema.
+- **Permissions through the decorator.** Every permission-gated route uses
+  `@Auth('permission.key')` and the branch-access checks. Do not branch on a
+  role name in business logic; if a permission is missing, add it to the
+  permission list. Hiding a link in the UI is never the only check.
+- **Realtime through the hub, not polling.** Services call
+  `RealtimeGateway.emitToBranch` / `emitToUsers` after their D1 writes; the
+  `RealtimeHub` Durable Object delivers the event and the frontend's
+  `useRealtime` hook invalidates the matching TanStack Query cache. Pushes are
+  hints: screens refetch from the API. Do not add `setInterval` polling.
+- **Respect the Workers request lifetime.** Work that is not awaited before
+  the response (webhooks, audit writes, realtime pushes) must go through
+  `detach()` / `waitUntil()` (`apps/api/src/cloudflare/bindings.ts`).
+- **No interactive transactions to rely on.** D1 does not roll back an
+  interactive `$transaction` callback; validate input and permissions before
+  the first write, and use the array form `$transaction([a, b])` (an atomic
+  D1 batch) where atomicity matters. See DATABASE.md.
+- **No hardcoded region or brand.** Currency, time zone and tax come from the
+  restaurant and branch settings with defaults in
+  `packages/types/src/region.ts`; product name, colours and developer details
+  come from `packages/types/src/brand.ts`. Deployment-specific values (site
+  URL, analytics id, verification tokens) come from environment variables,
+  never from code.
+- **Compatibility identifiers stay.** `nodedr_session`, `nodedr-locale` and the
+  other `nodedr*` browser storage keys,
+  `X-OrderRestro-*` webhook headers, the `orderrestro-d1/1` backup format and
+  the `orderrestro:order:` QR prefix are kept on purpose so existing data,
+  devices and integrations keep working. Do not rename them without a
+  migration plan.
 
-## Design bar
+## Translations (English and Arabic)
 
-This is explicitly not "POS-ugly": every screen is held to the same bar
-as Stripe Dashboard, Linear, Notion, Vercel, Shopify Admin — see
-`DESIGN_SYSTEM.md` for tokens, type scale, component inventory, and
-per-surface notes (POS trades some spaciousness for speed/density on
-purpose; KDS type sizes are larger because it's read from across a
-kitchen). If a UI contribution looks like a generic admin template, it's
-not done yet, regardless of whether it works. WCAG AA is the accessibility
-floor — keyboard-navigable everywhere, visible focus states, especially
-on POS/KDS screens used under time pressure.
+- Every user-visible string in the application goes through `t()` with a key
+  in `apps/web/messages/en/<area>.json` **and** `apps/web/messages/ar/<area>.json`.
+  `pnpm i18n:check` must pass.
+- Marketing site copy lives in `apps/web/content/site/` with an `en` and an
+  `ar` version of each text (or an explicit list of the languages a page
+  exists in).
+- Layouts must work right-to-left: use logical utilities
+  (`ms-`/`me-`/`ps-`/`pe-`/`start-`/`end-`/`text-start`), mark directional
+  icons to mirror, and isolate numbers, codes and phone numbers inside Arabic
+  text with `<bdi>` or `dir="ltr"`.
+- If you are not confident in Arabic, say so in the pull request so a
+  reviewer can check the wording.
 
-## Making a change
+## Database changes
 
-1. Fork the repo and create a branch off `master`:
-   `git checkout -b feat/short-description` (or `fix/`, `docs/`, `chore/`
-   as appropriate).
-2. Keep the change scoped. A bug fix doesn't need a drive-by refactor; a
-   new module doesn't need to also restyle an unrelated screen. Smaller
-   PRs get reviewed faster.
-3. If your change touches a money, RBAC, or realtime path, re-read the
-   relevant rule above and say in the PR description how you satisfied it.
-4. Update the relevant doc in the same PR: check off the matching item in
-   `ROADMAP.md` if you closed a roadmap item, or note a scope-cut /
-   deviation there if you took a different approach than planned — this
-   repo's convention is to record deviations inline rather than let docs
-   silently drift from the code.
+Edit `apps/api/prisma/schema.prisma`, then generate the next migration:
 
-## Commit messages
-
-Write for the *why*, not the *what* — the diff already shows what changed.
-
+```bash
+pnpm --filter @ahemads-restro/api db:new-migration short_name
+pnpm db:migrate:local
 ```
-Fix loyalty point drift on repeated redemptions
 
-Running balance was updated with a DB-side increment on a Float column,
-which compounds rounding error over many transactions. Switched to a
-rounded read-modify-write set, matching the rule this project inherited
-from nodedr-pos's original bug.
+Commit the generated `apps/api/migrations/000N_short_name.sql` with the schema
+change, after reviewing the SQL. Never edit a migration that has already been
+merged; add a new one. The PostgreSQL migrations in
+`apps/api/prisma/pg-migrations-reference/` are reference material for the
+data migration test and must not be changed.
+
+## User interface
+
+Follow [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md): the shared primitives in
+`apps/web/components/ui/`, mobile-first layouts with no horizontal page
+scroll, touch targets of at least 44 px on service screens (POS, KDS,
+tables), and WCAG 2.1 AA as the accessibility floor
+([ACCESSIBILITY.md](ACCESSIBILITY.md)). Attach screenshots in English and
+Arabic, at phone and desktop widths, for UI changes.
+
+## Checks to run
+
+Before opening a pull request:
+
+```bash
+pnpm typecheck
+pnpm lint
+pnpm test
+pnpm i18n:check
 ```
 
-No fixed prefix convention (`feat:`/`fix:`) is enforced yet — clear prose
-is more important than format. Keep the subject line under ~70 characters.
+When you change API behaviour, also run the end-to-end smoke test against
+your local API (`pnpm test:smoke`). When you touch `scripts/migration/`, run
+`pnpm test:migration` (needs PostgreSQL binaries). CI runs the type check,
+tests, translation check, both Worker builds, the smoke test and the
+migration test on every pull request.
 
-## Opening a pull request
+## Branches, commits and pull requests
 
-- Target the `master` branch.
-- Fill in the PR template (what changed, why, how you tested it).
-- Make sure `pnpm lint && pnpm typecheck && pnpm build` pass locally —
-  see [Development setup](#development-setup).
-- Screenshots or a short clip for anything touching `apps/web` UI —
-  this project is held to a real visual bar, and "trust me, it looks
-  fine" isn't reviewable.
-- Link the issue it closes, if any (`Closes #123`).
-- Expect review comments referencing the conventions above by name —
-  that's not personal, it's the same bar every change (including the
-  maintainer's own) gets held to.
+1. Fork the repository and branch from `master`:
+   `feat/short-description`, `fix/…`, `docs/…` or `chore/…`.
+2. Keep each pull request to one concern. A bug fix does not need an
+   unrelated refactor.
+3. Write commit messages that explain why, not only what. Keep the subject
+   line under about 70 characters; an area prefix such as `api:`, `web:` or
+   `docs:` is welcome but not required.
+4. Open the pull request against `master` and fill in the template: what
+   changed, why, how you tested it, and screenshots for UI changes.
+5. If the change touches money, permissions, realtime or tax, say in the
+   description how it follows the rules above.
+6. Update the documentation in the same pull request when behaviour,
+   configuration or limitations change (README, `docs/cloudflare/`, and
+   CHANGELOG.md under **Unreleased**).
 
-## Reporting bugs
+## Reporting bugs and requesting features
 
-Open an issue with:
+Use the issue templates. Mark money-correctness and permission bugs (a total
+that does not match its lines, a permission that does not actually block an
+action) clearly in the title; they are treated as high priority.
 
-- What you expected vs. what happened.
-- Repro steps (exact — "click X, then Y" beats "sometimes breaks").
-- Whether it's Docker or local dev, and your Node/pnpm/Postgres versions.
-- Logs/screenshots if the bug is visual or server-side.
-
-Money-correctness and RBAC bugs (a permission that doesn't actually gate
-an action, a total that doesn't match line items) are treated as high
-priority — call that out explicitly in the issue title.
-
-## Proposing features / architecture changes
-
-The 20-module scope in `PROJECT.md` is the north star, sequenced by
-`ROADMAP.md` — before proposing a new module or a different sequencing,
-check both; there's a good chance the tradeoff is already discussed
-there. For anything that changes an already-recorded decision (e.g.
-database choice, auth model, sync strategy in `ARCHITECTURE.md`), open a
-GitHub Discussion or an issue tagged `discussion` laying out:
-
-1. What's recorded today and why (link the doc section).
-2. What you're proposing instead, and what changes as a result.
-3. What it costs to change now vs. later.
-
-Small, additive proposals (a new report, a new permission, a new
-integration) can just be a normal feature-request issue or straight to a
-PR.
-
-## Questions & discussion
-
-Use [GitHub Discussions](https://github.com/Raktim94/nodedr-restaurant-pos/discussions)
-for "how do I…" / "why does X work this way" / general chat. Use Issues
-for concrete bugs and feature requests. Keep architecture debates in
-Discussions or a tagged issue rather than scattered across PR comments,
-so the reasoning is findable later instead of buried in a merged PR's
-history.
+**Security vulnerabilities must not be reported in public issues.** Follow
+[SECURITY.md](SECURITY.md).

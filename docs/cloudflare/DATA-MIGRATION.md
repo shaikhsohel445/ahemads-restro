@@ -1,5 +1,8 @@
 # Moving an existing installation's data (PostgreSQL → D1 + R2)
 
+For restaurants running the self-hosted Nodedr OrderRestro (upstream) on
+PostgreSQL that move to Ahemad's Restro on Cloudflare.
+
 Tooling: `scripts/migration/pg-to-d1/` (package `@ahemads-restro/migration-tools`).
 
 | Step | Script | Touches |
@@ -12,7 +15,7 @@ Tooling: `scripts/migration/pg-to-d1/` (package `@ahemads-restro/migration-tools
 ## What has been verified
 
 `scripts/migration/test/run-local.sh` (also run in CI) builds a throwaway
-PostgreSQL from the **original 38 migrations**, loads
+PostgreSQL from the **upstream's original 38 migrations**, loads
 `scripts/migration/test/fixture.sql` (Arabic text, decimals, dates, `text[]`
 and `int[]` arrays, JSON, a bytea attachment, S3 credentials, sync rows), runs
 all four steps into a local D1/R2 and validates. Result: every row count,
@@ -34,7 +37,7 @@ steps below are what remains to do with real data.
 2. **Export.**
    ```bash
    cd scripts/migration
-   SOURCE_DATABASE_URL=postgresql://user:pass@host:5432/orderrestro \
+   SOURCE_DATABASE_URL=postgresql://user:pass@host:5432/<database> \
      node pg-to-d1/export-postgres.mjs --out ./export
    ```
 3. **Transform** (add `--uploads-dir` pointing at a copy of the old

@@ -1,12 +1,18 @@
-# OrderRestro integrations: MCP server and public API
+# Ahemad's Restro integrations: MCP server and public API
 
-OrderRestro exposes two separate ways to integrate with it programmatically,
+> Inherited from Nodedr OrderRestro (upstream) and updated for Ahemad's
+> Restro on Cloudflare. The API routes and payloads are unchanged from the
+> upstream. Rate limits per minute are counted per Worker isolate (see
+> `apps/api/src/cloudflare/rate-limit.ts`), and the MCP endpoint has not been
+> exercised on Cloudflare yet (docs/cloudflare/FEATURE-CHECKLIST.md).
+
+Ahemad's Restro exposes two separate ways to integrate with it programmatically,
 each with its own credential type. Both are managed from **Settings > API
 Keys** in the app.
 
 | | **Personal API keys (MCP)** | **Integration API keys** |
 |---|---|---|
-| Who it's for | You (a staff member), connecting an AI client or script | An external website/system using OrderRestro as a backend |
+| Who it's for | You (a staff member), connecting an AI client or script | An external website/system using Ahemad's Restro as a backend |
 | Identity | Acts as you, with your exact role permissions | No staff identity — carries its own explicit permission list |
 | Created by | Any logged-in staff member, for themselves | Anyone with the `settings.manage` permission (owners/admins) |
 | Scope | Everything you can already do in the app | Only what you tick when creating the key, optionally locked to one location |
@@ -23,7 +29,7 @@ Point an MCP client (Claude Desktop, or any [Model Context
 Protocol](https://modelcontextprotocol.io) client) at:
 
 ```
-https://<your-orderrestro-domain>/api/v1/mcp
+https://<your-domain>/api/v1/mcp
 ```
 
 with header `Authorization: Bearer <personal api key>`. Create a key from
@@ -104,18 +110,18 @@ curl -X POST https://your-domain/api/v1/mcp \
 
 ## 2. Integration API (for an external website's backend)
 
-A REST API an external system calls as OrderRestro's backend — browse a
+A REST API an external system calls as its restaurant backend — browse a
 location's menu, place an order, book a table, check status. Create a key
 from **Settings > API Keys > Integration API keys > New key**: pick a name,
 optionally scope it to one location ("selected location"), and tick the
 exact permissions ("scopes") it needs.
 
 **This is meant for server-to-server calls** — your website's own backend
-calling OrderRestro, not embedding the raw key in browser JavaScript. The
+calling Ahemad's Restro, not embedding the raw key in browser JavaScript. The
 key is a reusable credential, not a per-resource token, so treat it like any
 other API secret.
 
-Base URL: `https://<your-orderrestro-domain>/api/v1/integrations`
+Base URL: `https://<your-domain>/api/v1/integrations`
 
 Every request needs `Authorization: Bearer <integration api key>`. A
 request to a scope the key wasn't granted returns `403`; a request for a
@@ -252,7 +258,9 @@ website can show the price before the guest orders:
 ## 3. Webhooks (events pushed to your system)
 
 Add one under **Settings > Webhooks**. Each request is a `POST` with a JSON
-body `{ "event", "createdAt", "data" }` and these headers:
+body `{ "event", "createdAt", "data" }` and these headers (their
+`X-OrderRestro-` prefix is kept from the upstream for compatibility, so
+existing receivers keep verifying):
 
 - `X-OrderRestro-Event` — the event name
 - `X-OrderRestro-Delivery` — unique delivery id (use it to de-duplicate)
@@ -264,12 +272,14 @@ Events: `order.created`, `order.paid`, `order.cancelled`,
 `reservation.created`, `delivery.updated`, `campaign.message`.
 
 Any 2xx response accepts a delivery. Anything else is retried after 1 min,
-5 min, 30 min, 2 h and 12 h, then marked failed (visible in the log).
+5 min, 30 min, 2 h and 12 h, then marked failed (visible in the log). On
+Cloudflare, retries are picked up by a Cron Trigger that runs every minute,
+so a retry can be up to a minute later than its scheduled time.
 
 Webhook URLs must be `https`, and must not point at a private/internal
-address. On a self-hosted LAN where the receiver is on the local network,
-set `WEBHOOKS_ALLOW_PRIVATE=true` (and `WEBHOOKS_ALLOW_INSECURE=true` for
-plain `http`) on the backend.
+address. `WEBHOOKS_ALLOW_PRIVATE=true` and `WEBHOOKS_ALLOW_INSECURE=true`
+relax these checks, but a Cloudflare Worker cannot reach private networks
+anyway: the receiver must be reachable from the internet.
 
 Verifying in Node:
 
@@ -285,9 +295,12 @@ function verify(secret, rawBody, header) {
 
 ## Email
 
-Campaign email is sent through your own SMTP server. Set on the backend:
-`SMTP_URL=smtp://user:pass@host:587` and `SMTP_FROM="My Cafe <hello@mycafe.com>"`.
-Without them, email campaigns refuse to send (nothing is queued silently).
+Campaign, scheduled-report and demo-request email is sent through the
+Resend or SendGrid HTTPS API (SMTP is not available on Workers). Set on the
+API Worker: `EMAIL_PROVIDER` (`resend`, the default, or `sendgrid`),
+`EMAIL_API_KEY` (a Wrangler secret) and `EMAIL_FROM="My Cafe <hello@mycafe.com>"`
+on a domain verified with the provider. Without them, email campaigns refuse
+to send (nothing is queued silently).
 
 ## Two-factor authentication
 

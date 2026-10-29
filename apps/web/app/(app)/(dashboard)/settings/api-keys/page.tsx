@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Bot, KeyRound, Plug, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -113,9 +114,9 @@ function StaffApiKeysCard() {
               Authorization: Bearer &lt;key&gt;
             </code>
             {t("settings.apiKeys.mcpHeaderAfter")}{" "}
-            <a href="/docs/api" className="font-medium text-primary underline underline-offset-2">
+            <Link href="/docs/api" className="font-medium text-primary underline underline-offset-2">
               {t("settings.apiKeys.apiDocs")}
-            </a>
+            </Link>
             {t("settings.apiKeys.mcpDocsAfter")}
           </p>
         </SettingsCallout>

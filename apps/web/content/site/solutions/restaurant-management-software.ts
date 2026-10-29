@@ -86,7 +86,7 @@ export const restaurantManagementSoftware: SolutionPage = {
         body: "Request a demo and Wem Studios will contact you to walk through ordering, the kitchen display, billing and reports with a setup like yours.",
       },
       image: {
-        src: "/images/product/screens/dashboard-en.png",
+        src: "/images/product/screens/dashboard-en.webp",
         alt: "Ahemad's Restro dashboard showing today's revenue, orders, occupied tables and the kitchen queue",
       },
     },
@@ -168,7 +168,7 @@ export const restaurantManagementSoftware: SolutionPage = {
         body: "اطلب عرضًا تجريبيًا وسيتواصل معك فريق Wem Studios ليعرض عليك الطلبات وشاشة المطبخ والفواتير والتقارير بإعداد قريب من مطعمك.",
       },
       image: {
-        src: "/images/product/screens/dashboard-ar.png",
+        src: "/images/product/screens/dashboard-ar.webp",
         alt: "لوحة تحكم Ahemad's Restro بالعربية تعرض إيرادات اليوم والطلبات والطاولات المشغولة وطابور المطبخ",
       },
     },

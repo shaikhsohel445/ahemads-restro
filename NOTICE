@@ -1,0 +1,103 @@
+Ahemad's Restro
+Restaurant management software on Cloudflare, in English and Arabic.
+
+This edition is designed and developed by Wem Studios
+(https://wemstudios.in/, +91 8308042362).
+
+Licensed under the GNU Affero General Public License, version 3 only
+(AGPL-3.0-only). The full licence text is in the LICENSE file.
+
+
+UPSTREAM PROJECT
+----------------
+
+This software is a modified version of Nodedr OrderRestro:
+
+    Nodedr OrderRestro
+    https://github.com/Raktim94/nodedr-restaurant-pos
+    Copyright (C) 2026 Nodedr Infotech Private Limited and Raktim Ranjit
+    Licensed under AGPL-3.0-only
+
+The business logic, REST API, data model and application screens originate
+in that project. Its copyright notice is retained at the top of LICENSE and
+in this file. The upstream documentation is kept, for history, in
+docs/original/.
+
+Wem Studios does not claim ownership of the upstream code or of any
+third-party code included in or used by this repository.
+
+
+CHANGES MADE IN THIS EDITION
+----------------------------
+
+Relative to the upstream baseline imported in commit f4d6876 (2026-10-29).
+CHANGELOG.md and `git log` record the changes in detail.
+
+- Runtime: the NestJS API runs on Cloudflare Workers (apps/backend renamed
+  to apps/api; Worker entry src/worker.ts; esbuild bundle build.mjs).
+- Database: PostgreSQL replaced by Cloudflare D1 through Prisma 7 and its D1
+  adapter; schema converted; new D1 migration history; per-restaurant write
+  lock (Durable Object) in place of row locks.
+- Realtime: Socket.IO replaced by a Durable Object WebSocket hub per
+  restaurant and a browser WebSocket client.
+- Storage and jobs: uploads, document attachments and backups moved to R2;
+  timers replaced by Cron Triggers; logical D1 backups instead of pg_dump.
+- E-mail: SMTP replaced by the Resend or SendGrid HTTPS APIs. PDF export moved
+  from pdfkit to pdf-lib with an embedded Arabic font.
+- Printing: USB thermal printing disabled on Workers; network printing over
+  Cloudflare TCP sockets.
+- Frontend hosting: Next.js built with OpenNext and served as a Worker that
+  forwards /api to the API Worker over a service binding.
+- Saudi edition: English/Arabic with RTL across the application; SAR,
+  Asia/Riyadh and SA defaults; SA_VAT tax regime (15 % default, inclusive);
+  ZATCA Phase 1 QR on simplified tax invoices; mada, STC Pay and Apple Pay
+  payment methods; Arabic-first kiosk.
+- Data migration tooling: PostgreSQL to D1/R2 export, transform, import and
+  validation (scripts/migration).
+- Interface redesign: new theme, navigation shell and UI primitives; screens
+  reworked for mobile and tablet.
+- Rebrand to Ahemad's Restro: new name, logo and icon set, central brand
+  configuration (packages/types/src/brand.ts), package scope @ahemads-restro,
+  renamed Workers and Cloudflare resources.
+- New features: public marketing website in English and Arabic with SEO
+  metadata, sitemap, robots, blog and legal pages; demo request endpoint and
+  storage; adding branches from the application.
+- Removed: self-hosted packaging (Docker, CasaOS, Windows MSIX, .deb,
+  installer scripts), the Docker updater and their CI workflows. They remain
+  available in the upstream repository.
+
+Some identifiers from the upstream are kept unchanged for compatibility with
+existing data, devices and integrations: the session cookie `nodedr_session`,
+browser storage keys `nodedr-locale`, `nodedr-sidebar-collapsed`,
+`nodedr_branch_id` and `nodedr_notifications_muted`, the customer-display
+browser channel `orderrestro-customer-display`, webhook headers
+`X-OrderRestro-*`, the backup format `orderrestro-d1/1`, and the order ticket
+QR prefix `orderrestro:order:`.
+
+
+THIRD-PARTY COMPONENTS
+----------------------
+
+Dependencies are installed from npm and keep their own licences; they are
+listed in each package's own metadata and summarised in
+docs/LICENSE-REVIEW.md.
+
+Fonts:
+- IBM Plex Sans Arabic, Copyright (C) 2017 IBM Corp., SIL Open Font License
+  1.1. Font files and licence: apps/api/assets/fonts/ (OFL.txt). Embedded in
+  PDF exports and printed receipts, loaded in the web app through next/font,
+  and used to draw the wordmark outlines of the logo (scripts/assets/brand.mjs).
+- Geist and Geist Mono (Vercel), SIL Open Font License 1.1, loaded through
+  next/font/google at build time (apps/web/lib/fonts.ts).
+
+
+TRADEMARKS
+----------
+
+"Ahemad's Restro" and its logos belong to their owner. "Nodedr", "Nodedr
+OrderRestro" and "OrderRestro" are names of their respective owners and are
+used here only to attribute the upstream project; their use does not imply
+endorsement. Other product names (for example Cloudflare, ZATCA, mada,
+STC Pay, Apple Pay, Resend, SendGrid, Google) belong to their respective
+owners. The AGPL-3.0 licence covers the code; it does not grant rights to
+use these names or logos.

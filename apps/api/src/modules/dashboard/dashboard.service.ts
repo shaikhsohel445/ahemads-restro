@@ -1,13 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { BranchTimeService } from '../../common/services/branch-time.service';
+import { addDaysToDate, localDate, zonedDayStart } from '../../common/time';
 
 @Injectable()
 export class DashboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly branchTime: BranchTimeService,
+  ) {}
 
   async getSummary(branchId: string) {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
+    // "Today" is the restaurant's calendar day; Workers run in UTC.
+    const tz = await this.branchTime.tzForBranch(branchId);
+    const startOfDay = zonedDayStart(localDate(new Date(), tz), tz);
 
     const [
       revenueAgg,
@@ -98,9 +104,9 @@ export class DashboardService {
   }
 
   async getTrends(branchId: string, days = 14) {
-    const since = new Date();
-    since.setHours(0, 0, 0, 0);
-    since.setDate(since.getDate() - (days - 1));
+    const tz = await this.branchTime.tzForBranch(branchId);
+    const firstDay = addDaysToDate(localDate(new Date(), tz), -(days - 1));
+    const since = zonedDayStart(firstDay, tz);
 
     const [orders, wasteLogs] = await Promise.all([
       this.prisma.order.findMany({
@@ -113,20 +119,13 @@ export class DashboardService {
       }),
     ]);
 
-    // Local-calendar-day key, not UTC — this server runs on-site at the
-    // restaurant (the whole point of the offline-first/LAN deployment
-    // model), so its local timezone is the restaurant's. toISOString()
-    // would convert to UTC first, shifting "today" onto "yesterday"'s
-    // label for any positive UTC offset (e.g. IST) once local time passes
-    // midnight but UTC hasn't yet.
-    const dateKey = (d: Date) =>
-      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    // Bucket by the restaurant's local calendar day, not UTC: a Riyadh
+    // dinner at 01:00 local belongs to that night, not to "yesterday" in UTC.
+    const dateKey = (d: Date) => localDate(d, tz);
     const revenueByDay = new Map<string, number>();
     const wasteByDay = new Map<string, number>();
     for (let i = 0; i < days; i++) {
-      const d = new Date(since);
-      d.setDate(d.getDate() + i);
-      const key = dateKey(d);
+      const key = addDaysToDate(firstDay, i);
       revenueByDay.set(key, 0);
       wasteByDay.set(key, 0);
     }

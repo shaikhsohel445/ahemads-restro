@@ -1,5 +1,17 @@
 # Permissions, stock tracking, thermal printing, KDS station
 
+> Inherited from Nodedr OrderRestro (upstream). The behaviour described here
+> is unchanged in Ahemad's Restro, with these Cloudflare differences:
+> the PostgreSQL migrations named below are folded into the single D1 schema
+> (`apps/api/migrations/0001_initial_schema.sql`); D1 does not roll back an
+> interactive transaction, so "rolled back" below relies on the checks made
+> before the first write and on the per-restaurant write lock
+> (docs/cloudflare/DATABASE.md); USB printing is unavailable on Workers; and
+> the ESC/POS code pages print no Arabic text and no ZATCA QR code — use the
+> browser print path for Arabic receipts. The `test:e2e` commands at the end
+> belong to the upstream PostgreSQL setup and have no equivalent script in
+> this repository.
+
 ## Roles: read-only menu/tables and the sales policy
 
 | Permission | Grants |
@@ -81,8 +93,9 @@ Both **Bill** and **KOT** have two paths in the POS:
   or the reason it is not (refused, unreachable, timed out).
 - **The printer must be reachable from the backend.** The backend opens the connection, not the
   browser. A server hosted in the cloud cannot reach a USB printer or a private LAN address in the
-  restaurant; there, use the browser print buttons, a VPN to the restaurant network, or run
-  OrderRestro on a machine inside it. This is why kitchen printing "did nothing" on remote servers.
+  restaurant; there, use the browser print buttons or a printer reachable from the internet.
+  (The self-hosted upstream can instead run on a machine inside the restaurant.) This is why
+  kitchen printing "did nothing" on remote servers.
 
 ### Kitchen tickets (KOT)
 - One ticket per kitchen round and station, built from that ticket's own lines: order number, table

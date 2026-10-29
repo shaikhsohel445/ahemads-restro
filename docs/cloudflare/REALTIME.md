@@ -2,7 +2,7 @@
 
 ## Then and now
 
-| | Self-hosted | Cloudflare |
+| | Self-hosted (Nodedr OrderRestro, upstream) | Cloudflare (Ahemad's Restro) |
 |---|---|---|
 | Server | Socket.IO gateway inside the Nest process | `RealtimeHub` Durable Object, one per restaurant (`apps/api/src/realtime/realtime-hub.do.ts`) |
 | Endpoint | `/socket.io/` (polling → websocket) | `GET /api/realtime?branchId=…` (WebSocket upgrade) |

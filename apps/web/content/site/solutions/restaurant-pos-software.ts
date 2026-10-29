@@ -85,7 +85,7 @@ export const restaurantPosSoftware: SolutionPage = {
         body: "Request a demo and Wem Studios will contact you to show how your cashiers would take orders, send them to the kitchen and close bills.",
       },
       image: {
-        src: "/images/product/screens/pos-en.png",
+        src: "/images/product/screens/pos-en.webp",
         alt: "Restaurant POS screen with menu categories, item cards and the current order with its total",
       },
     },
@@ -166,7 +166,7 @@ export const restaurantPosSoftware: SolutionPage = {
         body: "اطلب عرضًا تجريبيًا وسيتواصل معك فريق Wem Studios ليعرض لك كيف يسجّل الكاشير الطلبات ويرسلها إلى المطبخ ويغلق الفواتير.",
       },
       image: {
-        src: "/images/product/screens/pos-ar.png",
+        src: "/images/product/screens/pos-ar.webp",
         alt: "شاشة نقطة البيع بالعربية مع فئات القائمة والأصناف والطلب الحالي وإجماليه",
       },
     },
