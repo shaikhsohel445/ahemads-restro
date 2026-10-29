@@ -9,6 +9,8 @@ export interface CartLine {
   modifierIds: string[];
   modifierLabel?: string;
   portion?: Portion;
+  /** The item's VAT rate, used only for the cart's VAT-included preview. */
+  taxRatePercent?: number;
 }
 
 export type PortionKind = "HALF" | "FULL" | "CUSTOM";

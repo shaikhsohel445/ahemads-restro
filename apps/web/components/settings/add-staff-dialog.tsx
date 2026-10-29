@@ -1,5 +1,6 @@
 "use client";
 
+import { UserPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -87,7 +88,7 @@ export function AddStaffDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm">{t("settings.staff.add")}</Button>} />
+      <DialogTrigger render={<Button size="sm"><UserPlus className="size-4" />{t("settings.staff.add")}</Button>} />
       <DialogContent className="sm:max-w-md">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>

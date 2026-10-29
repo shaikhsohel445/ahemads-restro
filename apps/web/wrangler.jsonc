@@ -8,6 +8,10 @@
   "main": "worker.ts",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  // next-themes (and other libraries) inline a function's source into the
+  // page as a <script>; esbuild's keep-names wrapping would put calls to its
+  // __name() helper inside that source, which does not exist in the browser.
+  "keep_names": false,
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
   "observability": { "enabled": true },
   "services": [

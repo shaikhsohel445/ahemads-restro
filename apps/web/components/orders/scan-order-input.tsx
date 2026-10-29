@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { openEntity } from "@/lib/entity-events";
 import { useI18n } from "@/lib/i18n/context";
 import { normalizeScan } from "@/lib/scan";
+import { cn } from "@/lib/utils";
 
 const TABS = ["pending", "active", "history"] as const;
 
@@ -16,7 +17,7 @@ const TABS = ["pending", "active", "history"] as const;
 // camera API. Typing the number by hand works identically, which is the
 // manual fallback. This only OPENS the order; it never changes it or marks it
 // paid - payment stays a separate, deliberate action in the order window.
-export function ScanOrderInput({ branchId }: { branchId: string | null }) {
+export function ScanOrderInput({ branchId, className }: { branchId: string | null; className?: string }) {
   const { t } = useI18n();
   const [value, setValue] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -60,7 +61,7 @@ export function ScanOrderInput({ branchId }: { branchId: string | null }) {
 
   return (
     <form
-      className="flex max-w-md flex-col gap-1"
+      className={cn("flex w-full max-w-md flex-col gap-1", className)}
       onSubmit={(e) => {
         e.preventDefault();
         void lookup();
@@ -70,7 +71,10 @@ export function ScanOrderInput({ branchId }: { branchId: string | null }) {
         {t("orders.scan.label")}
       </label>
       <div className="relative">
-        <ScanLine className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+        <ScanLine
+          className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+          aria-hidden
+        />
         <Input
           id="scan-order"
           value={value}
@@ -83,10 +87,10 @@ export function ScanOrderInput({ branchId }: { branchId: string | null }) {
           autoComplete="off"
           autoCapitalize="characters"
           spellCheck={false}
-          className="ps-9"
+          className="h-11 rounded-xl bg-card ps-9"
         />
       </div>
-      <p className="min-h-4 text-xs text-muted-foreground" role="status" aria-live="polite">
+      <p className={cn("text-xs text-muted-foreground", !message && "sr-only")} role="status" aria-live="polite">
         {message}
       </p>
     </form>

@@ -1,12 +1,18 @@
 "use client";
 
-import { MoreHorizontal } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { ClipboardPen, FileSpreadsheet, MoreHorizontal, ReceiptText } from "lucide-react";
 import { CreateInvoiceDialog } from "@/components/inventory/create-invoice-dialog";
 import { CreatePurchaseRequestDialog } from "@/components/inventory/create-purchase-request-dialog";
 import { CreateQuotationDialog } from "@/components/inventory/create-quotation-dialog";
-import { InventoryTabs } from "@/components/inventory/inventory-tabs";
+import { InventoryHeader } from "@/components/inventory/inventory-header";
+import {
+  INVOICE_STATUS_TONE,
+  PR_STATUS_TONE,
+  QUOTATION_STATUS_TONE,
+} from "@/components/inventory/status-tones";
 import { RecordPaymentDialog } from "@/components/inventory/record-payment-dialog";
-import { Badge } from "@/components/ui/badge";
+import { TABLE_CARD, TABLE_CARD_HEAD } from "@/components/reports/table-styles";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -15,7 +21,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatusPill } from "@/components/ui/status-pill";
 import {
   Table,
   TableBody,
@@ -32,7 +40,6 @@ import {
   useUpdatePurchaseRequestStatus,
   useUpdateQuotationStatus,
   type PurchaseRequest,
-  type SupplierInvoice,
   type SupplierQuotation,
 } from "@/hooks/use-inventory";
 import { formatCurrency, formatNumber } from "@/lib/format";
@@ -53,18 +60,39 @@ const QUOTATION_NEXT: Record<SupplierQuotation["status"], SupplierQuotation["sta
   REJECTED: [],
 };
 
-const INVOICE_BADGE: Record<SupplierInvoice["status"], "default" | "secondary" | "outline" | "destructive"> = {
-  UNPAID: "outline",
-  PARTIALLY_PAID: "secondary",
-  PAID: "default",
-  CANCELLED: "destructive",
-};
-
-function EmptyState({ title, description }: { title: string; description: string }) {
+function SectionHead({
+  icon: Icon,
+  title,
+  subtitle,
+  action,
+}: {
+  icon: LucideIcon;
+  title: string;
+  subtitle: string;
+  action: React.ReactNode;
+}) {
   return (
-    <div className="flex flex-col items-center gap-2 py-12 text-center">
-      <p className="text-sm font-medium text-foreground">{title}</p>
-      <p className="text-sm text-muted-foreground">{description}</p>
+    <div className={TABLE_CARD_HEAD}>
+      <div className="flex min-w-0 items-start gap-3">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+          <Icon className="size-[18px]" />
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+          <p className="text-xs text-muted-foreground">{subtitle}</p>
+        </div>
+      </div>
+      <div className="shrink-0">{action}</div>
+    </div>
+  );
+}
+
+function SectionSkeleton() {
+  return (
+    <div className="flex flex-col gap-2 p-4">
+      {Array.from({ length: 2 }).map((_, i) => (
+        <Skeleton key={i} className="h-10 rounded-xl" />
+      ))}
     </div>
   );
 }
@@ -75,20 +103,15 @@ function PurchaseRequestsSection({ branchId }: { branchId: string | null }) {
   const updateStatus = useUpdatePurchaseRequestStatus(branchId);
 
   return (
-    <Card className="overflow-hidden p-0">
-      <div className="flex items-center justify-between border-b border-border p-4">
-        <div>
-          <h2 className="text-sm font-semibold text-foreground">{t("inventory.pr.title")}</h2>
-          <p className="text-xs text-muted-foreground">{t("inventory.pr.subtitle")}</p>
-        </div>
-        <CreatePurchaseRequestDialog branchId={branchId} />
-      </div>
+    <Card className={TABLE_CARD}>
+      <SectionHead
+        icon={ClipboardPen}
+        title={t("inventory.pr.title")}
+        subtitle={t("inventory.pr.subtitle")}
+        action={<CreatePurchaseRequestDialog branchId={branchId} />}
+      />
       {isLoading ? (
-        <div className="flex flex-col gap-2 p-4">
-          {Array.from({ length: 2 }).map((_, i) => (
-            <Skeleton key={i} className="h-10 rounded-lg" />
-          ))}
-        </div>
+        <SectionSkeleton />
       ) : requests && requests.length > 0 ? (
         <Table>
           <TableHeader>
@@ -97,7 +120,9 @@ function PurchaseRequestsSection({ branchId }: { branchId: string | null }) {
               <TableHead>{t("inventory.pr.requestedBy")}</TableHead>
               <TableHead>{t("common.status")}</TableHead>
               <TableHead className="text-end">{t("common.items")}</TableHead>
-              <TableHead />
+              <TableHead className="w-0">
+                <span className="sr-only">{t("common.actions")}</span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -108,7 +133,7 @@ function PurchaseRequestsSection({ branchId }: { branchId: string | null }) {
                   <TableCell className="font-medium text-foreground">{r.requestNumber}</TableCell>
                   <TableCell className="text-muted-foreground">{r.requestedBy.name}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{t(`inventory.prStatus.${r.status}`)}</Badge>
+                    <StatusPill tone={PR_STATUS_TONE[r.status]}>{t(`inventory.prStatus.${r.status}`)}</StatusPill>
                   </TableCell>
                   <TableCell className="text-end tabular-nums">{formatNumber(r.items.length)}</TableCell>
                   <TableCell className="w-10">
@@ -141,6 +166,9 @@ function PurchaseRequestsSection({ branchId }: { branchId: string | null }) {
         </Table>
       ) : (
         <EmptyState
+          compact
+          className="m-4"
+          icon={ClipboardPen}
           title={t("inventory.pr.emptyTitle")}
           description={t("inventory.pr.emptyDescription")}
         />
@@ -155,20 +183,15 @@ function QuotationsSection({ branchId }: { branchId: string | null }) {
   const updateStatus = useUpdateQuotationStatus(branchId);
 
   return (
-    <Card className="overflow-hidden p-0">
-      <div className="flex items-center justify-between border-b border-border p-4">
-        <div>
-          <h2 className="text-sm font-semibold text-foreground">{t("inventory.quotation.title")}</h2>
-          <p className="text-xs text-muted-foreground">{t("inventory.quotation.subtitle")}</p>
-        </div>
-        <CreateQuotationDialog branchId={branchId} />
-      </div>
+    <Card className={TABLE_CARD}>
+      <SectionHead
+        icon={FileSpreadsheet}
+        title={t("inventory.quotation.title")}
+        subtitle={t("inventory.quotation.subtitle")}
+        action={<CreateQuotationDialog branchId={branchId} />}
+      />
       {isLoading ? (
-        <div className="flex flex-col gap-2 p-4">
-          {Array.from({ length: 2 }).map((_, i) => (
-            <Skeleton key={i} className="h-10 rounded-lg" />
-          ))}
-        </div>
+        <SectionSkeleton />
       ) : quotations && quotations.length > 0 ? (
         <Table>
           <TableHeader>
@@ -177,7 +200,9 @@ function QuotationsSection({ branchId }: { branchId: string | null }) {
               <TableHead>{t("inventory.supplier")}</TableHead>
               <TableHead>{t("common.status")}</TableHead>
               <TableHead className="text-end">{t("common.items")}</TableHead>
-              <TableHead />
+              <TableHead className="w-0">
+                <span className="sr-only">{t("common.actions")}</span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -188,7 +213,7 @@ function QuotationsSection({ branchId }: { branchId: string | null }) {
                   <TableCell className="font-medium text-foreground">{q.quotationNumber}</TableCell>
                   <TableCell className="text-muted-foreground">{q.supplier.name}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{t(`inventory.quotationStatus.${q.status}`)}</Badge>
+                    <StatusPill tone={QUOTATION_STATUS_TONE[q.status]}>{t(`inventory.quotationStatus.${q.status}`)}</StatusPill>
                   </TableCell>
                   <TableCell className="text-end tabular-nums">{formatNumber(q.items.length)}</TableCell>
                   <TableCell className="w-10">
@@ -221,6 +246,9 @@ function QuotationsSection({ branchId }: { branchId: string | null }) {
         </Table>
       ) : (
         <EmptyState
+          compact
+          className="m-4"
+          icon={FileSpreadsheet}
           title={t("inventory.quotation.emptyTitle")}
           description={t("inventory.quotation.emptyDescription")}
         />
@@ -234,20 +262,15 @@ function SupplierInvoicesSection({ branchId }: { branchId: string | null }) {
   const { data: invoices, isLoading } = useSupplierInvoices(branchId);
 
   return (
-    <Card className="overflow-hidden p-0">
-      <div className="flex items-center justify-between border-b border-border p-4">
-        <div>
-          <h2 className="text-sm font-semibold text-foreground">{t("inventory.invoice.title")}</h2>
-          <p className="text-xs text-muted-foreground">{t("inventory.invoice.subtitle")}</p>
-        </div>
-        <CreateInvoiceDialog branchId={branchId} />
-      </div>
+    <Card className={TABLE_CARD}>
+      <SectionHead
+        icon={ReceiptText}
+        title={t("inventory.invoice.title")}
+        subtitle={t("inventory.invoice.subtitle")}
+        action={<CreateInvoiceDialog branchId={branchId} />}
+      />
       {isLoading ? (
-        <div className="flex flex-col gap-2 p-4">
-          {Array.from({ length: 2 }).map((_, i) => (
-            <Skeleton key={i} className="h-10 rounded-lg" />
-          ))}
-        </div>
+        <SectionSkeleton />
       ) : invoices && invoices.length > 0 ? (
         <Table>
           <TableHeader>
@@ -257,7 +280,9 @@ function SupplierInvoicesSection({ branchId }: { branchId: string | null }) {
               <TableHead>{t("common.status")}</TableHead>
               <TableHead className="text-end">{t("common.total")}</TableHead>
               <TableHead className="text-end">{t("common.paid")}</TableHead>
-              <TableHead />
+              <TableHead className="w-0">
+                <span className="sr-only">{t("common.actions")}</span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -266,15 +291,15 @@ function SupplierInvoicesSection({ branchId }: { branchId: string | null }) {
                 <TableCell className="font-medium text-foreground">{inv.invoiceNumber}</TableCell>
                 <TableCell className="text-muted-foreground">{inv.supplier.name}</TableCell>
                 <TableCell>
-                  <Badge variant={INVOICE_BADGE[inv.status]}>{t(`inventory.invoiceStatus.${inv.status}`)}</Badge>
+                  <StatusPill tone={INVOICE_STATUS_TONE[inv.status]}>{t(`inventory.invoiceStatus.${inv.status}`)}</StatusPill>
                 </TableCell>
-                <TableCell className="text-end tabular-nums">
+                <TableCell className="text-end font-medium tabular-nums">
                   {formatCurrency(Number(inv.totalAmount))}
                 </TableCell>
                 <TableCell className="text-end tabular-nums">
                   {formatCurrency(Number(inv.amountPaid))}
                 </TableCell>
-                <TableCell className="w-32">
+                <TableCell className="w-32 text-end">
                   {(inv.status === "UNPAID" || inv.status === "PARTIALLY_PAID") && (
                     <RecordPaymentDialog branchId={branchId} invoice={inv} />
                   )}
@@ -285,6 +310,9 @@ function SupplierInvoicesSection({ branchId }: { branchId: string | null }) {
         </Table>
       ) : (
         <EmptyState
+          compact
+          className="m-4"
+          icon={ReceiptText}
           title={t("inventory.invoice.emptyTitle")}
           description={t("inventory.invoice.emptyDescription")}
         />
@@ -294,21 +322,13 @@ function SupplierInvoicesSection({ branchId }: { branchId: string | null }) {
 }
 
 export default function ProcurementPage() {
-  const { t } = useI18n();
   const { branchId } = useBranch();
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">{t("inventory.title")}</h1>
-        <p className="text-sm text-muted-foreground">
-          {t("inventory.subtitle")}
-        </p>
-      </div>
+      <InventoryHeader />
 
-      <InventoryTabs />
-
-      <div className="flex flex-col gap-6">
+      <div className="grid gap-6">
         <PurchaseRequestsSection branchId={branchId} />
         <QuotationsSection branchId={branchId} />
         <SupplierInvoicesSection branchId={branchId} />

@@ -1,4 +1,5 @@
 {
+  "allReports": "All reports",
   "column.amount": "Amount",
   "column.avg_minutes_per_order": "Avg minutes per order",
   "column.avg_minutes_to_deliver": "Avg minutes to deliver",
@@ -53,6 +54,7 @@
   "column.unit": "Unit",
   "column.units_sold": "Units sold",
   "column.value": "Value",
+  "dateRange": "Date range",
   "empty": "No data for this period.",
   "group.analytics": "Analytics",
   "group.customers": "Customers",
@@ -62,6 +64,8 @@
   "group.staff": "Staff",
   "group.tax": "Tax",
   "loadError": "Could not load report",
+  "preset.last30": "Last 30 days",
+  "preset.last7": "Last 7 days",
   "rangeLabel": "{from} to {to}",
   "report.customers": "Top customers",
   "report.delivery": "Deliveries",
@@ -81,6 +85,7 @@
   "report.table-turnover": "Table turnover",
   "report.tax": "Tax (VAT) summary",
   "report.waste": "Waste",
+  "rowCount": "{n} rows",
   "schedules.created": "Schedule created",
   "schedules.emailed": "Report emailed",
   "schedules.fileFormat": "File format",
@@ -92,6 +97,7 @@
   "schedules.lastSent": "last sent {date}",
   "schedules.notConfigured": "Email is not set up on this server yet",
   "schedules.pause": "Pause",
+  "schedules.paused": "Paused",
   "schedules.recipients": "Recipients",
   "schedules.recipientsPlaceholder": "owner@restaurant.com, accountant@firm.com",
   "schedules.resume": "Resume",
@@ -102,6 +108,7 @@
   "schedules.when.DAILY": "every day · yesterday",
   "schedules.when.MONTHLY": "1st of the month · previous month",
   "schedules.when.WEEKLY": "Mondays · previous 7 days",
+  "searchPlaceholder": "Search reports…",
   "subtitle": "Filter by date, print, export to Excel, PDF or CSV, or email on a schedule",
   "title": "Reports"
 }

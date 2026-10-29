@@ -1,14 +1,29 @@
 "use client";
 
 import { kitchenProgress, type PaymentMethodDto } from "@nodedr-restaurant/types";
-import { ArrowLeft, CheckCircle2, ChefHat, Pencil, Printer } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  ChefHat,
+  ChevronDown,
+  Gift,
+  Info,
+  Loader2,
+  Pencil,
+  Percent,
+  Printer,
+  Users,
+  XCircle,
+  type LucideIcon,
+} from "lucide-react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { StatusNote, useNoteToast } from "@/components/ui/status-note";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { QueryError } from "@/components/ui/query-error";
+import { KOT_STATUS_TONE, StatusPill } from "@/components/ui/status-pill";
 import { PaymentMethodButtons } from "@/components/pos/payment-method-buttons";
 import { CustomerPicker } from "@/components/pos/customer-picker";
 import type { Customer } from "@/hooks/use-customers";
@@ -36,6 +51,7 @@ import { buildUpiUri } from "@/lib/upi";
 import { QRCodeSVG } from "qrcode.react";
 import { openKotPrint, openReceiptPrint } from "@/lib/print";
 import { round2 } from "@/lib/pricing-preview";
+import { cn } from "@/lib/utils";
 
 // Saudi edition: cash, card and the local terminals/wallets first. UPI is only
 // offered when the restaurant has a UPI id configured (see upiVpa below).
@@ -292,17 +308,21 @@ export function CheckoutPanel({
   if (completed) {
     const { settlement } = completed;
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+      <div className="flex h-full flex-col items-center justify-center gap-4 overflow-y-auto py-6 text-center">
         <StatusNote note={note} onClear={clearNote} className="w-full text-start" />
-        <CheckCircle2 className="h-10 w-10 text-success" />
-        <p className="text-lg font-semibold text-foreground">
-          {t("pos.checkout.orderPaid")} <bdi>#{order.orderNumber}</bdi>
-        </p>
-        <p className="text-2xl font-semibold tabular-nums text-foreground">
-          {formatCurrency(completed.totalAmount)}
-        </p>
+        <span className="flex size-16 items-center justify-center rounded-full bg-status-success-soft text-status-success ring-8 ring-status-success-soft/50">
+          <CheckCircle2 className="size-8" />
+        </span>
+        <div className="flex flex-col gap-1">
+          <p className="text-sm font-medium text-muted-foreground">
+            {t("pos.checkout.orderPaid")} <bdi className="text-foreground">#{order.orderNumber}</bdi>
+          </p>
+          <p className="text-4xl font-semibold tracking-tight text-foreground tabular-nums">
+            {formatCurrency(completed.totalAmount)}
+          </p>
+        </div>
         {settlement.changeDue > 0 && (
-          <p className="rounded-lg bg-success/10 px-4 py-2 text-lg font-semibold tabular-nums text-success">
+          <p className="rounded-2xl bg-status-success-soft px-5 py-3 text-xl font-semibold text-status-success tabular-nums">
             {t("pos.checkout.changeDue", { amount: formatCurrency(settlement.changeDue) })}
           </p>
         )}
@@ -311,12 +331,13 @@ export function CheckoutPanel({
             {t("pos.checkout.pointsRedeemed", { n: completed.loyaltyPointsRedeemed })}
           </p>
         )}
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+        <div className="mt-2 grid w-full max-w-sm grid-cols-2 gap-2">
           <Button
             variant="outline"
             className="h-11"
             onClick={() => branchId && openReceiptPrint(completed.id, branchId)}
           >
+            <Printer className="size-4" />
             {t("pos.print.receiptBrowser")}
           </Button>
           <Button
@@ -331,9 +352,12 @@ export function CheckoutPanel({
               })
             }
           >
+            <Printer className="size-4" />
             {printUsb.isPending ? t("pos.print.printing") : t("pos.print.receiptThermal")}
           </Button>
-          <Button className="h-11" onClick={onDone}>{t("pos.checkout.newOrder")}</Button>
+          <Button className="col-span-2 h-14 rounded-2xl text-base font-semibold" onClick={onDone}>
+            {t("pos.checkout.newOrder")}
+          </Button>
         </div>
       </div>
     );
@@ -342,18 +366,26 @@ export function CheckoutPanel({
   // Someone else (another terminal) already closed this bill.
   if (order.status === "CANCELLED" || (order.status === "PAID" && !completed)) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+      <div className="flex h-full flex-col items-center justify-center gap-3 py-6 text-center">
         <StatusNote note={note} onClear={clearNote} className="w-full text-start" />
-        <p className="text-sm font-medium text-foreground">
+        <span
+          className={cn(
+            "flex size-14 items-center justify-center rounded-full",
+            order.status === "CANCELLED" ? "bg-status-neutral-soft text-status-neutral" : "bg-status-success-soft text-status-success",
+          )}
+        >
+          {order.status === "CANCELLED" ? <XCircle className="size-7" /> : <CheckCircle2 className="size-7" />}
+        </span>
+        <p className="text-sm font-semibold text-foreground">
           {order.status === "CANCELLED" ? t("pos.checkout.wasCancelled") : t("pos.checkout.wasAlreadyPaid")}{" "}
           <bdi>#{order.orderNumber}</bdi>
         </p>
-        <p className="text-xs text-muted-foreground">
+        <p className="max-w-xs text-xs text-muted-foreground">
           {order.status === "CANCELLED"
             ? t("pos.checkout.cancelledHint")
             : t("pos.checkout.nothingMore")}
         </p>
-        <Button className="h-11" onClick={onDone}>{t("common.done")}</Button>
+        <Button className="mt-2 h-11 min-w-40" onClick={onDone}>{t("common.done")}</Button>
       </div>
     );
   }
@@ -361,332 +393,431 @@ export function CheckoutPanel({
   const kitchen = live ? kitchenProgress(live.kots.map((k) => k.status)) : null;
   const paidSoFar = live?.payments ?? [];
   const partialLabel = t("pos.checkout.recordPartial", { amount: formatCurrency(plan.applied) });
+  const amountDue = bill ? Math.max(round2(bill.balanceDue - giftCardApplied), 0) : null;
+
+  // Cash shortcuts: the exact amount, then the next round notes above it.
+  const quickCash =
+    method === "CASH" && remainingDue > 0
+      ? [remainingDue, ...[5, 10, 50, 100, 500].map((step) => Math.ceil(remainingDue / step) * step)]
+          .map(round2)
+          .filter((v, i, all) => all.indexOf(v) === i)
+          .slice(0, 4)
+      : [];
+
+  const adjustmentsSummary = [
+    Number(discountPercent) > 0 ? `−${Number(discountPercent)}%` : null,
+    Number(tipAmount) > 0 ? `+${formatCurrency(Number(tipAmount))}` : null,
+    appliedCoupon || null,
+    Number(pointsToRedeem) > 0 ? t("pos.customer.points", { n: Math.floor(Number(pointsToRedeem)) }) : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
-    <div className="flex h-full flex-col gap-5 overflow-y-auto">
-      <StatusNote note={note} onClear={clearNote} />
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="-ms-2 shrink-0 text-muted-foreground"
-          onClick={onDone}
-        >
-          <ArrowLeft className="rtl:-scale-x-100 h-4 w-4" />
-          {t("common.back")}
-        </Button>
-        <div className="flex flex-wrap justify-end gap-2">
-          {canEditRole && !locked && (
-            <Button type="button" variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-              <Pencil className="h-4 w-4" />
-              {t("pos.checkout.editBill")}
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="-mx-1 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-1 pb-4 [scrollbar-width:thin]">
+        <StatusNote note={note} onClear={clearNote} />
+
+        {/* Header: back, order number, kitchen progress, order actions. */}
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-lg"
+              className="-ms-2 shrink-0 text-muted-foreground"
+              onClick={onDone}
+              aria-label={t("common.back")}
+              title={t("common.back")}
+            >
+              <ArrowLeft className="size-5 rtl:-scale-x-100" />
             </Button>
-          )}
-          {canCancelRole && !locked && (
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-base font-semibold tracking-tight text-foreground">
+                <bdi>{t("pos.page.orderChip", { number: order.orderNumber })}</bdi>
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {t("pos.checkout.sentToKitchen")} <bdi>#{order.orderNumber}</bdi>
+              </p>
+            </div>
+            {kitchen && (
+              <StatusPill tone={KOT_STATUS_TONE[kitchen] ?? "neutral"} pulse={kitchen === "NEW"}>
+                <ChefHat className="size-3" aria-hidden />
+                {KITCHEN_STATES.has(kitchen) ? t(`pos.checkout.kitchen.${kitchen}`) : kitchen}
+              </StatusPill>
+            )}
+          </div>
+
+          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="text-destructive hover:text-destructive"
-              onClick={() => setCancelOpen(true)}
+              className="h-10 shrink-0"
+              onClick={() => branchId && openKotPrint(order.id, branchId)}
             >
-              {t("pos.checkout.cancelOrder")}
+              <Printer className="size-4" />
+              {t("pos.print.kotBrowser")}
             </Button>
-          )}
-        </div>
-        <CancelOrderDialog
-          branchId={branchId}
-          orderId={order.id}
-          orderNumber={order.orderNumber}
-          open={cancelOpen}
-          onOpenChange={setCancelOpen}
-        />
-        <EditBillDialog branchId={branchId} orderId={order.id} open={editOpen} onOpenChange={setEditOpen} />
-      </div>
-
-      <div>
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="min-w-0">
-            <p className="text-sm text-muted-foreground">
-              {t("pos.checkout.sentToKitchen")} <bdi>#{order.orderNumber}</bdi>
-            </p>
-            {kitchen && (
-              <p className="mt-0.5 flex items-center gap-1.5 text-xs font-medium text-foreground">
-                <ChefHat className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
-                {KITCHEN_STATES.has(kitchen) ? t(`pos.checkout.kitchen.${kitchen}`) : kitchen}
-              </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-10 shrink-0"
+              disabled={printKot.isPending}
+              onClick={() => printKotNow(false)}
+            >
+              <Printer className="size-4" />
+              {printKot.isPending ? t("pos.print.printing") : t("pos.print.kotThermal")}
+            </Button>
+            {canEditRole && !locked && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-10 shrink-0"
+                onClick={() => setEditOpen(true)}
+              >
+                <Pencil className="size-4" />
+                {t("pos.checkout.editBill")}
+              </Button>
+            )}
+            {canCancelRole && !locked && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-10 shrink-0 text-destructive hover:text-destructive"
+                onClick={() => setCancelOpen(true)}
+              >
+                <XCircle className="size-4" />
+                {t("pos.checkout.cancelOrder")}
+              </Button>
             )}
           </div>
-          <div className="flex shrink-0 flex-wrap justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="shrink-0"
-            onClick={() => branchId && openKotPrint(order.id, branchId)}
-          >
-            <Printer className="h-4 w-4" />
-            {t("pos.print.kotBrowser")}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="shrink-0"
-            disabled={printKot.isPending}
-            onClick={() => printKotNow(false)}
-          >
-            <Printer className="h-4 w-4" />
-            {printKot.isPending ? t("pos.print.printing") : t("pos.print.kotThermal")}
-          </Button>
+          <CancelOrderDialog
+            branchId={branchId}
+            orderId={order.id}
+            orderNumber={order.orderNumber}
+            open={cancelOpen}
+            onOpenChange={setCancelOpen}
+          />
+          <EditBillDialog branchId={branchId} orderId={order.id} open={editOpen} onOpenChange={setEditOpen} />
+        </div>
+
+        {/* Amount due hero + the full bill breakdown. */}
+        <div className="rounded-2xl bg-surface-2 p-4 ring-1 ring-border/70">
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                {t("pos.checkout.amountDue")}
+              </p>
+              <p
+                className={cn(
+                  "mt-1 truncate text-[2rem] leading-none font-semibold tracking-tight text-foreground tabular-nums transition-opacity",
+                  (repricing || billQuery.isFetching) && "opacity-60",
+                )}
+              >
+                {amountDue !== null ? formatCurrency(amountDue) : "—"}
+              </p>
+            </div>
+            {split > 1 && bill && (
+              <span className="shrink-0 rounded-full bg-status-gold-soft px-2.5 py-1 text-xs font-semibold text-status-gold tabular-nums">
+                {t("pos.checkout.perGuest", { amount: formatCurrency(round2(balance / split)), n: split })}
+              </span>
+            )}
+          </div>
+          <div className="mt-3 border-t border-dashed border-border pt-3">
+            <BillSummary bill={bill} giftCardApplied={giftCardApplied} pending={repricing || billQuery.isFetching} />
           </div>
         </div>
+
         {!locked && (
-          <p className="mt-2 rounded-lg bg-secondary/60 px-3 py-2 text-xs text-muted-foreground">
+          <p className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
+            <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden />
             {t("pos.checkout.payLaterHint")}
           </p>
         )}
-      </div>
 
-      {paidSoFar.length > 0 && (
-        <div className="rounded-xl border border-border px-3 py-2">
-          <p className="text-xs font-medium text-muted-foreground">{t("pos.checkout.paymentsSoFar")}</p>
-          <ul className="mt-1 flex flex-col gap-0.5 text-sm">
-            {paidSoFar.map((p) => (
-              <li key={p.id} className="flex justify-between tabular-nums">
-                <span>{methodLabel(p.method)}</span>
-                <span>{formatCurrency(p.amount)}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {t("pos.checkout.lockedHint")}
-          </p>
-        </div>
-      )}
-
-      <CustomerPicker branchId={branchId} customer={customer} onSelect={setCustomer} />
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="discount">{t("pos.checkout.discountPercent")}</Label>
-          <Input
-            id="discount"
-            type="number"
-            min="0"
-            max="100"
-            dir="ltr"
-            className="h-11"
-            value={discountPercent}
-            disabled={locked || !canDiscount}
-            onChange={(e) => setDiscountPercent(e.target.value)}
-          />
-          {!canDiscount && (
-            <p className="text-[11px] text-muted-foreground">{t("pos.checkout.noDiscountRole")}</p>
-          )}
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="tip">{t("common.tip")}</Label>
-          <Input
-            id="tip"
-            type="number"
-            min="0"
-            dir="ltr"
-            className="h-11"
-            value={tipAmount}
-            disabled={locked}
-            onChange={(e) => setTipAmount(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {customer && customer.loyaltyPoints > 0 && !locked && (
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="points">{t("pos.checkout.redeemPoints")}</Label>
-            <button
-              type="button"
-              className="text-xs font-medium text-primary hover:underline"
-              onClick={() =>
-                setPointsToRedeem(String(Math.min(customer.loyaltyPoints, Math.floor(bill?.totalDue ?? 0))))
-              }
-            >
-              {t("pos.checkout.maxPoints", { n: customer.loyaltyPoints })}
-            </button>
+        {paidSoFar.length > 0 && (
+          <div className="rounded-xl border border-border/80 bg-card px-3 py-2.5">
+            <p className="text-xs font-medium text-muted-foreground">{t("pos.checkout.paymentsSoFar")}</p>
+            <ul className="mt-1.5 flex flex-col gap-1 text-sm">
+              {paidSoFar.map((p) => (
+                <li key={p.id} className="flex justify-between tabular-nums">
+                  <span>{methodLabel(p.method)}</span>
+                  <span className="font-medium">{formatCurrency(p.amount)}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-1.5 text-xs text-muted-foreground">{t("pos.checkout.lockedHint")}</p>
           </div>
-          <Input
-            id="points"
-            type="number"
-            min="0"
-            max={customer.loyaltyPoints}
-            dir="ltr"
-            className="h-11"
-            value={pointsToRedeem}
-            onChange={(e) => setPointsToRedeem(e.target.value)}
+        )}
+
+        <CustomerPicker branchId={branchId} customer={customer} onSelect={setCustomer} />
+
+        {billQuery.isError && !bill ? (
+          <QueryError
+            error={billQuery.error}
+            what={t("pos.checkout.whatBill")}
+            onRetry={() => void billQuery.refetch()}
+            retrying={billQuery.isFetching}
           />
-        </div>
-      )}
+        ) : (
+          <>
+            {remainingDue > 0 && (
+              <div className="@container flex flex-col gap-2">
+                <Label>{t("pos.paymentMethod")}</Label>
+                <PaymentMethodButtons methods={methods} value={method} onChange={setMethod} />
+              </div>
+            )}
 
-      {canDiscount && !locked && (
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="coupon">{t("pos.checkout.couponCode")}</Label>
-          <div className="flex gap-2">
-            <Input
-              id="coupon"
-              className="h-11"
-              value={couponInput}
-              onChange={(e) => setCouponInput(e.target.value)}
-              placeholder={t("pos.checkout.couponPlaceholder")}
-              dir="ltr"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              className="h-11"
-              disabled={!couponInput.trim() && !appliedCoupon}
-              onClick={applyCoupon}
-            >
-              {t("common.apply")}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {!locked && (
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="gift-card">{t("pos.checkout.giftCardCode")}</Label>
-          <div className="flex gap-2">
-            <Input
-              id="gift-card"
-              className="h-11"
-              value={giftCardCode}
-              onChange={(e) => {
-                setGiftCardCode(e.target.value);
-                setGiftCardBalance(null);
-              }}
-              placeholder={t("pos.checkout.giftCardPlaceholder")}
-              dir="ltr"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              className="h-11"
-              disabled={!giftCardCode || checkingGiftCard}
-              onClick={checkGiftCard}
-            >
-              {checkingGiftCard ? "…" : t("pos.checkout.check")}
-            </Button>
-          </div>
-          {giftCardBalance !== null && (
-            <p className="text-xs text-success">
-              {t("pos.checkout.giftCardBalance", {
-                balance: formatCurrency(giftCardBalance),
-                applied: formatCurrency(giftCardApplied),
-              })}
-            </p>
-          )}
-        </div>
-      )}
-
-      {billQuery.isError && !bill ? (
-        <QueryError
-          error={billQuery.error}
-          what={t("pos.checkout.whatBill")}
-          onRetry={() => void billQuery.refetch()}
-          retrying={billQuery.isFetching}
-        />
-      ) : (
-        <>
-          {remainingDue > 0 && (
-            <div className="flex flex-col gap-2">
-              <Label>{t("pos.paymentMethod")}</Label>
-              <PaymentMethodButtons methods={methods} value={method} onChange={setMethod} />
-            </div>
-          )}
-
-          {remainingDue > 0 && (
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="amount">{method === "CASH" ? t("pos.checkout.cashReceived") : t("pos.checkout.amountNow")}</Label>
-              <Input
-                id="amount"
-                type="number"
-                inputMode="decimal"
-                min="0"
-                step="0.01"
-                dir="ltr"
-                className="h-12 text-lg tabular-nums"
-                value={amountText}
-                placeholder={String(remainingDue)}
-                onChange={(e) => setAmountText(e.target.value)}
-              />
-              {plan.valid && plan.change > 0 && (
-                <p className="rounded-lg bg-success/10 px-3 py-2 text-base font-semibold tabular-nums text-success" role="status">
-                  {t("pos.checkout.changeDue", { amount: formatCurrency(plan.change) })}
-                </p>
-              )}
-              {plan.valid && plan.partial && (
-                <p className="rounded-lg bg-warning/10 px-3 py-2 text-sm text-warning" role="status">
-                  {t("pos.checkout.partPaymentHint", { amount: formatCurrency(plan.balanceAfter) })}
-                </p>
-              )}
-              {plan.clamped && (
-                <p className="text-xs text-muted-foreground" role="status">
-                  {t("pos.checkout.clampedHint", { method: methodLabel(method), amount: formatCurrency(remainingDue) })}
-                </p>
-              )}
-            </div>
-          )}
-
-          {method === "UPI" && remainingDue > 0 && (
-            <div className="flex flex-col items-center gap-2 rounded-xl border border-border bg-white p-4">
-              {upiUri ? (
-                <>
-                  <QRCodeSVG value={upiUri} size={176} level="M" marginSize={1} />
-                  <p className="text-xs font-medium text-[#17251d]">
-                    {t("pos.checkout.upiScan", { amount: formatCurrency(upiAmount) })}
+            {remainingDue > 0 && (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="amount">
+                  {method === "CASH" ? t("pos.checkout.cashReceived") : t("pos.checkout.amountNow")}
+                </Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.01"
+                  dir="ltr"
+                  className="h-14 rounded-xl bg-card text-2xl font-semibold tabular-nums"
+                  value={amountText}
+                  placeholder={String(remainingDue)}
+                  onChange={(e) => setAmountText(e.target.value)}
+                />
+                {quickCash.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2" role="group" aria-label={t("pos.checkout.quickCash")}>
+                    {quickCash.map((v, i) => (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => setAmountText(String(v))}
+                        className={cn(
+                          "flex h-11 min-w-0 items-center justify-center rounded-xl border px-1 text-sm font-semibold tabular-nums transition-colors active:scale-[0.97]",
+                          parseMoney(amountText) === v
+                            ? "border-primary bg-accent text-accent-foreground"
+                            : "border-border/80 bg-card text-foreground hover:bg-muted",
+                        )}
+                      >
+                        <span className="truncate">{i === 0 ? t("pos.checkout.exact") : formatCurrency(v)}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {plan.valid && plan.change > 0 && (
+                  <p
+                    className="flex items-center justify-between gap-3 rounded-xl bg-status-success-soft px-3.5 py-3 text-lg font-semibold text-status-success tabular-nums"
+                    role="status"
+                  >
+                    {t("pos.checkout.changeDue", { amount: formatCurrency(plan.change) })}
                   </p>
-                  <p className="text-[11px] text-neutral-500">{t("pos.checkout.upiAlsoOnDisplay")}</p>
-                </>
-              ) : (
-                <p className="text-center text-xs text-neutral-600">
-                  {t("pos.checkout.upiMissing")}{" "}
-                  <Link href="/settings" className="font-medium underline">
-                    {t("pos.checkout.upiMissingLink")}
-                  </Link>
+                )}
+                {plan.valid && plan.partial && (
+                  <p className="rounded-xl bg-status-warning-soft px-3.5 py-2.5 text-sm text-status-warning" role="status">
+                    {t("pos.checkout.partPaymentHint", { amount: formatCurrency(plan.balanceAfter) })}
+                  </p>
+                )}
+                {plan.clamped && (
+                  <p className="text-xs text-muted-foreground" role="status">
+                    {t("pos.checkout.clampedHint", { method: methodLabel(method), amount: formatCurrency(remainingDue) })}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {method === "UPI" && remainingDue > 0 && (
+              <div className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-white p-4">
+                {upiUri ? (
+                  <>
+                    <QRCodeSVG value={upiUri} size={176} level="M" marginSize={1} />
+                    <p className="text-xs font-medium text-[#17251d]">
+                      {t("pos.checkout.upiScan", { amount: formatCurrency(upiAmount) })}
+                    </p>
+                    <p className="text-[11px] text-neutral-500">{t("pos.checkout.upiAlsoOnDisplay")}</p>
+                  </>
+                ) : (
+                  <p className="text-center text-xs text-neutral-600">
+                    {t("pos.checkout.upiMissing")}{" "}
+                    <Link href="/settings" className="font-medium underline">
+                      {t("pos.checkout.upiMissingLink")}
+                    </Link>
+                  </p>
+                )}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Optional adjustments, folded away until needed. */}
+        <div className="flex flex-col gap-2">
+          <Collapsible icon={Percent} title={t("pos.checkout.adjustments")} summary={adjustmentsSummary}>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="discount">{t("pos.checkout.discountPercent")}</Label>
+                <Input
+                  id="discount"
+                  type="number"
+                  min="0"
+                  max="100"
+                  dir="ltr"
+                  className="h-11"
+                  value={discountPercent}
+                  disabled={locked || !canDiscount}
+                  onChange={(e) => setDiscountPercent(e.target.value)}
+                />
+                {!canDiscount && (
+                  <p className="text-[11px] text-muted-foreground">{t("pos.checkout.noDiscountRole")}</p>
+                )}
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="tip">{t("common.tip")}</Label>
+                <Input
+                  id="tip"
+                  type="number"
+                  min="0"
+                  dir="ltr"
+                  className="h-11"
+                  value={tipAmount}
+                  disabled={locked}
+                  onChange={(e) => setTipAmount(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {customer && customer.loyaltyPoints > 0 && !locked && (
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="points">{t("pos.checkout.redeemPoints")}</Label>
+                  <button
+                    type="button"
+                    className="inline-flex min-h-8 items-center text-xs font-medium text-primary hover:underline"
+                    onClick={() =>
+                      setPointsToRedeem(String(Math.min(customer.loyaltyPoints, Math.floor(bill?.totalDue ?? 0))))
+                    }
+                  >
+                    {t("pos.checkout.maxPoints", { n: customer.loyaltyPoints })}
+                  </button>
+                </div>
+                <Input
+                  id="points"
+                  type="number"
+                  min="0"
+                  max={customer.loyaltyPoints}
+                  dir="ltr"
+                  className="h-11"
+                  value={pointsToRedeem}
+                  onChange={(e) => setPointsToRedeem(e.target.value)}
+                />
+              </div>
+            )}
+
+            {canDiscount && !locked && (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="coupon">{t("pos.checkout.couponCode")}</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="coupon"
+                    className="h-11"
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value)}
+                    placeholder={t("pos.checkout.couponPlaceholder")}
+                    dir="ltr"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-11"
+                    disabled={!couponInput.trim() && !appliedCoupon}
+                    onClick={applyCoupon}
+                  >
+                    {t("common.apply")}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </Collapsible>
+
+          {!locked && (
+            <Collapsible
+              icon={Gift}
+              title={t("pos.checkout.giftCard")}
+              summary={giftCardApplied > 0 ? `−${formatCurrency(giftCardApplied)}` : undefined}
+            >
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="gift-card">{t("pos.checkout.giftCardCode")}</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="gift-card"
+                    className="h-11"
+                    value={giftCardCode}
+                    onChange={(e) => {
+                      setGiftCardCode(e.target.value);
+                      setGiftCardBalance(null);
+                    }}
+                    placeholder={t("pos.checkout.giftCardPlaceholder")}
+                    dir="ltr"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-11"
+                    disabled={!giftCardCode || checkingGiftCard}
+                    onClick={checkGiftCard}
+                  >
+                    {checkingGiftCard ? "…" : t("pos.checkout.check")}
+                  </Button>
+                </div>
+                {giftCardBalance !== null && (
+                  <p className="text-xs text-status-success">
+                    {t("pos.checkout.giftCardBalance", {
+                      balance: formatCurrency(giftCardBalance),
+                      applied: formatCurrency(giftCardApplied),
+                    })}
+                  </p>
+                )}
+              </div>
+            </Collapsible>
+          )}
+
+          {!(billQuery.isError && !bill) && (
+            <Collapsible
+              icon={Users}
+              title={t("pos.checkout.split")}
+              summary={split > 1 ? t("pos.checkout.splitSummary", { n: split }) : undefined}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="split" className="text-sm text-muted-foreground">
+                  {t("pos.checkout.splitBetween")}
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="split"
+                    type="number"
+                    min="1"
+                    dir="ltr"
+                    value={splitCount}
+                    onChange={(e) => setSplitCount(e.target.value)}
+                    className="h-11 w-20 text-center text-base tabular-nums"
+                  />
+                  <span className="text-xs text-muted-foreground">{t("pos.checkout.guestsUnit")}</span>
+                </div>
+              </div>
+              {split > 1 && bill && (
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  {t("pos.checkout.splitHint", { amount: formatCurrency(round2(balance / split)) })}
                 </p>
               )}
-            </div>
+            </Collapsible>
           )}
+        </div>
+      </div>
 
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2">
-            <Label htmlFor="split" className="text-xs text-muted-foreground">
-              {t("pos.checkout.splitBetween")}
-            </Label>
-            <div className="flex items-center gap-2">
-              <Input
-                id="split"
-                type="number"
-                min="1"
-                dir="ltr"
-                value={splitCount}
-                onChange={(e) => setSplitCount(e.target.value)}
-                className="h-8 w-16 text-center"
-              />
-              <span className="text-xs text-muted-foreground">{t("pos.checkout.guestsUnit")}</span>
-            </div>
-          </div>
-          {split > 1 && bill && (
-            <p className="-mt-2 text-center text-xs text-muted-foreground">
-              {t("pos.checkout.splitHint", { amount: formatCurrency(round2(balance / split)) })}
-            </p>
-          )}
-        </>
-      )}
-
-      <div className="mt-auto flex flex-col gap-3 border-t border-border pt-4">
-        <BillSummary bill={bill} giftCardApplied={giftCardApplied} pending={repricing || billQuery.isFetching} />
-
+      {/* Sticky actions */}
+      <div className="flex shrink-0 flex-col gap-2 border-t border-border/80 pt-3">
         <div className="grid grid-cols-2 gap-2">
           <Button
             type="button"
@@ -696,8 +827,8 @@ export function CheckoutPanel({
             onClick={printBill}
             title={t("pos.print.billTitle")}
           >
-            <Printer className="h-4 w-4" />
-            {t("pos.print.bill")}
+            <Printer className="size-4" />
+            <span className="truncate">{t("pos.print.bill")}</span>
           </Button>
           <Button
             type="button"
@@ -707,16 +838,19 @@ export function CheckoutPanel({
             onClick={printBillThermal}
             title={t("pos.print.billThermalTitle")}
           >
-            <Printer className="h-4 w-4" />
-            {printUsb.isPending ? t("pos.print.printing") : t("pos.print.billThermal")}
+            <Printer className="size-4" />
+            <span className="truncate">
+              {printUsb.isPending ? t("pos.print.printing") : t("pos.print.billThermal")}
+            </span>
           </Button>
         </div>
 
         <Button
-          className="h-12 text-base"
+          className="h-14 w-full rounded-2xl text-base font-semibold whitespace-normal"
           disabled={checkout.isPending || !bill || repricing || !plan.valid}
           onClick={handleCheckout}
         >
+          {checkout.isPending && <Loader2 className="size-5 animate-spin" />}
           {checkout.isPending
             ? t("pos.checkout.processing")
             : plan.partial
@@ -726,6 +860,49 @@ export function CheckoutPanel({
                 : t("pos.checkout.complete")}
         </Button>
       </div>
+    </div>
+  );
+}
+
+// A tappable row that folds an optional section (discount, gift card, split).
+function Collapsible({
+  icon: Icon,
+  title,
+  summary,
+  children,
+}: {
+  icon: LucideIcon;
+  title: string;
+  summary?: string;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const id = useId();
+  return (
+    <div className="overflow-hidden rounded-xl border border-border/80 bg-card">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={id}
+        onClick={() => setOpen((o) => !o)}
+        className="flex min-h-12 w-full items-center gap-3 px-3 text-start transition-colors hover:bg-muted/60"
+      >
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-muted-foreground">
+          <Icon className="size-4" />
+        </span>
+        <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{title}</span>
+        {summary && (
+          <span className="max-w-[45%] shrink-0 truncate text-xs font-medium text-accent-foreground tabular-nums">
+            {summary}
+          </span>
+        )}
+        <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
+      </button>
+      {open && (
+        <div id={id} className="flex flex-col gap-3 border-t border-border/70 p-3">
+          {children}
+        </div>
+      )}
     </div>
   );
 }
@@ -742,7 +919,12 @@ function BillSummary({
 }) {
   const { t } = useI18n();
   if (!bill) {
-    return <p className="text-sm text-muted-foreground">{t("pos.checkout.pricing")}</p>;
+    return (
+      <p className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Loader2 className="size-4 animate-spin" />
+        {t("pos.checkout.pricing")}
+      </p>
+    );
   }
   const source = bill.couponCode
     ? t("pos.checkout.couponSource", { code: bill.couponCode })
@@ -752,8 +934,8 @@ function BillSummary({
         ? t("pos.checkout.flatDiscount")
         : null;
   return (
-    <div className={pending ? "opacity-70" : undefined} aria-busy={pending}>
-      <dl className="flex flex-col gap-1 text-sm">
+    <div className={cn("transition-opacity", pending && "opacity-70")} aria-busy={pending}>
+      <dl className="flex flex-col gap-1.5 text-sm">
         <Row label={t("common.subtotal")} value={formatCurrency(bill.subtotal)} />
         {bill.discountAmount > 0 && (
           <Row
@@ -773,19 +955,23 @@ function BillSummary({
         {bill.tipAmount > 0 && <Row label={t("common.tip")} value={formatCurrency(bill.tipAmount)} />}
         {bill.deliveryFee > 0 && <Row label={t("pos.checkout.deliveryFee")} value={formatCurrency(bill.deliveryFee)} />}
       </dl>
-      <div className="mt-2 flex items-center justify-between border-t border-border pt-2">
+      <div className="mt-2 flex items-center justify-between border-t border-border/80 pt-2">
         <span className="text-sm font-medium text-foreground">{t("pos.checkout.totalDue")}</span>
-        <span className="text-lg font-semibold tabular-nums text-foreground">{formatCurrency(bill.totalDue)}</span>
+        <span className="text-base font-semibold text-foreground tabular-nums">{formatCurrency(bill.totalDue)}</span>
       </div>
       {bill.amountPaid > 0 && (
-        <dl className="mt-1 flex flex-col gap-1 text-sm">
+        <dl className="mt-1.5 flex flex-col gap-1 text-sm">
           <Row label={t("pos.checkout.paidSoFar")} value={formatCurrency(bill.amountPaid)} />
         </dl>
       )}
-      {giftCardApplied > 0 && <Row label={t("common.paymentMethod.GIFT_CARD")} value={`− ${formatCurrency(giftCardApplied)}`} accent />}
-      <div className="mt-1 flex items-center justify-between">
+      {giftCardApplied > 0 && (
+        <dl className="mt-1 text-sm">
+          <Row label={t("common.paymentMethod.GIFT_CARD")} value={`− ${formatCurrency(giftCardApplied)}`} accent />
+        </dl>
+      )}
+      <div className="mt-1.5 flex items-center justify-between">
         <span className="text-sm text-muted-foreground">{t("common.balanceDue")}</span>
-        <span className="text-base font-semibold tabular-nums text-foreground">
+        <span className="text-sm font-semibold text-foreground tabular-nums">
           {formatCurrency(Math.max(round2(bill.balanceDue - giftCardApplied), 0))}
         </span>
       </div>
@@ -797,7 +983,12 @@ function Row({ label, value, accent, muted }: { label: string; value: string; ac
   return (
     <div className="flex items-center justify-between gap-3">
       <dt className={muted ? "text-xs text-muted-foreground" : "text-muted-foreground"}>{label}</dt>
-      <dd className={`tabular-nums ${accent ? "text-success" : muted ? "text-xs text-muted-foreground" : "text-foreground"}`}>
+      <dd
+        className={cn(
+          "tabular-nums",
+          accent ? "text-status-success" : muted ? "text-xs text-muted-foreground" : "text-foreground",
+        )}
+      >
         {value}
       </dd>
     </div>

@@ -1,11 +1,14 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CalendarClock, Mail, Pause, Play, Send, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { SELECT_CLASS, TABLE_CARD_HEAD } from "@/components/reports/table-styles";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { StatusPill } from "@/components/ui/status-pill";
 import { api, ApiError } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/context";
@@ -80,47 +83,74 @@ export function SchedulesPanel({
     },
     onError: (e) => toast.error(msg(e)),
   });
-  const sel = "h-9 rounded-lg border border-border bg-background px-2 text-sm";
-
   return (
-    <Card className="flex flex-col gap-4 p-4 print:hidden">
-      <div>
-        <h3 className="font-medium text-foreground">{t("reports.schedules.title")}</h3>
-        <p className="text-xs text-muted-foreground">
-          {t("reports.schedules.help")}
-          {data && !data.emailConfigured && <> {t("reports.schedules.notConfigured")} (<code>EMAIL_API_KEY</code>, <code>EMAIL_FROM</code>)</>}
-        </p>
+    <Card className="gap-0 py-0 print:hidden">
+      <div className={TABLE_CARD_HEAD}>
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-status-gold-soft text-status-gold">
+            <CalendarClock className="size-[18px]" />
+          </span>
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold text-foreground">{t("reports.schedules.title")}</h3>
+            <p className="text-xs text-muted-foreground">{t("reports.schedules.help")}</p>
+          </div>
+        </div>
       </div>
-      <div className="flex flex-wrap items-end gap-3">
-        <select aria-label={t("reports.schedules.frequency")} className={sel} value={frequency} onChange={(e) => setFrequency(e.target.value as Schedule["frequency"])}>
+      {data && !data.emailConfigured && (
+        <p className="mx-4 mt-4 rounded-xl bg-status-warning-soft px-3 py-2 text-xs text-status-warning sm:mx-5">
+          {t("reports.schedules.notConfigured")} (<code>EMAIL_API_KEY</code>, <code>EMAIL_FROM</code>)
+        </p>
+      )}
+      <div className="grid gap-3 px-4 py-4 sm:grid-cols-2 sm:px-5 lg:grid-cols-[10rem_10rem_minmax(0,1fr)_auto]">
+        <select aria-label={t("reports.schedules.frequency")} className={SELECT_CLASS} value={frequency} onChange={(e) => setFrequency(e.target.value as Schedule["frequency"])}>
           <option value="DAILY">{t("reports.schedules.freq.DAILY")}</option>
           <option value="WEEKLY">{t("reports.schedules.freq.WEEKLY")}</option>
           <option value="MONTHLY">{t("reports.schedules.freq.MONTHLY")}</option>
         </select>
-        <select aria-label={t("reports.schedules.fileFormat")} className={sel} value={format} onChange={(e) => setFormat(e.target.value)}>
+        <select aria-label={t("reports.schedules.fileFormat")} className={SELECT_CLASS} value={format} onChange={(e) => setFormat(e.target.value)}>
           <option value="xlsx">Excel (.xlsx)</option>
           <option value="pdf">PDF</option>
           <option value="csv">CSV</option>
         </select>
-        <Input aria-label={t("reports.schedules.recipients")} dir="ltr" className="min-w-64 flex-1" placeholder={t("reports.schedules.recipientsPlaceholder")} value={recipients} onChange={(e) => setRecipients(e.target.value)} />
-        <Button disabled={!recipients.trim() || create.isPending} onClick={() => create.mutate()}>{t("reports.schedules.schedule")}</Button>
+        <Input aria-label={t("reports.schedules.recipients")} dir="ltr" className="sm:col-span-2 lg:col-span-1" placeholder={t("reports.schedules.recipientsPlaceholder")} value={recipients} onChange={(e) => setRecipients(e.target.value)} />
+        <Button className="h-10 sm:col-span-2 lg:col-span-1" disabled={!recipients.trim() || create.isPending} onClick={() => create.mutate()}>
+          <Mail className="size-4" />
+          {t("reports.schedules.schedule")}
+        </Button>
       </div>
       {data && data.schedules.length > 0 && (
-        <ul className="flex flex-col divide-y divide-border">
+        <ul className="flex flex-col divide-y divide-border/60 border-t border-border/70">
           {data.schedules.map((s) => (
-            <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
-              <div>
-                <p className="font-medium text-foreground">{titles[s.reportKey] ?? s.reportKey} <span className="font-normal text-muted-foreground">· {s.format.toUpperCase()} · {t(WHEN_KEYS[s.frequency])}</span></p>
+            <li key={s.id} className="flex flex-col gap-3 px-4 py-3 text-sm sm:px-5 md:flex-row md:items-center md:justify-between">
+              <div className="flex min-w-0 flex-col gap-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-medium text-foreground">{titles[s.reportKey] ?? s.reportKey}</span>
+                  <StatusPill tone={s.isActive ? "success" : "neutral"}>
+                    {s.isActive ? t("common.active") : t("reports.schedules.paused")}
+                  </StatusPill>
+                  {s.lastError && <StatusPill tone="danger">{t("common.error")}</StatusPill>}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {s.format.toUpperCase()} · {t(WHEN_KEYS[s.frequency])}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   {t("reports.schedules.to")} <bdi>{s.recipients.join(", ")}</bdi>
                   {s.lastSentAt ? ` · ${t("reports.schedules.lastSent", { date: formatDateTime(s.lastSentAt) })}` : ""}
-                  {s.lastError ? ` · ${s.lastError}` : ""}
+                  {s.lastError ? <span className="text-status-danger"> · {s.lastError}</span> : null}
                 </p>
               </div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" disabled={sendNow.isPending} onClick={() => sendNow.mutate(s.id)}>{t("reports.schedules.sendNow")}</Button>
-                <Button size="sm" variant="outline" onClick={() => toggle.mutate({ id: s.id, isActive: !s.isActive })}>{s.isActive ? t("reports.schedules.pause") : t("reports.schedules.resume")}</Button>
-                <Button size="sm" variant="outline" onClick={() => remove.mutate(s.id)}>{t("common.delete")}</Button>
+              <div className="flex flex-wrap gap-2 md:shrink-0">
+                <Button size="sm" variant="outline" disabled={sendNow.isPending} onClick={() => sendNow.mutate(s.id)}>
+                  <Send className="rtl:-scale-x-100" />
+                  {t("reports.schedules.sendNow")}
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => toggle.mutate({ id: s.id, isActive: !s.isActive })}>
+                  {s.isActive ? <Pause /> : <Play className="rtl:-scale-x-100" />}
+                  {s.isActive ? t("reports.schedules.pause") : t("reports.schedules.resume")}
+                </Button>
+                <Button size="icon-sm" variant="ghost" className="text-muted-foreground hover:text-destructive" aria-label={t("common.delete")} onClick={() => remove.mutate(s.id)}>
+                  <Trash2 className="size-4" />
+                </Button>
               </div>
             </li>
           ))}

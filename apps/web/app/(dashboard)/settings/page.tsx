@@ -1,6 +1,6 @@
 "use client";
 
-import { ImagePlus, X } from "lucide-react";
+import { Bell, Building2, Globe, ImagePlus, ReceiptText, Store, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -14,11 +14,17 @@ import {
 } from "@nodedr-restaurant/types";
 import { KioskCard } from "@/components/settings/kiosk-card";
 import { PrinterDiagnosticsCard } from "@/components/settings/printer-diagnostics-card";
-import { SettingsTabs } from "@/components/settings/settings-tabs";
+import {
+  SaveBar,
+  SettingsBody,
+  SettingsCallout,
+  SettingsField,
+  SettingsGroupTitle,
+  SettingsRow,
+  SettingsSection,
+} from "@/components/settings/settings-section";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -27,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatusPill } from "@/components/ui/status-pill";
 import { Switch } from "@/components/ui/switch";
 import { useBranch } from "@/hooks/use-branch";
 import { useNotificationMute } from "@/hooks/use-notification-mute";
@@ -53,24 +60,16 @@ const ORDERED_TAX_REGIMES: TaxRegime[] = [
 ];
 
 export default function SettingsPage() {
-  const { t } = useI18n();
   const { branchId } = useBranch();
   const { data, isLoading } = useSettings(branchId);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">{t("settings.title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("settings.subtitle")}</p>
-      </div>
-
-      <SettingsTabs />
-
+    <>
       {isLoading || !data ? (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <Skeleton className="h-72 rounded-xl" />
-          <Skeleton className="h-72 rounded-xl" />
-        </div>
+        <>
+          <Skeleton className="h-[28rem] rounded-2xl" />
+          <Skeleton className="h-[28rem] rounded-2xl" />
+        </>
       ) : (
         <GeneralSettingsForm
           key={`${data.restaurant.id}-${data.branch.id}`}
@@ -87,7 +86,7 @@ export default function SettingsPage() {
       <NotificationSettingsCard />
 
       <PrinterDiagnosticsCard />
-    </div>
+    </>
   );
 }
 
@@ -107,36 +106,39 @@ function OnlineOrdersCard({
     });
 
   return (
-    <Card className="flex flex-col gap-4 p-6">
-      <div>
-        <h2 className="text-[18px] font-medium text-foreground">{t("settings.online.title")}</h2>
-        <p className="text-sm text-muted-foreground">{t("settings.online.description")}</p>
-      </div>
-      <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-4">
-        <div className="flex flex-col gap-0.5">
-          <Label htmlFor="auto-confirm-orders">{t("settings.online.autoOrders")}</Label>
-          <p className="text-xs text-muted-foreground">{t("settings.online.autoOrdersHelp")}</p>
-        </div>
-        <Switch
-          id="auto-confirm-orders"
-          checked={branch.autoConfirmOrders}
-          disabled={update.isPending}
-          onCheckedChange={(v) => save({ autoConfirmOrders: v })}
-        />
-      </div>
-      <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-4">
-        <div className="flex flex-col gap-0.5">
-          <Label htmlFor="auto-confirm-bookings">{t("settings.online.autoBookings")}</Label>
-          <p className="text-xs text-muted-foreground">{t("settings.online.autoBookingsHelp")}</p>
-        </div>
-        <Switch
-          id="auto-confirm-bookings"
-          checked={branch.autoConfirmReservations}
-          disabled={update.isPending}
-          onCheckedChange={(v) => save({ autoConfirmReservations: v })}
-        />
-      </div>
-    </Card>
+    <SettingsSection
+      id="online"
+      icon={Globe}
+      title={t("settings.online.title")}
+      description={t("settings.online.description")}
+    >
+      <SettingsBody>
+        <SettingsRow
+          htmlFor="auto-confirm-orders"
+          label={t("settings.online.autoOrders")}
+          help={t("settings.online.autoOrdersHelp")}
+        >
+          <Switch
+            id="auto-confirm-orders"
+            checked={branch.autoConfirmOrders}
+            disabled={update.isPending}
+            onCheckedChange={(v) => save({ autoConfirmOrders: v })}
+          />
+        </SettingsRow>
+        <SettingsRow
+          htmlFor="auto-confirm-bookings"
+          label={t("settings.online.autoBookings")}
+          help={t("settings.online.autoBookingsHelp")}
+        >
+          <Switch
+            id="auto-confirm-bookings"
+            checked={branch.autoConfirmReservations}
+            disabled={update.isPending}
+            onCheckedChange={(v) => save({ autoConfirmReservations: v })}
+          />
+        </SettingsRow>
+      </SettingsBody>
+    </SettingsSection>
   );
 }
 
@@ -145,23 +147,34 @@ function NotificationSettingsCard() {
   const [muted, toggleMuted] = useNotificationMute();
 
   return (
-    <Card className="flex flex-col gap-4 p-6">
-      <div>
-        <h2 className="text-[18px] font-medium text-foreground">{t("settings.notifications.title")}</h2>
-        <p className="text-sm text-muted-foreground">{t("settings.notifications.description")}</p>
-      </div>
-      <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-4">
-        <div className="flex flex-col gap-0.5">
-          <Label htmlFor="notification-sound">{t("settings.notifications.sound")}</Label>
-          <p className="text-xs text-muted-foreground">{t("settings.notifications.soundHelp")}</p>
-        </div>
-        <Switch
-          id="notification-sound"
-          checked={!muted}
-          onCheckedChange={() => toggleMuted()}
-        />
-      </div>
-    </Card>
+    <SettingsSection
+      id="notifications"
+      icon={Bell}
+      title={t("settings.notifications.title")}
+      description={t("settings.notifications.description")}
+    >
+      <SettingsBody>
+        <SettingsRow
+          htmlFor="notification-sound"
+          label={t("settings.notifications.sound")}
+          help={t("settings.notifications.soundHelp")}
+        >
+          <Switch id="notification-sound" checked={!muted} onCheckedChange={() => toggleMuted()} />
+        </SettingsRow>
+      </SettingsBody>
+    </SettingsSection>
+  );
+}
+
+/** Input with a short unit (currency code) on its inline-start side. */
+function UnitInput({ unit, ...props }: React.ComponentProps<typeof Input> & { unit: string }) {
+  return (
+    <div className="relative">
+      <span className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-xs font-medium text-muted-foreground">
+        {unit}
+      </span>
+      <Input {...props} className="ps-12 tabular-nums" />
+    </div>
   );
 }
 
@@ -202,6 +215,7 @@ function GeneralSettingsForm({
   const preset = TAX_REGIME_PRESETS[taxRegime];
   const isSaudiVat = taxRegime === "SA_VAT";
   const vatNumberInvalid = isSaudiVat && taxId.trim() !== "" && !isSaudiVatNumber(taxId);
+  const vatNumberValid = isSaudiVat && taxId.trim() !== "" && !vatNumberInvalid;
   const currencyOptions = CURRENCIES.includes(currency) ? CURRENCIES : [currency, ...CURRENCIES];
 
   const updateRestaurant = useUpdateRestaurantSettings(branchId);
@@ -260,84 +274,84 @@ function GeneralSettingsForm({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-      <Card className="flex flex-col gap-4 p-6">
-        <h2 className="text-[18px] font-medium text-foreground">{t("settings.restaurant.title")}</h2>
-        <form onSubmit={onSubmitRestaurant} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label>{t("settings.restaurant.logo")}</Label>
-            <div className="flex items-center gap-4">
-              <input
-                ref={logoInputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/webp,image/gif"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  uploadLogo.mutate(file, {
-                    onSuccess: (res) => setLogoUrl(res.url),
-                    onError: (err) =>
-                      toast.error(err instanceof ApiError ? err.message : t("settings.restaurant.logoUploadFailed")),
-                  });
-                }}
-              />
-              {logoUrl ? (
-                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-border bg-secondary">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- uploaded asset served from the backend, not a Next-optimizable remote source */}
-                  <img src={logoUrl} alt="" className="h-full w-full object-contain" />
+    <>
+      <SettingsSection
+        id="restaurant"
+        icon={Store}
+        title={t("settings.restaurant.title")}
+        description={t("settings.restaurant.description")}
+      >
+        <form onSubmit={onSubmitRestaurant}>
+          <SettingsBody>
+            <SettingsField label={t("settings.restaurant.logo")} help={t("settings.restaurant.logoHelp")}>
+              <div className="flex items-center gap-4">
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    uploadLogo.mutate(file, {
+                      onSuccess: (res) => setLogoUrl(res.url),
+                      onError: (err) =>
+                        toast.error(err instanceof ApiError ? err.message : t("settings.restaurant.logoUploadFailed")),
+                    });
+                  }}
+                />
+                {logoUrl ? (
+                  <div className="relative size-20 shrink-0 overflow-hidden rounded-2xl border border-border/80 bg-surface-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- uploaded asset served from the backend, not a Next-optimizable remote source */}
+                    <img src={logoUrl} alt="" className="size-full object-contain p-1.5" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLogoUrl(null);
+                        if (logoInputRef.current) logoInputRef.current.value = "";
+                      }}
+                      className="absolute end-1 top-1 flex size-6 items-center justify-center rounded-full bg-card/90 text-foreground shadow-sm ring-1 ring-border/70 hover:bg-card"
+                      aria-label={t("settings.restaurant.removeLogo")}
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  </div>
+                ) : (
                   <button
                     type="button"
-                    onClick={() => {
-                      setLogoUrl(null);
-                      if (logoInputRef.current) logoInputRef.current.value = "";
-                    }}
-                    className="absolute end-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-background/80 text-foreground"
-                    aria-label={t("settings.restaurant.removeLogo")}
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={uploadLogo.isPending}
+                    className="flex size-20 shrink-0 flex-col items-center justify-center gap-1.5 rounded-2xl border border-dashed border-border bg-surface-2/60 text-muted-foreground transition-colors hover:border-primary hover:bg-accent hover:text-primary disabled:opacity-60"
                   >
-                    <X className="h-3 w-3" />
+                    <ImagePlus className="size-5" />
+                    <span className="text-[11px] font-medium">
+                      {uploadLogo.isPending ? t("settings.uploading") : t("common.upload")}
+                    </span>
                   </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => logoInputRef.current?.click()}
-                  disabled={uploadLogo.isPending}
-                  className="flex h-16 w-16 shrink-0 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary"
-                >
-                  <ImagePlus className="h-4 w-4" />
-                  <span className="text-[10px]">
-                    {uploadLogo.isPending ? t("settings.uploading") : t("common.upload")}
-                  </span>
-                </button>
-              )}
-              <p className="text-xs text-muted-foreground">
-                {t("settings.restaurant.logoHelp")}
+                )}
+              </div>
+            </SettingsField>
+
+            <SettingsField label={t("common.name")} htmlFor="r-name">
+              <Input
+                id="r-name"
+                value={name}
+                onChange={(e) => setName(e.target.value.slice(0, RESTAURANT_NAME_MAX_LENGTH))}
+                maxLength={RESTAURANT_NAME_MAX_LENGTH}
+                required
+              />
+              <p className="text-end text-xs text-muted-foreground tabular-nums">
+                {name.length}/{RESTAURANT_NAME_MAX_LENGTH}
               </p>
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="r-name">{t("common.name")}</Label>
-            <Input
-              id="r-name"
-              value={name}
-              onChange={(e) => setName(e.target.value.slice(0, RESTAURANT_NAME_MAX_LENGTH))}
-              maxLength={RESTAURANT_NAME_MAX_LENGTH}
-              required
-            />
-            <p className="text-end text-xs text-muted-foreground">
-              {name.length}/{RESTAURANT_NAME_MAX_LENGTH}
-            </p>
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="r-legal">{t("settings.restaurant.legalName")}</Label>
-            <Input id="r-legal" value={legalName} onChange={(e) => setLegalName(e.target.value)} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="r-currency">{t("settings.restaurant.currency")}</Label>
+            </SettingsField>
+
+            <SettingsField label={t("settings.restaurant.legalName")} htmlFor="r-legal">
+              <Input id="r-legal" value={legalName} onChange={(e) => setLegalName(e.target.value)} />
+            </SettingsField>
+
+            <SettingsField label={t("settings.restaurant.currency")} htmlFor="r-currency">
               <Select value={currency} onValueChange={(v) => v && setCurrency(v)}>
-                <SelectTrigger id="r-currency">
+                <SelectTrigger id="r-currency" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -350,9 +364,13 @@ function GeneralSettingsForm({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="r-timezone">{t("settings.restaurant.timezone")}</Label>
+            </SettingsField>
+
+            <SettingsField
+              label={t("settings.restaurant.timezone")}
+              htmlFor="r-timezone"
+              help={t("settings.restaurant.timezoneHelp")}
+            >
               <Input
                 id="r-timezone"
                 dir="ltr"
@@ -361,50 +379,36 @@ function GeneralSettingsForm({
                 placeholder={DEFAULT_REGION.timezone}
                 required
               />
-              <p className="text-xs text-muted-foreground">{t("settings.restaurant.timezoneHelp")}</p>
-            </div>
-          </div>
+            </SettingsField>
 
-          <div className="flex flex-col gap-2 border-t border-border pt-4">
-            <h3 className="text-sm font-medium text-foreground">{t("settings.loyalty.title")}</h3>
-            <p className="text-xs text-muted-foreground">{t("settings.loyalty.description")}</p>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="r-loyalty-earn">{t("settings.loyalty.earnPer")}</Label>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">{currency}</span>
-                <Input
-                  id="r-loyalty-earn"
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={loyaltyEarnPerCurrency}
-                  onChange={(e) => setLoyaltyEarnPerCurrency(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="r-loyalty-value">{t("settings.loyalty.redeemsFor")}</Label>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">{currency}</span>
-                <Input
-                  id="r-loyalty-value"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={loyaltyPointValue}
-                  onChange={(e) => setLoyaltyPointValue(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-          </div>
+            <SettingsGroupTitle title={t("settings.loyalty.title")} description={t("settings.loyalty.description")} />
+            <SettingsField label={t("settings.loyalty.earnPer")} htmlFor="r-loyalty-earn">
+              <UnitInput
+                unit={currency}
+                id="r-loyalty-earn"
+                type="number"
+                min="1"
+                step="1"
+                value={loyaltyEarnPerCurrency}
+                onChange={(e) => setLoyaltyEarnPerCurrency(e.target.value)}
+                required
+              />
+            </SettingsField>
+            <SettingsField label={t("settings.loyalty.redeemsFor")} htmlFor="r-loyalty-value">
+              <UnitInput
+                unit={currency}
+                id="r-loyalty-value"
+                type="number"
+                min="0"
+                step="0.01"
+                value={loyaltyPointValue}
+                onChange={(e) => setLoyaltyPointValue(e.target.value)}
+                required
+              />
+            </SettingsField>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="r-upi">{t("settings.upi.id")}</Label>
+            <SettingsGroupTitle title={t("settings.payments.title")} />
+            <SettingsField label={t("settings.upi.id")} htmlFor="r-upi" help={t("settings.upi.help")}>
               <Input
                 id="r-upi"
                 value={upiVpa}
@@ -413,12 +417,8 @@ function GeneralSettingsForm({
                 autoComplete="off"
                 dir="ltr"
               />
-              <p className="text-xs text-muted-foreground">
-                {t("settings.upi.help")}
-              </p>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="r-upi-name">{t("settings.upi.payeeName")}</Label>
+            </SettingsField>
+            <SettingsField label={t("settings.upi.payeeName")} htmlFor="r-upi-name">
               <Input
                 id="r-upi-name"
                 value={upiPayeeName}
@@ -426,46 +426,53 @@ function GeneralSettingsForm({
                 placeholder={name}
                 maxLength={60}
               />
-            </div>
-          </div>
-
-          <Button type="submit" disabled={updateRestaurant.isPending} className="self-start">
-            {updateRestaurant.isPending ? t("common.saving") : t("settings.restaurant.save")}
-          </Button>
+            </SettingsField>
+          </SettingsBody>
+          <SaveBar hint={t("settings.restaurant.saveHint")}>
+            <Button type="submit" disabled={updateRestaurant.isPending}>
+              {updateRestaurant.isPending ? t("common.saving") : t("settings.restaurant.save")}
+            </Button>
+          </SaveBar>
         </form>
-      </Card>
+      </SettingsSection>
 
-      <Card className="flex flex-col gap-4 p-6">
-        <h2 className="text-[18px] font-medium text-foreground">{t("settings.branch.title")}</h2>
-        <form onSubmit={onSubmitBranch} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="b-name">{t("settings.branch.name")}</Label>
-            <Input id="b-name" value={branchName} onChange={(e) => setBranchName(e.target.value)} required />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="b-address">{t("common.address")}</Label>
-            <Input id="b-address" value={address} onChange={(e) => setAddress(e.target.value)} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="b-phone">{t("common.phone")}</Label>
+      <SettingsSection
+        id="branch"
+        icon={Building2}
+        title={t("settings.nav.branchTax")}
+        description={t("settings.branch.description")}
+        actions={
+          isSaudiVat ? (
+            <StatusPill tone={vatNumberValid ? "success" : vatNumberInvalid ? "warning" : "neutral"}>
+              {t("settings.taxRegime.SA_VAT.name")}
+            </StatusPill>
+          ) : null
+        }
+      >
+        <form onSubmit={onSubmitBranch}>
+          <SettingsBody>
+            <SettingsGroupTitle title={t("settings.branch.title")} />
+            <SettingsField label={t("settings.branch.name")} htmlFor="b-name">
+              <Input id="b-name" value={branchName} onChange={(e) => setBranchName(e.target.value)} required />
+            </SettingsField>
+            <SettingsField label={t("common.address")} htmlFor="b-address">
+              <Input id="b-address" value={address} onChange={(e) => setAddress(e.target.value)} />
+            </SettingsField>
+            <SettingsField label={t("common.phone")} htmlFor="b-phone">
               <Input id="b-phone" dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="b-gst">{t("settings.branch.gstLegacy")}</Label>
+            </SettingsField>
+            <SettingsField label={t("settings.branch.gstLegacy")} htmlFor="b-gst">
               <Input id="b-gst" dir="ltr" value={gstNumber} onChange={(e) => setGstNumber(e.target.value)} />
-            </div>
-          </div>
+            </SettingsField>
 
-          <div className="flex flex-col gap-2 border-t border-border pt-4">
-            <h3 className="text-sm font-medium text-foreground">{t("common.tax")}</h3>
-            <p className="text-xs text-muted-foreground">{t("settings.tax.description")}</p>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="b-tax-regime">{t("settings.tax.regime")}</Label>
+            <SettingsGroupTitle title={t("common.tax")} description={t("settings.tax.description")} />
+            <SettingsField
+              label={t("settings.tax.regime")}
+              htmlFor="b-tax-regime"
+              help={t("settings.tax.ratesHint", { rates: t(`settings.taxRegime.${taxRegime}.rates`) })}
+            >
               <Select value={taxRegime} onValueChange={onRegimeChange}>
-                <SelectTrigger id="b-tax-regime">
+                <SelectTrigger id="b-tax-regime" className="w-full">
                   <SelectValue>
                     {(value: TaxRegime | null) => (value ? t(`settings.taxRegime.${value}.name`) : "")}
                   </SelectValue>
@@ -478,11 +485,16 @@ function GeneralSettingsForm({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="b-tax-mode">{t("settings.tax.pricesAre")}</Label>
+              {preset.zatcaSimplifiedInvoice && (
+                <SettingsCallout icon={ReceiptText} tone="gold" className="mt-1 text-xs">
+                  <p>{t("settings.tax.zatcaInvoiceNote")}</p>
+                  <p>{t("settings.tax.zatcaPhase2Note")}</p>
+                </SettingsCallout>
+              )}
+            </SettingsField>
+            <SettingsField label={t("settings.tax.pricesAre")} htmlFor="b-tax-mode">
               <Select value={taxMode} onValueChange={(v) => setTaxMode(v as TaxMode)}>
-                <SelectTrigger id="b-tax-mode">
+                <SelectTrigger id="b-tax-mode" className="w-full">
                   <SelectValue>
                     {(value: TaxMode | null) => (value ? t(`settings.taxMode.${value}`) : "")}
                   </SelectValue>
@@ -492,30 +504,23 @@ function GeneralSettingsForm({
                   <SelectItem value="EXCLUSIVE">{t("settings.taxMode.EXCLUSIVE")}</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {t("settings.tax.ratesHint", { rates: t(`settings.taxRegime.${taxRegime}.rates`) })}
-          </p>
-          {preset.zatcaSimplifiedInvoice && (
-            <div className="flex flex-col gap-1 rounded-lg bg-secondary px-3 py-2 text-xs text-muted-foreground">
-              <p>{t("settings.tax.zatcaInvoiceNote")}</p>
-              <p>{t("settings.tax.zatcaPhase2Note")}</p>
-            </div>
-          )}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="b-country">{t("settings.branch.countryCode")}</Label>
+            </SettingsField>
+            <SettingsField label={t("settings.branch.countryCode")} htmlFor="b-country">
               <Input
                 id="b-country"
                 dir="ltr"
                 value={country}
                 onChange={(e) => setCountry(e.target.value.toUpperCase())}
                 maxLength={2}
+                className="w-24 font-mono uppercase"
               />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="b-tax-id">{t(`settings.taxRegime.${taxRegime}.taxIdLabel`)}</Label>
+            </SettingsField>
+            <SettingsField
+              label={t(`settings.taxRegime.${taxRegime}.taxIdLabel`)}
+              htmlFor="b-tax-id"
+              help={isSaudiVat ? t("settings.tax.vatNumberHelp") : undefined}
+              error={vatNumberInvalid ? t("settings.tax.vatNumberInvalid") : undefined}
+            >
               <Input
                 id="b-tax-id"
                 dir="ltr"
@@ -525,29 +530,25 @@ function GeneralSettingsForm({
                 maxLength={isSaudiVat ? 15 : undefined}
                 placeholder={isSaudiVat ? "3XXXXXXXXXXXXX3" : undefined}
                 aria-invalid={vatNumberInvalid || undefined}
+                className="font-mono tracking-wide tabular-nums"
               />
-              {isSaudiVat && (
-                <p className={vatNumberInvalid ? "text-xs text-warning" : "text-xs text-muted-foreground"}>
-                  {vatNumberInvalid ? t("settings.tax.vatNumberInvalid") : t("settings.tax.vatNumberHelp")}
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="b-tax-label">{t("settings.tax.labelOverride")}</Label>
-            <Input
-              id="b-tax-label"
-              value={taxLabel}
-              onChange={(e) => setTaxLabel(e.target.value)}
-              placeholder={preset.taxLabel}
-            />
-          </div>
-
-          <Button type="submit" disabled={updateBranch.isPending} className="self-start">
-            {updateBranch.isPending ? t("common.saving") : t("settings.branch.save")}
-          </Button>
+            </SettingsField>
+            <SettingsField label={t("settings.tax.labelOverride")} htmlFor="b-tax-label">
+              <Input
+                id="b-tax-label"
+                value={taxLabel}
+                onChange={(e) => setTaxLabel(e.target.value)}
+                placeholder={preset.taxLabel}
+              />
+            </SettingsField>
+          </SettingsBody>
+          <SaveBar hint={t("settings.branch.saveHint")}>
+            <Button type="submit" disabled={updateBranch.isPending}>
+              {updateBranch.isPending ? t("common.saving") : t("settings.branch.save")}
+            </Button>
+          </SaveBar>
         </form>
-      </Card>
-    </div>
+      </SettingsSection>
+    </>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Paperclip, X } from "lucide-react";
+import { FileText, Paperclip, X } from "lucide-react";
 import { useRef } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -41,9 +41,16 @@ export function DocumentFiles({ branchId, docId, files }: { branchId: string | n
   });
 
   return (
-    <div className="flex flex-col gap-2 border-t border-border pt-3">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-foreground">{t("operations.files.attachments")}</p>
+    <div className="flex flex-col gap-3 border-t border-border/70 pt-4">
+      <div className="flex items-center justify-between gap-2">
+        <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
+          {t("operations.files.attachments")}
+          {files.length > 0 && (
+            <span className="rounded-full bg-surface-2 px-2 text-xs leading-5 font-normal text-muted-foreground tabular-nums">
+              {formatNumber(files.length)}
+            </span>
+          )}
+        </p>
         <input
           ref={ref}
           type="file"
@@ -59,28 +66,38 @@ export function DocumentFiles({ branchId, docId, files }: { branchId: string | n
           }}
         />
         <Button size="sm" variant="outline" disabled={upload.isPending} onClick={() => ref.current?.click()}>
-          <Paperclip className="me-1.5 h-3.5 w-3.5" /> {upload.isPending ? t("operations.files.uploading") : t("operations.files.attach")}
+          <Paperclip /> {upload.isPending ? t("operations.files.uploading") : t("operations.files.attach")}
         </Button>
       </div>
       {files.length === 0 ? (
-        <p className="text-xs text-muted-foreground">{t("operations.files.help")}</p>
+        <p className="rounded-xl border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
+          {t("operations.files.help")}
+        </p>
       ) : (
-        <ul className="flex flex-col gap-1">
+        <ul className="grid gap-2 sm:grid-cols-2">
           {files.map((f) => (
-            <li key={f.id} className="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-1.5 text-sm">
-              <a
-                className="truncate text-primary hover:underline"
-                href={`/api/v1${base}/${f.id}?branchId=${branchId}`}
-                download={f.fileName}
-              >
-                {f.fileName}
-              </a>
-              <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
-                {kb(f.size)}
-                <button type="button" aria-label={t("operations.files.removeAria", { name: f.fileName })} onClick={() => remove.mutate(f.id)} className="hover:text-destructive">
-                  <X className="h-3.5 w-3.5" />
-                </button>
+            <li key={f.id} className="flex items-center gap-3 rounded-xl border border-border/80 bg-card px-3 py-2 text-sm">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+                <FileText className="size-4" />
               </span>
+              <span className="flex min-w-0 flex-1 flex-col">
+                <a
+                  className="truncate font-medium text-foreground hover:text-primary hover:underline"
+                  href={`/api/v1${base}/${f.id}?branchId=${branchId}`}
+                  download={f.fileName}
+                >
+                  <bdi>{f.fileName}</bdi>
+                </a>
+                <span className="text-xs text-muted-foreground tabular-nums">{kb(f.size)}</span>
+              </span>
+              <button
+                type="button"
+                aria-label={t("operations.files.removeAria", { name: f.fileName })}
+                onClick={() => remove.mutate(f.id)}
+                className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-status-danger-soft hover:text-status-danger"
+              >
+                <X className="size-4" />
+              </button>
             </li>
           ))}
         </ul>

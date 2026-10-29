@@ -1,15 +1,23 @@
 "use client";
 
+import { Bot, KeyRound, Plug, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { CreateIntegrationKeyDialog } from "@/components/settings/create-integration-key-dialog";
 import { CreateStaffKeyDialog } from "@/components/settings/create-staff-key-dialog";
 import { NewApiKeyDialog } from "@/components/settings/new-api-key-dialog";
-import { SettingsTabs } from "@/components/settings/settings-tabs";
+import {
+  ListCard,
+  ResponsiveList,
+  SettingsCallout,
+  SettingsListBody,
+  SettingsSection,
+} from "@/components/settings/settings-section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatusPill } from "@/components/ui/status-pill";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { hasPermission, useCurrentUser } from "@/hooks/use-auth";
 import {
@@ -25,23 +33,32 @@ import { formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/context";
 
 export default function ApiKeysPage() {
-  const { t } = useI18n();
   const { data } = useCurrentUser();
   const user = data?.user;
   const canManageIntegrations = hasPermission(user, "settings.manage");
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">{t("settings.title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("settings.subtitle")}</p>
-      </div>
-
-      <SettingsTabs />
-
+    <>
       <StaffApiKeysCard />
       {canManageIntegrations ? <IntegrationApiKeysCard /> : null}
-    </div>
+    </>
+  );
+}
+
+function KeySuffix({ lastFour }: { lastFour: string }) {
+  return (
+    <code dir="ltr" className="rounded-md bg-surface-2 px-1.5 py-0.5 font-mono text-xs text-muted-foreground ring-1 ring-border/60">
+      ••••{lastFour}
+    </code>
+  );
+}
+
+function KeyStatus({ revoked }: { revoked: boolean }) {
+  const { t } = useI18n();
+  return (
+    <StatusPill tone={revoked ? "neutral" : "success"}>
+      {revoked ? t("settings.apiKeys.revoked") : t("common.active")}
+    </StatusPill>
   );
 }
 
@@ -60,71 +77,108 @@ function StaffApiKeysCard() {
     });
   };
 
+  const revokeButton = (key: StaffApiKey) =>
+    key.revokedAt ? null : (
+      <Button size="sm" variant="destructive" onClick={() => onRevoke(key)}>
+        {t("settings.apiKeys.revoke")}
+      </Button>
+    );
+
+  const lastUsed = (key: StaffApiKey) =>
+    key.lastUsedAt ? formatDateTime(key.lastUsedAt) : t("settings.backup.never");
+
   return (
-    <Card className="flex flex-col gap-4 p-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-[18px] font-medium text-foreground">{t("settings.apiKeys.personalTitle")}</h2>
-          <p className="text-sm text-muted-foreground">{t("settings.apiKeys.personalDescription")}</p>
-        </div>
+    <SettingsSection
+      icon={KeyRound}
+      title={t("settings.apiKeys.personalTitle")}
+      description={t("settings.apiKeys.personalDescription")}
+      actions={
         <Button size="sm" onClick={() => setShowCreate(true)}>
+          <Plus className="size-4" />
           {t("settings.apiKeys.newKey")}
         </Button>
-      </div>
-
-      <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
-        <p className="font-medium text-foreground">{t("settings.apiKeys.mcpUrl")}</p>
-        <code dir="ltr" className="mt-1 block overflow-x-auto rounded bg-background/60 p-2 font-mono text-xs">
-          {typeof window !== "undefined" ? window.location.origin : ""}/api/v1/mcp
-        </code>
-        <p className="mt-2">
-          {t("settings.apiKeys.mcpHeaderBefore")}{" "}
-          <code dir="ltr" className="font-mono">
-            Authorization: Bearer &lt;key&gt;
+      }
+    >
+      <SettingsListBody>
+        <SettingsCallout icon={Bot} title={t("settings.apiKeys.mcpUrl")}>
+          <code
+            dir="ltr"
+            className="mt-1 block overflow-x-auto rounded-lg bg-card px-3 py-2 text-start font-mono text-xs text-foreground ring-1 ring-border/60"
+          >
+            {typeof window !== "undefined" ? window.location.origin : ""}/api/v1/mcp
           </code>
-          {t("settings.apiKeys.mcpHeaderAfter")}{" "}
-          <a href="/docs/api" className="underline">
-            {t("settings.apiKeys.apiDocs")}
-          </a>
-          {t("settings.apiKeys.mcpDocsAfter")}
-        </p>
-      </div>
+          <p className="mt-1.5 text-xs leading-relaxed">
+            {t("settings.apiKeys.mcpHeaderBefore")}{" "}
+            <code dir="ltr" className="font-mono text-foreground">
+              Authorization: Bearer &lt;key&gt;
+            </code>
+            {t("settings.apiKeys.mcpHeaderAfter")}{" "}
+            <a href="/docs/api" className="font-medium text-primary underline underline-offset-2">
+              {t("settings.apiKeys.apiDocs")}
+            </a>
+            {t("settings.apiKeys.mcpDocsAfter")}
+          </p>
+        </SettingsCallout>
+      </SettingsListBody>
 
       {isLoading ? (
-        <Skeleton className="h-24 rounded-lg" />
+        <SettingsListBody>
+          <Skeleton className="h-24 rounded-xl" />
+        </SettingsListBody>
       ) : keys && keys.length > 0 ? (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("common.name")}</TableHead>
-              <TableHead>{t("settings.apiKeys.key")}</TableHead>
-              <TableHead>{t("settings.apiKeys.lastUsed")}</TableHead>
-              <TableHead className="text-end">{t("common.actions")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {keys.map((key) => (
-              <TableRow key={key.id}>
-                <TableCell className="font-medium text-foreground">{key.name}</TableCell>
-                <TableCell dir="ltr" className="font-mono text-xs text-muted-foreground">…{key.lastFour}</TableCell>
-                <TableCell className="text-muted-foreground">
-                  {key.lastUsedAt ? formatDateTime(key.lastUsedAt) : t("settings.backup.never")}
-                </TableCell>
-                <TableCell className="text-end">
-                  {key.revokedAt ? (
-                    <Badge variant="outline">{t("settings.apiKeys.revoked")}</Badge>
-                  ) : (
-                    <Button size="sm" variant="destructive" onClick={() => onRevoke(key)}>
-                      {t("settings.apiKeys.revoke")}
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <ResponsiveList
+          table={
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("common.name")}</TableHead>
+                  <TableHead>{t("settings.apiKeys.key")}</TableHead>
+                  <TableHead>{t("settings.apiKeys.lastUsed")}</TableHead>
+                  <TableHead>{t("common.status")}</TableHead>
+                  <TableHead className="text-end">{t("common.actions")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {keys.map((key) => (
+                  <TableRow key={key.id}>
+                    <TableCell className="font-medium text-foreground">{key.name}</TableCell>
+                    <TableCell>
+                      <KeySuffix lastFour={key.lastFour} />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground tabular-nums">{lastUsed(key)}</TableCell>
+                    <TableCell>
+                      <KeyStatus revoked={!!key.revokedAt} />
+                    </TableCell>
+                    <TableCell className="text-end">{revokeButton(key)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          }
+          cards={keys.map((key) => (
+            <ListCard key={key.id}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-foreground">{key.name}</p>
+                  <div className="mt-1">
+                    <KeySuffix lastFour={key.lastFour} />
+                  </div>
+                </div>
+                <KeyStatus revoked={!!key.revokedAt} />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xs text-muted-foreground">
+                  {t("settings.apiKeys.lastUsed")}: <span className="tabular-nums">{lastUsed(key)}</span>
+                </span>
+                {revokeButton(key)}
+              </div>
+            </ListCard>
+          ))}
+        />
       ) : (
-        <p className="py-6 text-center text-sm text-muted-foreground">{t("settings.apiKeys.emptyPersonal")}</p>
+        <SettingsListBody>
+          <EmptyState compact icon={KeyRound} title={t("settings.apiKeys.emptyPersonal")} />
+        </SettingsListBody>
       )}
 
       {showCreate ? (
@@ -137,7 +191,7 @@ function StaffApiKeysCard() {
         />
       ) : null}
       {newToken ? <NewApiKeyDialog token={newToken} onClose={() => setNewToken(null)} /> : null}
-    </Card>
+    </SettingsSection>
   );
 }
 
@@ -156,61 +210,96 @@ function IntegrationApiKeysCard() {
     });
   };
 
+  const revokeButton = (key: IntegrationApiKey) =>
+    key.revokedAt ? null : (
+      <Button size="sm" variant="destructive" onClick={() => onRevoke(key)}>
+        {t("settings.apiKeys.revoke")}
+      </Button>
+    );
+
+  const scopes = (key: IntegrationApiKey) => (
+    <div className="flex flex-wrap gap-1">
+      {key.scopes.map((s) => (
+        <Badge key={s} variant="info">
+          {t(`settings.scope.${s}.label`)}
+        </Badge>
+      ))}
+    </div>
+  );
+
   return (
-    <Card className="flex flex-col gap-4 p-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-[18px] font-medium text-foreground">{t("settings.apiKeys.integrationTitle")}</h2>
-          <p className="text-sm text-muted-foreground">{t("settings.apiKeys.integrationDescription")}</p>
-        </div>
+    <SettingsSection
+      icon={Plug}
+      title={t("settings.apiKeys.integrationTitle")}
+      description={t("settings.apiKeys.integrationDescription")}
+      actions={
         <Button size="sm" onClick={() => setShowCreate(true)}>
+          <Plus className="size-4" />
           {t("settings.apiKeys.newKey")}
         </Button>
-      </div>
-
+      }
+    >
       {isLoading ? (
-        <Skeleton className="h-24 rounded-lg" />
+        <SettingsListBody>
+          <Skeleton className="h-24 rounded-xl" />
+        </SettingsListBody>
       ) : keys && keys.length > 0 ? (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("common.name")}</TableHead>
-              <TableHead>{t("settings.apiKeys.key")}</TableHead>
-              <TableHead>{t("settings.apiKeys.location")}</TableHead>
-              <TableHead>{t("settings.roles.permissions")}</TableHead>
-              <TableHead className="text-end">{t("common.actions")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {keys.map((key) => (
-              <TableRow key={key.id}>
-                <TableCell className="font-medium text-foreground">{key.name}</TableCell>
-                <TableCell dir="ltr" className="font-mono text-xs text-muted-foreground">…{key.lastFour}</TableCell>
-                <TableCell className="text-muted-foreground">{key.branch?.name ?? t("settings.apiKeys.allLocations")}</TableCell>
-                <TableCell className="text-muted-foreground">
-                  <div className="flex flex-wrap gap-1">
-                    {key.scopes.map((s) => (
-                      <Badge key={s} variant="outline" className="text-xs">
-                        {t(`settings.scope.${s}.label`)}
-                      </Badge>
-                    ))}
-                  </div>
-                </TableCell>
-                <TableCell className="text-end">
-                  {key.revokedAt ? (
-                    <Badge variant="outline">{t("settings.apiKeys.revoked")}</Badge>
-                  ) : (
-                    <Button size="sm" variant="destructive" onClick={() => onRevoke(key)}>
-                      {t("settings.apiKeys.revoke")}
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <ResponsiveList
+          table={
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("common.name")}</TableHead>
+                  <TableHead>{t("settings.apiKeys.key")}</TableHead>
+                  <TableHead>{t("settings.apiKeys.location")}</TableHead>
+                  <TableHead>{t("settings.roles.permissions")}</TableHead>
+                  <TableHead>{t("common.status")}</TableHead>
+                  <TableHead className="text-end">{t("common.actions")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {keys.map((key) => (
+                  <TableRow key={key.id}>
+                    <TableCell className="font-medium text-foreground">{key.name}</TableCell>
+                    <TableCell>
+                      <KeySuffix lastFour={key.lastFour} />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {key.branch?.name ?? t("settings.apiKeys.allLocations")}
+                    </TableCell>
+                    <TableCell className="min-w-48 whitespace-normal">{scopes(key)}</TableCell>
+                    <TableCell>
+                      <KeyStatus revoked={!!key.revokedAt} />
+                    </TableCell>
+                    <TableCell className="text-end">{revokeButton(key)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          }
+          cards={keys.map((key) => (
+            <ListCard key={key.id}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-foreground">{key.name}</p>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {key.branch?.name ?? t("settings.apiKeys.allLocations")}
+                  </p>
+                </div>
+                <KeyStatus revoked={!!key.revokedAt} />
+              </div>
+              {scopes(key)}
+              <div className="flex items-center justify-between gap-3">
+                <KeySuffix lastFour={key.lastFour} />
+                {revokeButton(key)}
+              </div>
+            </ListCard>
+          ))}
+        />
       ) : (
-        <p className="py-6 text-center text-sm text-muted-foreground">{t("settings.apiKeys.emptyIntegration")}</p>
+        <SettingsListBody>
+          <EmptyState compact icon={Plug} title={t("settings.apiKeys.emptyIntegration")} />
+        </SettingsListBody>
       )}
 
       {showCreate ? (
@@ -223,6 +312,6 @@ function IntegrationApiKeysCard() {
         />
       ) : null}
       {newToken ? <NewApiKeyDialog token={newToken} onClose={() => setNewToken(null)} /> : null}
-    </Card>
+    </SettingsSection>
   );
 }

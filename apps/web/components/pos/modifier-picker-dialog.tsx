@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -121,13 +122,13 @@ function ModifierPickerBody({
   return (
     <>
       <DialogHeader>
-        <DialogTitle>{item.name}</DialogTitle>
+        <DialogTitle className="text-lg">{item.name}</DialogTitle>
       </DialogHeader>
 
-      <div className="flex flex-col gap-5 py-2">
+      <div className="-mx-1 flex max-h-[min(60dvh,32rem)] flex-col gap-5 overflow-y-auto px-1 py-2">
         {hasPortions && (
           <div className="flex flex-col gap-2">
-            <h3 className="text-sm font-medium text-foreground">{t("pos.modifiers.portion")}</h3>
+            <h3 className="text-sm font-semibold text-foreground">{t("pos.modifiers.portion")}</h3>
             <div className={cn("grid gap-2", allowCustom ? "grid-cols-3" : "grid-cols-2")}>
               {(
                 [
@@ -142,10 +143,10 @@ function ModifierPickerBody({
                   aria-pressed={portionKind === opt.kind}
                   onClick={() => setPortionKind(opt.kind)}
                   className={cn(
-                    "flex flex-col items-center gap-0.5 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors",
+                    "flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors",
                     portionKind === opt.kind
-                      ? "border-primary bg-accent text-accent-foreground"
-                      : "border-border hover:bg-secondary",
+                      ? "border-primary bg-accent text-accent-foreground ring-1 ring-primary/30"
+                      : "border-border/80 hover:bg-muted",
                   )}
                 >
                   <span>{opt.label}</span>
@@ -184,7 +185,14 @@ function ModifierPickerBody({
         {groups.map((group) => (
           <div key={group.id} className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-foreground">{group.name}</h3>
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                {group.name}
+                {(group.isRequired || group.minSelect > 0) && (
+                  <span className="rounded-full bg-status-gold-soft px-2 text-[11px] leading-5 font-medium text-status-gold">
+                    {t("pos.modifiers.required")}
+                  </span>
+                )}
+              </h3>
               <span className="text-xs text-muted-foreground">
                 {group.maxSelect === 1 ? t("pos.modifiers.chooseOne") : t("pos.modifiers.chooseUpTo", { n: group.maxSelect })}
               </span>
@@ -196,17 +204,28 @@ function ModifierPickerBody({
                   <button
                     key={mod.id}
                     type="button"
+                    aria-pressed={isSelected}
                     onClick={() => toggle(group.id, mod.id, group.maxSelect)}
                     className={cn(
-                      "flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition-colors",
+                      "flex min-h-12 items-center gap-3 rounded-xl border px-3 py-2 text-start text-sm transition-colors",
                       isSelected
                         ? "border-primary bg-accent text-accent-foreground"
-                        : "border-border hover:bg-secondary",
+                        : "border-border/80 hover:bg-muted",
                     )}
                   >
-                    <span>{mod.name}</span>
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "flex size-5 shrink-0 items-center justify-center border-[1.5px] transition-colors",
+                        group.maxSelect === 1 ? "rounded-full" : "rounded-md",
+                        isSelected ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card",
+                      )}
+                    >
+                      {isSelected && <Check className="size-3" strokeWidth={3} />}
+                    </span>
+                    <span className="min-w-0 flex-1">{mod.name}</span>
                     {Number(mod.priceAdjustment) > 0 && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
                         +{formatCurrency(mod.priceAdjustment)}
                       </span>
                     )}
@@ -219,7 +238,9 @@ function ModifierPickerBody({
       </div>
 
       <DialogFooter>
-        <Button onClick={handleConfirm}>{t("pos.modifiers.addToCart")}</Button>
+        <Button size="lg" className="w-full sm:w-auto" onClick={handleConfirm}>
+          {t("pos.modifiers.addToCart")}
+        </Button>
       </DialogFooter>
     </>
   );

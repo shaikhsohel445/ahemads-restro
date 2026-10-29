@@ -1,5 +1,6 @@
 "use client";
 
+import { CalendarPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -85,7 +86,14 @@ export function AddReservationDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm">{t("reservations.new")}</Button>} />
+      <DialogTrigger
+        render={
+          <Button className="h-10 px-4">
+            <CalendarPlus className="size-4" />
+            {t("reservations.new")}
+          </Button>
+        }
+      />
       <DialogContent className="sm:max-w-md">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>

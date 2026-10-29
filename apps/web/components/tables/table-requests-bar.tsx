@@ -1,10 +1,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BellRing, Receipt } from "lucide-react";
+import { BellRing, Check, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { StatusPill } from "@/components/ui/status-pill";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/i18n/context";
+import { cn } from "@/lib/utils";
+import { ElapsedTimer } from "./elapsed-timer";
 
 interface TableRequestRow {
   id: string;
@@ -30,20 +33,64 @@ export function TableRequestsBar({ branchId }: { branchId: string | null }) {
 
   if (!data || data.length === 0) return null;
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3">
-      {data.map((r) => (
-        <div key={r.id} className="flex items-center justify-between gap-3 text-sm">
-          <span className="flex items-center gap-2 text-foreground">
-            {r.type === "BILL" ? <Receipt className="h-4 w-4" /> : <BellRing className="h-4 w-4" />}
-            {t(r.type === "BILL" ? "tables.requestBill" : "tables.requestWaiter", {
-              table: r.table.name ?? t("tables.tableN", { n: r.table.number }),
-            })}
+    <section
+      aria-label={t("tables.requestsTitle")}
+      data-slot="card"
+      className="flex flex-col gap-3 rounded-2xl border border-status-warning/30 bg-card p-4"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+          <span className="flex size-8 items-center justify-center rounded-xl bg-status-warning-soft text-status-warning">
+            <BellRing className="size-4" />
           </span>
-          <Button size="sm" variant="outline" disabled={resolve.isPending} onClick={() => resolve.mutate(r.id)}>
-            {t("common.done")}
-          </Button>
-        </div>
-      ))}
-    </div>
+          {t("tables.requestsTitle")}
+        </h2>
+        <StatusPill tone="warning" pulse>
+          <span className="tabular-nums">{data.length}</span>
+        </StatusPill>
+      </div>
+      <ul className="flex flex-col gap-2">
+        {data.map((r) => {
+          const bill = r.type === "BILL";
+          return (
+            <li
+              key={r.id}
+              className="flex items-center justify-between gap-3 rounded-xl bg-surface-2/70 p-2 ps-3 text-sm"
+            >
+              <span className="flex min-w-0 items-center gap-2.5 text-foreground">
+                <span
+                  className={cn(
+                    "flex size-8 shrink-0 items-center justify-center rounded-lg",
+                    bill ? "bg-status-gold-soft text-status-gold" : "bg-status-warning-soft text-status-warning",
+                  )}
+                >
+                  {bill ? <Receipt className="size-4" /> : <BellRing className="size-4" />}
+                </span>
+                <span className="flex min-w-0 flex-col">
+                  <span className="truncate font-medium">
+                    {t(bill ? "tables.requestBill" : "tables.requestWaiter", {
+                      table: r.table.name ?? t("tables.tableN", { n: r.table.number }),
+                    })}
+                  </span>
+                  <ElapsedTimer
+                    since={r.createdAt}
+                    className="inline-flex items-center gap-1 text-xs text-muted-foreground tabular-nums"
+                  />
+                </span>
+              </span>
+              <Button
+                variant="outline"
+                className="h-10 shrink-0 px-3"
+                disabled={resolve.isPending}
+                onClick={() => resolve.mutate(r.id)}
+              >
+                <Check className="size-4" />
+                {t("common.done")}
+              </Button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

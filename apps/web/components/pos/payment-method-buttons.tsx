@@ -47,7 +47,12 @@ export function PaymentMethodButtons<T extends string>({
   const { t } = useI18n();
   return (
     <div
-      className={cn("grid gap-2", methods.length > 4 ? "grid-cols-3" : "grid-cols-4")}
+      className={cn(
+        "grid gap-2",
+        methods.length > 4 ? "grid-cols-3" : "grid-cols-4",
+        // Roomier panels (the POS order panel) fit four tiles per row.
+        methods.length > 4 && "@[22rem]:grid-cols-4",
+      )}
       role="radiogroup"
       aria-label={label ?? t("pos.paymentMethod")}
     >
@@ -63,14 +68,21 @@ export function PaymentMethodButtons<T extends string>({
             aria-checked={active}
             onClick={() => onChange(m)}
             className={cn(
-              "flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-xs font-medium transition-colors",
+              "relative flex min-h-[4.25rem] min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl border px-1.5 py-2.5 text-xs font-medium transition-all outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.97]",
               active
-                ? "border-primary bg-primary/10 text-foreground shadow-sm"
-                : "border-border text-muted-foreground hover:bg-secondary hover:text-foreground",
+                ? "border-primary bg-accent text-accent-foreground shadow-sm ring-1 ring-primary/30"
+                : "border-border/80 bg-card text-muted-foreground hover:border-primary/30 hover:bg-muted hover:text-foreground",
             )}
           >
-            <Icon className="h-[18px] w-[18px]" />
-            {text}
+            <span
+              className={cn(
+                "flex size-8 items-center justify-center rounded-lg transition-colors",
+                active ? "bg-primary text-primary-foreground" : "bg-surface-2",
+              )}
+            >
+              <Icon className="size-[18px]" />
+            </span>
+            <span className="max-w-full truncate">{text}</span>
           </button>
         );
       })}

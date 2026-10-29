@@ -1,15 +1,35 @@
 "use client";
 
+import {
+  Archive,
+  CalendarClock,
+  CloudUpload,
+  DatabaseBackup,
+  Download,
+  History,
+  LifeBuoy,
+  RotateCcw,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { RestoreBackupDialog } from "@/components/settings/restore-backup-dialog";
-import { SettingsTabs } from "@/components/settings/settings-tabs";
+import {
+  ListCard,
+  ResponsiveList,
+  SaveBar,
+  SettingsBody,
+  SettingsCallout,
+  SettingsField,
+  SettingsListBody,
+  SettingsSection,
+} from "@/components/settings/settings-section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Tone } from "@/components/ui/stat-card";
+import { StatusPill } from "@/components/ui/status-pill";
 import {
   Table,
   TableBody,
@@ -34,10 +54,10 @@ import { ApiError } from "@/lib/api";
 import { formatDateTime, formatNumber } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/context";
 
-const STATUS_VARIANT: Record<BackupStatusValue, "outline" | "secondary" | "destructive"> = {
-  PENDING: "outline",
-  VERIFIED: "secondary",
-  FAILED: "destructive",
+const STATUS_TONE: Record<BackupStatusValue, Tone> = {
+  PENDING: "warning",
+  VERIFIED: "success",
+  FAILED: "danger",
 };
 
 type Translate = (key: string, vars?: Record<string, string | number>) => string;
@@ -116,227 +136,262 @@ export default function BackupPage() {
     });
   };
 
+  const downloadButton = (b: BackupEntry) =>
+    b.status === "VERIFIED" ? (
+      <Button size="sm" variant="ghost" render={<a href={backupDownloadUrl(b.id)} />}>
+        <Download className="size-3.5" />
+        {t("common.download")}
+      </Button>
+    ) : (
+      <Button size="sm" variant="ghost" disabled>
+        <Download className="size-3.5" />
+        {t("common.download")}
+      </Button>
+    );
+
+  const restoreButton = (b: BackupEntry) => (
+    <Button
+      size="sm"
+      variant="destructive"
+      disabled={b.status !== "VERIFIED" || !isOwner}
+      title={isOwner ? undefined : t("settings.backup.restoreOwnerOnly")}
+      onClick={() => setRestoreTarget(b)}
+    >
+      <RotateCcw className="size-3.5" />
+      {t("settings.backup.restore")}
+    </Button>
+  );
+
+  const statusCell = (b: BackupEntry) => (
+    <>
+      <StatusPill tone={STATUS_TONE[b.status]} pulse={b.status === "PENDING"}>
+        {t(`settings.backup.status.${b.status}`)}
+      </StatusPill>
+      {b.status === "FAILED" && b.failureReason ? (
+        <div className="mt-1 max-w-xs truncate text-xs text-destructive" title={b.failureReason}>
+          {b.failureReason}
+        </div>
+      ) : null}
+    </>
+  );
+
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">{t("settings.title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("settings.subtitle")}</p>
-      </div>
+    <>
+      <SettingsSection icon={LifeBuoy} title={t("settings.backup.drTitle")}>
+        <SettingsBody divided={false}>
+          <SettingsCallout icon={History} tone="info">
+            <p>{t("settings.backup.drTimeTravel")}</p>
+          </SettingsCallout>
+          <p className="text-sm text-muted-foreground">{t("settings.backup.drPortable")}</p>
+        </SettingsBody>
+      </SettingsSection>
 
-      <SettingsTabs />
+      <SettingsSection
+        icon={Download}
+        title={t("settings.backup.downloadTitle")}
+        description={t("settings.backup.downloadDescription")}
+        actions={
+          <Button render={<a href={LOCAL_BACKUP_URL} download />}>
+            <Download className="size-4" />
+            {t("settings.backup.downloadNow")}
+          </Button>
+        }
+      />
 
-      <Card className="flex flex-col gap-2 p-6">
-        <h2 className="text-[18px] font-medium text-foreground">{t("settings.backup.drTitle")}</h2>
-        <p className="text-sm text-muted-foreground">{t("settings.backup.drTimeTravel")}</p>
-        <p className="text-sm text-muted-foreground">{t("settings.backup.drPortable")}</p>
-      </Card>
-
-      <Card className="flex flex-col gap-3 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h2 className="text-[18px] font-medium text-foreground">{t("settings.backup.downloadTitle")}</h2>
-            <p className="text-sm text-muted-foreground">{t("settings.backup.downloadDescription")}</p>
-          </div>
-          <Button render={<a href={LOCAL_BACKUP_URL} download />}>{t("settings.backup.downloadNow")}</Button>
-        </div>
-      </Card>
-
-      <Card className="flex flex-col gap-4 p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-[18px] font-medium text-foreground">{t("settings.backup.title")}</h2>
-            <p className="text-sm text-muted-foreground">{t("settings.backup.description")}</p>
-          </div>
-          {status ? <Badge variant="secondary">{t("settings.backup.r2Badge")}</Badge> : null}
-        </div>
-
+      <SettingsSection
+        icon={DatabaseBackup}
+        title={t("settings.backup.title")}
+        description={t("settings.backup.description")}
+        actions={status ? <Badge variant="gold">{t("settings.backup.r2Badge")}</Badge> : null}
+      >
         {statusLoading || !status ? (
-          <Skeleton className="h-32 rounded-lg" />
+          <SettingsBody divided={false}>
+            <Skeleton className="h-32 rounded-xl" />
+          </SettingsBody>
         ) : scheduleForm ? (
-          <form onSubmit={onSaveSchedule} className="flex flex-col gap-4">
-            <p className="text-sm text-muted-foreground">{t("settings.backup.scheduleHelp")}</p>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="b-interval">{t("settings.backup.intervalLabel")}</Label>
+          <form onSubmit={onSaveSchedule}>
+            <SettingsBody>
+              <p className="py-4 text-sm text-muted-foreground">{t("settings.backup.scheduleHelp")}</p>
+              <SettingsField label={t("settings.backup.intervalLabel")} htmlFor="b-interval">
                 <Input
                   id="b-interval"
                   type="number"
                   min={1}
                   max={30}
+                  className="w-32 tabular-nums"
                   value={scheduleForm.intervalDays}
                   onChange={(e) =>
                     setScheduleForm((f) => (f ? { ...f, intervalDays: e.target.value } : f))
                   }
                   required
                 />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="b-retain">{t("settings.backup.retainLabel")}</Label>
+              </SettingsField>
+              <SettingsField label={t("settings.backup.retainLabel")} htmlFor="b-retain">
                 <Input
                   id="b-retain"
                   type="number"
                   min={1}
                   max={10}
+                  className="w-32 tabular-nums"
                   value={scheduleForm.retainCount}
                   onChange={(e) =>
                     setScheduleForm((f) => (f ? { ...f, retainCount: e.target.value } : f))
                   }
                   required
                 />
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button type="submit" disabled={setConfig.isPending}>
-                {setConfig.isPending ? t("common.saving") : t("settings.backup.saveSchedule")}
-              </Button>
+              </SettingsField>
+            </SettingsBody>
+            <SaveBar>
               <Button type="button" variant="ghost" onClick={() => setScheduleForm(null)}>
                 {t("common.cancel")}
               </Button>
-            </div>
+              <Button type="submit" disabled={setConfig.isPending}>
+                {setConfig.isPending ? t("common.saving") : t("settings.backup.saveSchedule")}
+              </Button>
+            </SaveBar>
           </form>
         ) : (
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-3 text-sm">
-              <div>
-                <p className="text-foreground">{t("settings.backup.destination")}</p>
-                <p className="text-xs text-muted-foreground">
-                  {status.source === "environment"
-                    ? t("settings.backup.sourceDefaults")
-                    : t("settings.backup.sourceHere")}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={openScheduleForm}>
-                  {t("settings.backup.changeSchedule")}
-                </Button>
-                {status.source === "database" ? (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    disabled={clearConfig.isPending}
-                    onClick={onResetSchedule}
-                  >
-                    {t("settings.backup.resetSchedule")}
+          <>
+            <SettingsBody divided={false}>
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-surface-2/60 p-3.5 ring-1 ring-border/60">
+                <div className="flex min-w-0 items-start gap-3">
+                  <CloudUpload className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground">{t("settings.backup.destination")}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {status.source === "environment"
+                        ? t("settings.backup.sourceDefaults")
+                        : t("settings.backup.sourceHere")}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  {status.source === "database" ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={clearConfig.isPending}
+                      onClick={onResetSchedule}
+                    >
+                      {t("settings.backup.resetSchedule")}
+                    </Button>
+                  ) : null}
+                  <Button size="sm" variant="outline" onClick={openScheduleForm}>
+                    <CalendarClock className="size-3.5" />
+                    {t("settings.backup.changeSchedule")}
                   </Button>
-                ) : null}
+                </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-              <Stat
-                label={t("settings.backup.runsEvery")}
-                value={t("settings.backup.days", { n: status.intervalDays })}
-              />
-              <Stat
-                label={t("settings.backup.keeps")}
-                value={t("settings.backup.backupsCount", { n: status.retainCount })}
-              />
-              <Stat
-                label={t("settings.backup.lastBackup")}
-                value={
-                  status.lastBackup
-                    ? formatDateTime(status.lastBackup.createdAt)
-                    : t("settings.backup.never")
-                }
-              />
-              <Stat
-                label={t("settings.backup.nextScheduled")}
-                value={status.nextScheduledAt ? formatDateTime(status.nextScheduledAt) : "—"}
-              />
-            </div>
-
-            <div>
+              <div className="grid grid-cols-2 gap-2 @3xl:grid-cols-4">
+                <Stat
+                  label={t("settings.backup.runsEvery")}
+                  value={t("settings.backup.days", { n: status.intervalDays })}
+                />
+                <Stat
+                  label={t("settings.backup.keeps")}
+                  value={t("settings.backup.backupsCount", { n: status.retainCount })}
+                />
+                <Stat
+                  label={t("settings.backup.lastBackup")}
+                  value={
+                    status.lastBackup
+                      ? formatDateTime(status.lastBackup.createdAt)
+                      : t("settings.backup.never")
+                  }
+                />
+                <Stat
+                  label={t("settings.backup.nextScheduled")}
+                  value={status.nextScheduledAt ? formatDateTime(status.nextScheduledAt) : "—"}
+                />
+              </div>
+            </SettingsBody>
+            <SaveBar className="static">
               <Button onClick={onTrigger} disabled={triggerBackup.isPending}>
+                <DatabaseBackup className="size-4" />
                 {triggerBackup.isPending ? t("settings.backup.starting") : t("settings.backup.backUpNow")}
               </Button>
-            </div>
-          </div>
+            </SaveBar>
+          </>
         )}
-      </Card>
+      </SettingsSection>
 
-      <Card className="flex flex-col gap-4 p-6">
-        <div>
-          <h2 className="text-[18px] font-medium text-foreground">{t("settings.backup.history")}</h2>
-          <p className="text-sm text-muted-foreground">
-            {isOwner ? t("settings.backup.restoreHelp") : t("settings.backup.restoreOwnerOnly")}
-          </p>
-        </div>
-
+      <SettingsSection
+        icon={Archive}
+        title={t("settings.backup.history")}
+        description={isOwner ? t("settings.backup.restoreHelp") : t("settings.backup.restoreOwnerOnly")}
+      >
         {backupsLoading ? (
-          <div className="flex flex-col gap-2">
+          <SettingsListBody className="flex flex-col gap-2">
             {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-12 rounded-lg" />
+              <Skeleton key={i} className="h-12 rounded-xl" />
             ))}
-          </div>
+          </SettingsListBody>
         ) : backups && backups.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("settings.backup.colStarted")}</TableHead>
-                <TableHead>{t("common.status")}</TableHead>
-                <TableHead>{t("settings.backup.colSize")}</TableHead>
-                <TableHead className="text-end">{t("common.actions")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {backups.map((b) => (
-                <TableRow key={b.id}>
-                  <TableCell className="font-medium text-foreground">
-                    {formatDateTime(b.createdAt)}
-                    <div className="text-xs font-normal text-muted-foreground">
+          <ResponsiveList
+            table={
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("settings.backup.colStarted")}</TableHead>
+                    <TableHead>{t("common.status")}</TableHead>
+                    <TableHead>{t("settings.backup.colSize")}</TableHead>
+                    <TableHead className="text-end">{t("common.actions")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {backups.map((b) => (
+                    <TableRow key={b.id}>
+                      <TableCell>
+                        <p className="font-medium text-foreground tabular-nums">{formatDateTime(b.createdAt)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {b.triggeredById ? t("settings.backup.manual") : t("settings.backup.scheduled")}
+                        </p>
+                      </TableCell>
+                      <TableCell>{statusCell(b)}</TableCell>
+                      <TableCell className="text-muted-foreground tabular-nums">{formatBytes(t, b.sizeBytes)}</TableCell>
+                      <TableCell className="text-end">
+                        <div className="flex items-center justify-end gap-1">
+                          {downloadButton(b)}
+                          {restoreButton(b)}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            }
+            cards={backups.map((b) => (
+              <ListCard key={b.id}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground tabular-nums">{formatDateTime(b.createdAt)}</p>
+                    <p className="text-xs text-muted-foreground">
                       {b.triggeredById ? t("settings.backup.manual") : t("settings.backup.scheduled")}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={STATUS_VARIANT[b.status]}>
-                      {t(`settings.backup.status.${b.status}`)}
-                    </Badge>
-                    {b.status === "FAILED" && b.failureReason ? (
-                      <div className="mt-1 max-w-xs truncate text-xs text-destructive" title={b.failureReason}>
-                        {b.failureReason}
-                      </div>
-                    ) : null}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {formatBytes(t, b.sizeBytes)}
-                  </TableCell>
-                  <TableCell className="text-end">
-                    <div className="flex items-center justify-end gap-1">
-                      {b.status === "VERIFIED" ? (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          render={<a href={backupDownloadUrl(b.id)} />}
-                        >
-                          {t("common.download")}
-                        </Button>
-                      ) : (
-                        <Button size="sm" variant="ghost" disabled>
-                          {t("common.download")}
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        disabled={b.status !== "VERIFIED" || !isOwner}
-                        title={isOwner ? undefined : t("settings.backup.restoreOwnerOnly")}
-                        onClick={() => setRestoreTarget(b)}
-                      >
-                        {t("settings.backup.restore")}
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                      {" · "}
+                      <span className="tabular-nums">{formatBytes(t, b.sizeBytes)}</span>
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end">{statusCell(b)}</div>
+                </div>
+                <div className="flex items-center justify-end gap-1 border-t border-border/70 pt-2">
+                  {downloadButton(b)}
+                  {restoreButton(b)}
+                </div>
+              </ListCard>
+            ))}
+          />
         ) : (
-          <div className="flex flex-col items-center gap-2 py-16 text-center">
-            <p className="text-sm font-medium text-foreground">{t("settings.backup.emptyTitle")}</p>
-            <p className="text-sm text-muted-foreground">{t("settings.backup.emptyDescription")}</p>
-          </div>
+          <SettingsListBody>
+            <EmptyState
+              compact
+              icon={Archive}
+              title={t("settings.backup.emptyTitle")}
+              description={t("settings.backup.emptyDescription")}
+            />
+          </SettingsListBody>
         )}
-      </Card>
+      </SettingsSection>
 
       {restoreTarget ? (
         <RestoreBackupDialog
@@ -345,15 +400,15 @@ export default function BackupPage() {
           onClose={() => setRestoreTarget(null)}
         />
       ) : null}
-    </div>
+    </>
   );
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-foreground">{value}</p>
+    <div className="flex min-w-0 flex-col gap-1 rounded-xl bg-card p-3 ring-1 ring-border/70">
+      <p className="truncate text-xs font-medium text-muted-foreground">{label}</p>
+      <p className="text-sm font-semibold text-foreground tabular-nums">{value}</p>
     </div>
   );
 }

@@ -46,26 +46,37 @@ export function PermissionChecklist({
 }) {
   const { t } = useI18n();
   return (
-    <div className="flex max-h-72 flex-col gap-4 overflow-y-auto rounded-lg border border-border p-3">
-      {GROUPED_PERMISSIONS.map(([category, permissions]) => (
-        <div key={category} className="flex flex-col gap-2">
-          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            {permissionCategoryLabel(t, category)}
-          </p>
-          {permissions.map((permission) => (
-            <label
-              key={permission.key}
-              className="flex items-center gap-2 text-sm text-foreground"
-            >
-              <Checkbox
-                checked={selected.includes(permission.key)}
-                onCheckedChange={() => onToggle(permission.key)}
-              />
-              {permissionLabel(t, permission.key, permission.label)}
-            </label>
-          ))}
-        </div>
-      ))}
+    <div className="flex max-h-80 flex-col gap-3 overflow-y-auto rounded-xl bg-surface-2/60 p-2 ring-1 ring-border/70 sm:p-3">
+      {GROUPED_PERMISSIONS.map(([category, permissions]) => {
+        const granted = permissions.filter((p) => selected.includes(p.key)).length;
+        return (
+          <fieldset key={category} className="flex flex-col rounded-xl border border-border/70 bg-card">
+            <legend className="sr-only">{permissionCategoryLabel(t, category)}</legend>
+            <div className="flex items-center justify-between gap-2 border-b border-border/70 px-3 py-2">
+              <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                {permissionCategoryLabel(t, category)}
+              </p>
+              <span className="text-[11px] text-muted-foreground tabular-nums">
+                {granted}/{permissions.length}
+              </span>
+            </div>
+            <div className="grid grid-cols-1 gap-x-3 p-1 sm:grid-cols-2">
+              {permissions.map((permission) => (
+                <label
+                  key={permission.key}
+                  className="flex min-h-10 cursor-pointer items-center gap-2.5 rounded-lg px-2 text-sm text-foreground hover:bg-muted/60"
+                >
+                  <Checkbox
+                    checked={selected.includes(permission.key)}
+                    onCheckedChange={() => onToggle(permission.key)}
+                  />
+                  {permissionLabel(t, permission.key, permission.label)}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        );
+      })}
     </div>
   );
 }

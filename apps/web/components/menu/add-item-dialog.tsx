@@ -1,6 +1,6 @@
 "use client";
 
-import { ImagePlus, X } from "lucide-react";
+import { ImagePlus, Plus, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -133,7 +133,8 @@ export function AddItemDialog({
     >
       <DialogTrigger
         render={
-          <Button size="sm" disabled={categories.length === 0}>
+          <Button disabled={categories.length === 0}>
+            <Plus />
             {t("menu.item.add")}
           </Button>
         }

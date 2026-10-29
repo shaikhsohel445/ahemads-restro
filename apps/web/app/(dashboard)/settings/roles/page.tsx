@@ -1,14 +1,19 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { Lock, Pencil, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { CreateRoleDialog } from "@/components/settings/create-role-dialog";
 import { EditRoleDialog } from "@/components/settings/edit-role-dialog";
-import { SettingsTabs } from "@/components/settings/settings-tabs";
+import {
+  ListCard,
+  ResponsiveList,
+  SettingsListBody,
+  SettingsSection,
+} from "@/components/settings/settings-section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -38,90 +43,119 @@ export default function RolesPage() {
     });
   };
 
-  return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">{t("settings.title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("settings.subtitle")}</p>
+  const typeBadge = (role: RoleWithPermissions) =>
+    role.isSystem ? (
+      <Badge variant="neutral">
+        <Lock />
+        {t("settings.roles.seeded")}
+      </Badge>
+    ) : (
+      <Badge variant="gold">{t("settings.roles.custom")}</Badge>
+    );
+
+  const actions = (role: RoleWithPermissions) =>
+    role.isSystem ? (
+      <span className="text-xs text-muted-foreground">—</span>
+    ) : (
+      <div className="flex items-center justify-end gap-1">
+        <Button variant="ghost" size="sm" onClick={() => setEditingRole(role)}>
+          <Pencil className="size-3.5" />
+          {t("common.edit")}
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+          onClick={() => onDelete(role)}
+          aria-label={t("settings.roles.delete")}
+          title={t("settings.roles.delete")}
+        >
+          <Trash2 className="size-4" />
+        </Button>
       </div>
+    );
 
-      <SettingsTabs />
-
-      <Card className="flex flex-col gap-4 p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-[18px] font-medium text-foreground">{t("settings.roles.title")}</h2>
-            <p className="text-sm text-muted-foreground">{t("settings.roles.description")}</p>
-          </div>
+  return (
+    <>
+      <SettingsSection
+        icon={ShieldCheck}
+        title={t("settings.roles.title")}
+        description={t("settings.roles.description")}
+        actions={
           <Button size="sm" onClick={() => setCreateOpen(true)}>
+            <Plus className="size-4" />
             {t("settings.roles.create")}
           </Button>
-        </div>
-
+        }
+      >
         {isLoading ? (
-          <div className="flex flex-col gap-2">
+          <SettingsListBody className="flex flex-col gap-2">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-12 rounded-lg" />
+              <Skeleton key={i} className="h-12 rounded-xl" />
             ))}
-          </div>
+          </SettingsListBody>
         ) : roles && roles.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("settings.staff.role")}</TableHead>
-                <TableHead>{t("common.type")}</TableHead>
-                <TableHead>{t("settings.roles.permissions")}</TableHead>
-                <TableHead className="text-end">{t("common.actions")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {roles.map((role) => (
-                <TableRow key={role.id}>
-                  <TableCell className="font-medium text-foreground">
-                    {role.label}
-                    <div className="text-xs font-normal text-muted-foreground">
+          <ResponsiveList
+            table={
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("settings.staff.role")}</TableHead>
+                    <TableHead>{t("common.type")}</TableHead>
+                    <TableHead>{t("settings.roles.permissions")}</TableHead>
+                    <TableHead className="text-end">{t("common.actions")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {roles.map((role) => (
+                    <TableRow key={role.id}>
+                      <TableCell>
+                        <p className="font-medium text-foreground">{role.label}</p>
+                        <p className="font-mono text-xs text-muted-foreground">
+                          <bdi>{role.name}</bdi>
+                        </p>
+                      </TableCell>
+                      <TableCell>{typeBadge(role)}</TableCell>
+                      <TableCell className="text-muted-foreground tabular-nums">
+                        {t("settings.roles.granted", { n: role.permissions.length })}
+                      </TableCell>
+                      <TableCell className="text-end">{actions(role)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            }
+            cards={roles.map((role) => (
+              <ListCard key={role.id}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-foreground">{role.label}</p>
+                    <p className="truncate font-mono text-xs text-muted-foreground">
                       <bdi>{role.name}</bdi>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={role.isSystem ? "secondary" : "outline"} className="font-normal">
-                      {role.isSystem ? t("settings.roles.seeded") : t("settings.roles.custom")}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
+                    </p>
+                  </div>
+                  {typeBadge(role)}
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-muted-foreground tabular-nums">
                     {t("settings.roles.granted", { n: role.permissions.length })}
-                  </TableCell>
-                  <TableCell className="text-end">
-                    {role.isSystem ? (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    ) : (
-                      <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => setEditingRole(role)}>
-                          {t("common.edit")}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          onClick={() => onDelete(role)}
-                          aria-label={t("settings.roles.delete")}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  </span>
+                  {actions(role)}
+                </div>
+              </ListCard>
+            ))}
+          />
         ) : (
-          <div className="flex flex-col items-center gap-2 py-16 text-center">
-            <p className="text-sm font-medium text-foreground">{t("settings.roles.emptyTitle")}</p>
-            <p className="text-sm text-muted-foreground">{t("settings.roles.emptyDescription")}</p>
-          </div>
+          <SettingsListBody>
+            <EmptyState
+              compact
+              icon={ShieldCheck}
+              title={t("settings.roles.emptyTitle")}
+              description={t("settings.roles.emptyDescription")}
+            />
+          </SettingsListBody>
         )}
-      </Card>
+      </SettingsSection>
 
       {createOpen ? <CreateRoleDialog onClose={() => setCreateOpen(false)} /> : null}
       {editingRole ? (
@@ -131,6 +165,6 @@ export default function RolesPage() {
           onClose={() => setEditingRole(null)}
         />
       ) : null}
-    </div>
+    </>
   );
 }

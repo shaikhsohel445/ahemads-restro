@@ -85,21 +85,22 @@ export function EditableTableTile({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       className={cn(
-        "absolute flex cursor-grab touch-none flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-primary/40 bg-primary/5 text-xs font-medium text-foreground shadow-sm active:cursor-grabbing",
+        "absolute flex cursor-grab touch-none flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-primary/45 bg-card text-xs font-medium text-accent-foreground shadow-sm transition-shadow select-none hover:border-primary/70 hover:shadow-md active:cursor-grabbing",
+        dragPos && "z-10 border-primary shadow-lg ring-4 ring-primary/15",
       )}
       style={{ left: posX, top: posY, width: table.width, height: table.height }}
     >
       <TableShapeIcon shape={table.shape} capacity={table.capacity} className="h-6 w-6" />
-      <span className="text-sm font-semibold">{table.name ?? t("tables.tableShort", { n: table.number })}</span>
-      <span className="flex items-center gap-1 text-[11px] opacity-80">
+      <span className="text-sm font-semibold tabular-nums text-foreground">{table.name ?? t("tables.tableShort", { n: table.number })}</span>
+      <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
         <Users className="h-3 w-3" />
-        {table.capacity}
+        <span className="tabular-nums">{table.capacity}</span>
       </span>
-      <div className="absolute -top-3 end-1 flex gap-1">
+      <div className="absolute -top-4 end-1 flex gap-1">
         <Button
-          variant="secondary"
-          size="icon"
-          className="h-6 w-6 shadow"
+          variant="outline"
+          size="icon-sm"
+          className="rounded-full bg-card shadow-sm"
           aria-label={t("tables.editTable")}
           title={t("tables.editTable")}
           onClick={(e) => {
@@ -107,17 +108,17 @@ export function EditableTableTile({
             onEdit();
           }}
         >
-          <Pencil className="h-3 w-3" />
+          <Pencil className="size-3.5" />
         </Button>
         <Button
-          variant="secondary"
-          size="icon"
-          className="h-6 w-6 text-destructive shadow"
+          variant="outline"
+          size="icon-sm"
+          className="rounded-full bg-card text-destructive shadow-sm hover:bg-destructive/10 hover:text-destructive"
           aria-label={t("tables.deleteTable")}
           title={t("tables.deleteTable")}
           onClick={handleDelete}
         >
-          <Trash2 className="h-3 w-3" />
+          <Trash2 className="size-3.5" />
         </Button>
       </div>
     </div>

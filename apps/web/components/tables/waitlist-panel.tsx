@@ -1,9 +1,12 @@
 "use client";
 
+import { Armchair, Hourglass, UserPlus, Users, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +32,7 @@ import {
 import type { RestaurantTable } from "@/hooks/use-tables";
 import { ApiError } from "@/lib/api";
 import { useI18n } from "@/lib/i18n/context";
+import { ElapsedTimer } from "./elapsed-timer";
 
 function AddWaitlistDialog({ branchId }: { branchId: string | null }) {
   const { t } = useI18n();
@@ -64,7 +68,14 @@ function AddWaitlistDialog({ branchId }: { branchId: string | null }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm" variant="outline">{t("tables.waitlist.add")}</Button>} />
+      <DialogTrigger
+        render={
+          <Button variant="outline" className="h-10 px-3">
+            <UserPlus className="size-4" />
+            {t("tables.waitlist.add")}
+          </Button>
+        }
+      />
       <DialogContent className="sm:max-w-sm">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>
@@ -130,34 +141,70 @@ export function WaitlistPanel({
   const seat = useSeatWaitlistEntry(branchId);
   const cancel = useCancelWaitlistEntry(branchId);
 
+  const count = entries?.length ?? 0;
+
   return (
-    <Card className="flex flex-col gap-3 p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-[18px] font-medium text-foreground">{t("tables.waitlist.title")}</h2>
+    <Card className="gap-0 p-0 py-0 sm:py-0">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/70 p-4">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+          <span className="flex size-8 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+            <Hourglass className="size-4" />
+          </span>
+          {t("tables.waitlist.title")}
+          {count > 0 && (
+            <span className="min-w-6 rounded-full bg-surface-2 px-2 text-center text-xs leading-6 font-medium tabular-nums text-muted-foreground">
+              {count}
+            </span>
+          )}
+        </h2>
         <AddWaitlistDialog branchId={branchId} />
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
+        <div className="flex flex-col gap-2 p-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-14 rounded-xl" />
+          ))}
+        </div>
       ) : entries && entries.length > 0 ? (
-        <div className="flex flex-col divide-y divide-border">
-          {entries.map((entry) => (
-            <div key={entry.id} className="flex items-center justify-between gap-3 py-2.5">
-              <div className="flex flex-col">
-                <span className="text-sm font-medium text-foreground">{entry.customerName}</span>
-                <span className="text-xs text-muted-foreground">
-                  {t("tables.guestsCount", { n: entry.partySize })}
-                  {entry.quotedWaitMinutes ? ` · ${t("tables.waitlist.approxMin", { n: entry.quotedWaitMinutes })}` : ""}
+        <ul className="flex flex-col gap-2 p-3">
+          {entries.map((entry, i) => (
+            <li
+              key={entry.id}
+              className="flex flex-col gap-2.5 rounded-xl bg-surface-2/60 p-3 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between xl:flex-col xl:items-stretch"
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card text-xs font-semibold tabular-nums text-muted-foreground ring-1 ring-border/70">
+                  {i + 1}
                 </span>
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <span className="truncate text-sm font-medium text-foreground">{entry.customerName}</span>
+                  <span className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1">
+                      <Users className="size-3.5" />
+                      <span className="tabular-nums">{t("tables.guestsCount", { n: entry.partySize })}</span>
+                    </span>
+                    <ElapsedTimer since={entry.createdAt} className="inline-flex items-center gap-1 tabular-nums" />
+                    {entry.quotedWaitMinutes ? (
+                      <span className="tabular-nums">{t("tables.waitlist.approxMin", { n: entry.quotedWaitMinutes })}</span>
+                    ) : null}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex shrink-0 items-center gap-1.5">
                 <DropdownMenu>
                   <DropdownMenuTrigger
-                    className="rounded-lg px-2 py-1 text-xs font-medium text-primary hover:bg-accent"
                     disabled={availableTables.length === 0}
-                  >
-                    {t("tables.waitlist.seat")}
-                  </DropdownMenuTrigger>
+                    render={
+                      <Button
+                        variant="secondary"
+                        className="h-10 flex-1 bg-accent px-3 text-accent-foreground hover:bg-accent/80"
+                      >
+                        <Armchair className="size-4" />
+                        {t("tables.waitlist.seat")}
+                      </Button>
+                    }
+                  />
                   <DropdownMenuContent align="end">
                     {availableTables.map((table) => (
                       <DropdownMenuItem
@@ -171,18 +218,25 @@ export function WaitlistPanel({
                 </DropdownMenu>
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground hover:text-destructive"
+                  size="icon"
+                  className="size-10 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  aria-label={t("common.remove")}
+                  title={t("common.remove")}
                   onClick={() => cancel.mutate(entry.id)}
                 >
-                  {t("common.remove")}
+                  <X className="size-4" />
                 </Button>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       ) : (
-        <p className="py-4 text-sm text-muted-foreground">{t("tables.waitlist.empty")}</p>
+        <EmptyState
+          compact
+          icon={Hourglass}
+          title={t("tables.waitlist.empty")}
+          className="m-3 border-0 bg-surface-2/50"
+        />
       )}
     </Card>
   );

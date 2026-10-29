@@ -56,8 +56,9 @@ export function RenameFloorDialog({
     >
       <DialogTrigger
         render={
-          <Button variant="ghost" size="icon" className="h-6 w-6" aria-label={t("tables.renameFloor")} title={t("tables.renameFloor")}>
-            <Pencil className="h-3 w-3" />
+          <Button variant="outline" className="h-10 px-3" title={t("tables.renameFloor")}>
+            <Pencil className="size-4" />
+            <span className="max-sm:sr-only">{t("tables.renameFloor")}</span>
           </Button>
         }
       />

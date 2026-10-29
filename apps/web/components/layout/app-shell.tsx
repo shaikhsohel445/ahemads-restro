@@ -179,8 +179,12 @@ export function AppShell({
         </header>
         <main
           className={cn(
-            "flex-1 overflow-y-auto pb-28 lg:pb-8",
+            "flex-1 overflow-y-auto",
             dense ? "p-3 sm:p-4 lg:p-5" : "p-4 sm:p-6 lg:p-8",
+            // After the padding shorthand so tailwind-merge keeps it: room for
+            // the floating tab bar below lg.
+            "pb-28 sm:pb-28",
+            dense ? "lg:pb-5" : "lg:pb-8",
           )}
         >
           <div className={cn("mx-auto w-full", !dense && "max-w-[1440px]")}>{children}</div>

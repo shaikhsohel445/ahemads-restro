@@ -1,4 +1,5 @@
 {
+  "allReports": "كل التقارير",
   "column.amount": "المبلغ",
   "column.avg_minutes_per_order": "متوسط الدقائق لكل طلب",
   "column.avg_minutes_to_deliver": "متوسط دقائق التوصيل",
@@ -53,6 +54,7 @@
   "column.unit": "الوحدة",
   "column.units_sold": "الوحدات المباعة",
   "column.value": "القيمة",
+  "dateRange": "الفترة الزمنية",
   "empty": "لا توجد بيانات لهذه الفترة.",
   "group.analytics": "التحليلات",
   "group.customers": "العملاء",
@@ -62,6 +64,8 @@
   "group.staff": "الموظفون",
   "group.tax": "الضريبة",
   "loadError": "تعذّر تحميل التقرير",
+  "preset.last30": "آخر 30 يومًا",
+  "preset.last7": "آخر 7 أيام",
   "rangeLabel": "من {from} إلى {to}",
   "report.customers": "أفضل العملاء",
   "report.delivery": "عمليات التوصيل",
@@ -81,6 +85,7 @@
   "report.table-turnover": "معدل دوران الطاولات",
   "report.tax": "ملخص الضريبة (القيمة المضافة)",
   "report.waste": "الهدر",
+  "rowCount": "{n} صفوف",
   "schedules.created": "تم إنشاء الجدول",
   "schedules.emailed": "تم إرسال التقرير بالبريد",
   "schedules.fileFormat": "صيغة الملف",
@@ -92,6 +97,7 @@
   "schedules.lastSent": "آخر إرسال {date}",
   "schedules.notConfigured": "لم يتم إعداد البريد الإلكتروني على هذا الخادم بعد",
   "schedules.pause": "إيقاف مؤقت",
+  "schedules.paused": "متوقف مؤقتًا",
   "schedules.recipients": "المستلمون",
   "schedules.recipientsPlaceholder": "owner@restaurant.com, accountant@firm.com",
   "schedules.resume": "استئناف",
@@ -102,6 +108,7 @@
   "schedules.when.DAILY": "يوميًا · بيانات الأمس",
   "schedules.when.MONTHLY": "أول كل شهر · الشهر السابق",
   "schedules.when.WEEKLY": "كل اثنين · آخر 7 أيام",
+  "searchPlaceholder": "ابحث في التقارير…",
   "subtitle": "التصفية حسب التاريخ، الطباعة، التصدير إلى Excel أو PDF أو CSV، أو الإرسال بالبريد وفق جدول",
   "title": "التقارير"
 }

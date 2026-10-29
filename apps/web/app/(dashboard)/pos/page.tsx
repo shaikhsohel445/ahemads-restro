@@ -1,6 +1,16 @@
 "use client";
 
-import { ChevronLeft, MonitorSmartphone, ShoppingCart } from "lucide-react";
+import {
+  Armchair,
+  Bike,
+  ChevronLeft,
+  ChevronRight,
+  MonitorSmartphone,
+  ReceiptText,
+  ShoppingBag,
+  ShoppingCart,
+  UtensilsCrossed,
+} from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { StatusNote, useNoteToast } from "@/components/ui/status-note";
@@ -14,7 +24,8 @@ import { KitchenProgressWidget } from "@/components/pos/kitchen-progress-widget"
 import { ModifierPickerDialog } from "@/components/pos/modifier-picker-dialog";
 import { PosTablePicker } from "@/components/pos/pos-table-picker";
 import { ProductGrid } from "@/components/pos/product-grid";
-import { Card } from "@/components/ui/card";
+import { Segmented, type SegmentOption } from "@/components/ui/segmented";
+import { StatusPill, TABLE_STATUS_TONE } from "@/components/ui/status-pill";
 import { useBranch } from "@/hooks/use-branch";
 import type { MenuItem } from "@/hooks/use-menu";
 import {
@@ -116,6 +127,7 @@ function PosPageInner() {
     modifierIds: string[],
     modifierLabel: string,
     portion?: Portion,
+    taxRatePercent?: number,
   ) => {
     const key = cartLineKey(menuItemId, modifierIds, portion);
     setLines((prev) => {
@@ -123,7 +135,10 @@ function PosPageInner() {
       if (existing) {
         return prev.map((l) => (l.key === key ? { ...l, quantity: l.quantity + 1 } : l));
       }
-      return [...prev, { key, menuItemId, name, unitPrice, quantity: 1, modifierIds, modifierLabel, portion }];
+      return [
+        ...prev,
+        { key, menuItemId, name, unitPrice, quantity: 1, modifierIds, modifierLabel, portion, taxRatePercent },
+      ];
     });
   };
 
@@ -132,7 +147,7 @@ function PosPageInner() {
       setPickerItem(item);
       return;
     }
-    addLine(item.id, item.name, Number(item.price), [], "");
+    addLine(item.id, item.name, Number(item.price), [], "", undefined, Number(item.taxRatePercent) || 0);
   };
 
   const handleModifierConfirm = (modifierIds: string[], modifierLabel: string, portion?: Portion) => {
@@ -153,6 +168,7 @@ function PosPageInner() {
       modifierIds,
       modifierLabel,
       portion,
+      Number(pickerItem.taxRatePercent) || 0,
     );
   };
 
@@ -251,29 +267,104 @@ function PosPageInner() {
   // (?tableId=... pre-fills this and never shows the picker).
   const showTablePicker = orderType === "DINE_IN" && !tableId && !activeOrder;
 
+  const cartCount = lines.reduce((n, l) => n + l.quantity, 0);
+  const cartTotal = lines.reduce((s, l) => s + l.unitPrice * l.quantity, 0);
+  const quantities = lines.reduce<Record<string, number>>((acc, l) => {
+    acc[l.menuItemId] = (acc[l.menuItemId] ?? 0) + l.quantity;
+    return acc;
+  }, {});
+  const selectedTable = orderType === "DINE_IN" ? tables.find((tb) => tb.id === tableId) : undefined;
+  const showSummaryBar =
+    !showTablePicker && !cartOpen && (lines.length > 0 || !!activeOrder || !!existingOrder);
+
+  const orderTypeOptions: SegmentOption<PosOrderType>[] = [
+    { value: "DINE_IN", label: t("common.orderType.DINE_IN"), icon: UtensilsCrossed },
+    { value: "TAKEAWAY", label: t("common.orderType.TAKEAWAY"), icon: ShoppingBag },
+    { value: "DELIVERY", label: t("common.orderType.DELIVERY"), icon: Bike },
+  ];
+
   return (
-    <div className="flex h-[calc(100dvh-10rem)] flex-col gap-4 lg:h-[calc(100dvh-8rem)]">
+    // Desktop/landscape tablet: a fixed-height workspace under the 4rem shell
+    // header (minus the dense lg:p-5 padding) whose zones scroll on their own.
+    // Below lg the page scrolls naturally and reserves room at the bottom for
+    // the floating tab bar (and the order summary bar when it shows).
+    <div
+      className={cn(
+        "flex flex-col gap-3 lg:h-[calc(100dvh-6.5rem)] lg:gap-4",
+        showSummaryBar
+          ? "max-lg:pb-[calc(10.5rem+env(safe-area-inset-bottom))]"
+          : "max-lg:pb-[calc(6.5rem+env(safe-area-inset-bottom))]",
+      )}
+    >
       <StatusNote note={note} onClear={clearNote} />
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <KitchenProgressWidget branchId={branchId} />
+
+      {/* Compact workspace toolbar: order type, table, kitchen, customer display. */}
+      <div className="flex flex-wrap items-center gap-2">
+        {activeOrder ? (
+          <span className="inline-flex h-11 items-center gap-2 rounded-xl bg-card ps-2 pe-3.5 text-sm font-semibold text-foreground ring-1 ring-border/70">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+              <ReceiptText className="size-4" />
+            </span>
+            <bdi>{t("pos.page.orderChip", { number: activeOrder.orderNumber })}</bdi>
+          </span>
+        ) : (
+          <Segmented
+            options={orderTypeOptions}
+            value={orderType}
+            onChange={setOrderType}
+            size="lg"
+            stretch
+            className="sm:w-fit"
+            aria-label={t("pos.page.orderType")}
+          />
+        )}
+
+        {selectedTable && !activeOrder && (
+          <button
+            type="button"
+            onClick={() => setTableId("")}
+            title={t("pos.page.changeTable")}
+            className="group inline-flex h-11 min-w-0 items-center gap-2 rounded-xl bg-card ps-2 pe-3 text-sm ring-1 ring-border/70 transition-colors hover:bg-muted"
+          >
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+              <Armchair className="size-4" />
+            </span>
+            <span className="truncate font-semibold text-foreground">
+              {selectedTable.name ?? t("pos.cart.tableN", { n: selectedTable.number })}
+            </span>
+            {selectedTable.status !== "AVAILABLE" && (
+              <StatusPill tone={TABLE_STATUS_TONE[selectedTable.status] ?? "neutral"} className="max-sm:hidden">
+                {t(`common.tableStatus.${selectedTable.status}`)}
+              </StatusPill>
+            )}
+            <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground max-md:sr-only">
+              {t("pos.page.changeTable")}
+            </span>
+          </button>
+        )}
+
+        <div className="flex min-w-0 items-center gap-2 max-sm:w-full sm:ms-auto">
+          <div className="min-w-0 flex-1 sm:flex-initial">
+            <KitchenProgressWidget branchId={branchId} />
+          </div>
+          <a
+            href="/customer-display"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-card px-3 text-sm font-medium text-muted-foreground ring-1 ring-border/70 transition-colors hover:bg-muted hover:text-foreground"
+            title={t("pos.page.customerDisplayTitle")}
+            aria-label={t("pos.page.customerDisplay")}
+          >
+            <MonitorSmartphone className="size-4" />
+            <span className="max-xl:sr-only">{t("pos.page.customerDisplay")}</span>
+          </a>
         </div>
-        <a
-          href="/customer-display"
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          title={t("pos.page.customerDisplayTitle")}
-        >
-          <MonitorSmartphone className="h-3.5 w-3.5" />
-          {t("pos.page.customerDisplay")}
-        </a>
       </div>
 
       <BranchNotice />
 
       {showTablePicker ? (
-        <Card className="flex-1 overflow-hidden p-5">
+        <div className="flex flex-col rounded-2xl border border-border/80 bg-card p-3 sm:p-5 lg:min-h-0 lg:flex-1">
           <PosTablePicker
             floors={floors ?? []}
             onSelect={handleTablePick}
@@ -282,85 +373,109 @@ function PosPageInner() {
             onRetry={() => void floorsQuery.refetch()}
             retrying={floorsQuery.isFetching}
           />
-        </Card>
+        </div>
       ) : (
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 overflow-hidden lg:grid-cols-[1fr_360px]">
-          <Card className="min-h-0 overflow-hidden p-3 sm:p-5">
-            <ProductGrid branchId={branchId} onSelect={handleSelect} />
-          </Card>
+        <div className="flex flex-col gap-4 lg:min-h-0 lg:flex-1 lg:flex-row">
+          <section aria-label={t("pos.page.menu")} className="flex min-w-0 flex-col lg:min-h-0 lg:flex-1">
+            <ProductGrid branchId={branchId} onSelect={handleSelect} quantities={quantities} />
+          </section>
 
-          <Card
+          {/* Order panel: sticky column from lg; a bottom sheet / full screen below. */}
+          {cartOpen && (
+            <button
+              type="button"
+              aria-label={t("pos.page.backToMenu")}
+              onClick={() => setCartOpen(false)}
+              className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] lg:hidden"
+            />
+          )}
+          <aside
+            aria-label={t("pos.page.currentOrder")}
             className={cn(
-              "min-h-0 overflow-hidden p-5",
+              "flex flex-col overflow-hidden border-border/80 bg-card lg:min-h-0 lg:w-[340px] lg:shrink-0 lg:rounded-2xl lg:border xl:w-[380px]",
               cartOpen
-                ? "max-lg:fixed max-lg:inset-0 max-lg:z-40 max-lg:rounded-none max-lg:p-4 max-lg:pt-[max(1rem,env(safe-area-inset-top))] max-lg:pb-[max(1rem,env(safe-area-inset-bottom))]"
+                ? "max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-50 max-lg:h-dvh max-lg:pt-[env(safe-area-inset-top)] max-lg:pb-[env(safe-area-inset-bottom)] max-lg:shadow-2xl sm:max-lg:h-[92dvh] sm:max-lg:rounded-t-3xl sm:max-lg:border-t sm:max-lg:pt-0"
                 : "max-lg:hidden",
             )}
           >
-            <button
-              type="button"
-              onClick={() => setCartOpen(false)}
-              className="mb-3 -ms-1 flex items-center gap-1 text-sm font-medium text-muted-foreground lg:hidden"
-            >
-              <ChevronLeft className="rtl:-scale-x-100 h-4 w-4" />
-              {t("pos.page.backToMenu")}
-            </button>
-            {activeOrder ? (
-              <CheckoutPanel
-                order={activeOrder}
-                branchId={branchId}
-                initialCustomer={activeCustomer}
-                onDone={resetForNewOrder}
-              />
-            ) : (
-              <CartPanel
-                lines={lines}
-                orderType={orderType}
-                onOrderTypeChange={setOrderType}
-                tables={tables}
-                tableId={tableId}
-                onTableChange={setTableId}
-                onIncrement={(key) => updateQuantity(key, 1)}
-                onDecrement={(key) => updateQuantity(key, -1)}
-                onRemove={removeLine}
-                onSubmit={handleSubmit}
-                isSubmitting={createOrder.isPending || addOrderItems.isPending}
-                existingOrderNumber={existingOrder?.orderNumber}
-                onViewExistingOrder={existingOrder ? viewExistingOrder : undefined}
-                openBills={existingOrders?.map((o) => ({ id: o.id, orderNumber: o.orderNumber }))}
-                selectedBillId={existingOrder?.id ?? null}
-                onSelectBill={setSelectedBillId}
-                checkingTable={checkingTable}
-                delivery={delivery}
-                onDeliveryChange={setDelivery}
-                scheduledFor={scheduledFor}
-                onScheduledForChange={setScheduledFor}
-              />
-            )}
-          </Card>
+            <div className="flex shrink-0 flex-col items-center pt-2 lg:hidden">
+              <span aria-hidden className="hidden h-1.5 w-10 rounded-full bg-border sm:block" />
+              <div className="flex w-full items-center px-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setCartOpen(false)}
+                  className="flex h-11 items-center gap-1.5 rounded-xl px-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <ChevronLeft className="size-5 rtl:-scale-x-100" />
+                  {t("pos.page.backToMenu")}
+                </button>
+              </div>
+            </div>
+            <div className="flex min-h-0 flex-1 flex-col p-4 max-lg:pt-1 xl:p-5">
+              {activeOrder ? (
+                <CheckoutPanel
+                  order={activeOrder}
+                  branchId={branchId}
+                  initialCustomer={activeCustomer}
+                  onDone={resetForNewOrder}
+                />
+              ) : (
+                <CartPanel
+                  lines={lines}
+                  orderType={orderType}
+                  onOrderTypeChange={setOrderType}
+                  tables={tables}
+                  tableId={tableId}
+                  onTableChange={setTableId}
+                  onIncrement={(key) => updateQuantity(key, 1)}
+                  onDecrement={(key) => updateQuantity(key, -1)}
+                  onRemove={removeLine}
+                  onSubmit={handleSubmit}
+                  isSubmitting={createOrder.isPending || addOrderItems.isPending}
+                  existingOrderNumber={existingOrder?.orderNumber}
+                  onViewExistingOrder={existingOrder ? viewExistingOrder : undefined}
+                  openBills={existingOrders?.map((o) => ({ id: o.id, orderNumber: o.orderNumber }))}
+                  selectedBillId={existingOrder?.id ?? null}
+                  onSelectBill={setSelectedBillId}
+                  checkingTable={checkingTable}
+                  delivery={delivery}
+                  onDeliveryChange={setDelivery}
+                  scheduledFor={scheduledFor}
+                  onScheduledForChange={setScheduledFor}
+                />
+              )}
+            </div>
+          </aside>
         </div>
       )}
 
-      {!showTablePicker && !cartOpen && (lines.length > 0 || activeOrder || existingOrder) && (
+      {/* Floating order summary (below lg), kept above the floating tab bar. */}
+      {showSummaryBar && (
         <button
           type="button"
           onClick={() => setCartOpen(true)}
-          className="fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-30 flex h-14 items-center justify-between rounded-2xl bg-primary px-4 text-primary-foreground shadow-lg active:scale-[0.98] lg:hidden"
+          className="fixed inset-x-3 bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+5rem)] z-30 mx-auto flex h-14 max-w-xl items-center gap-3 rounded-2xl bg-primary ps-2 pe-4 text-primary-foreground shadow-[0_16px_40px_-16px_rgb(0_0_0/0.45)] ring-1 ring-black/5 transition-transform active:scale-[0.98] sm:inset-x-4 lg:hidden"
           style={{ backgroundImage: "var(--gradient-primary)" }}
         >
-          <span className="flex items-center gap-2 text-sm font-semibold">
-            <ShoppingCart className="h-5 w-5" />
+          <span className="relative flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/15">
+            {activeOrder ? <ReceiptText className="size-5" /> : <ShoppingCart className="size-5" />}
+            {!activeOrder && cartCount > 0 && (
+              <span className="absolute -end-1.5 -top-1.5 min-w-5 rounded-full bg-gold px-1 text-center text-[11px] font-bold leading-5 text-gold-foreground tabular-nums">
+                {cartCount}
+              </span>
+            )}
+          </span>
+          <span className="min-w-0 flex-1 truncate text-start text-sm font-semibold">
             {activeOrder
               ? t("pos.page.payOrder", { number: activeOrder.orderNumber })
               : lines.length > 0
-                ? t("pos.page.viewCart", { n: lines.reduce((n, l) => n + l.quantity, 0) })
+                ? t("pos.page.viewCart", { n: cartCount })
                 : t("pos.page.viewOpenBill", { number: existingOrder?.orderNumber ?? "" })}
           </span>
           {!activeOrder && lines.length > 0 && (
-            <span className="text-sm font-semibold tabular-nums">
-              {formatCurrency(lines.reduce((s, l) => s + l.unitPrice * l.quantity, 0))}
-            </span>
+            <span className="shrink-0 text-base font-semibold tabular-nums">{formatCurrency(cartTotal)}</span>
           )}
+          <ChevronRight className="size-5 shrink-0 opacity-80 rtl:-scale-x-100" />
         </button>
       )}
 

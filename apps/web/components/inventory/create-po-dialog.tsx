@@ -81,7 +81,7 @@ export function CreatePoDialog({ branchId }: { branchId: string | null }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm">{t("inventory.po.new")}</Button>} />
+      <DialogTrigger render={<Button><Plus className="size-4" />{t("inventory.po.new")}</Button>} />
       <DialogContent className="sm:max-w-lg">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>

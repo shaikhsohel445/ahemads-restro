@@ -1,5 +1,6 @@
 "use client";
 
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -59,7 +60,7 @@ export function CreateInvoiceDialog({ branchId }: { branchId: string | null }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm">{t("inventory.invoice.new")}</Button>} />
+      <DialogTrigger render={<Button size="sm" variant="outline"><Plus />{t("inventory.invoice.new")}</Button>} />
       <DialogContent className="sm:max-w-md">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>

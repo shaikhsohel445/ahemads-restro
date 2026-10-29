@@ -1,5 +1,6 @@
 "use client";
 
+import { Wallet } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -60,7 +61,7 @@ export function RecordPaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm" variant="outline">{t("inventory.payment.record")}</Button>} />
+      <DialogTrigger render={<Button size="sm" variant="outline"><Wallet />{t("inventory.payment.record")}</Button>} />
       <DialogContent className="sm:max-w-sm">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>

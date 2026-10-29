@@ -1,5 +1,6 @@
 "use client";
 
+import { PackageCheck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -86,7 +87,7 @@ export function ReceivePoDialog({ branchId, po }: { branchId: string | null; po:
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm">{t("inventory.grn.receiveItems")}</Button>} />
+      <DialogTrigger render={<Button><PackageCheck className="size-4" />{t("inventory.grn.receiveItems")}</Button>} />
       <DialogContent className="sm:max-w-lg">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>

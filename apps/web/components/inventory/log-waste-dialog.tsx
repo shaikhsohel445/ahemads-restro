@@ -1,5 +1,6 @@
 "use client";
 
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import type { WasteReason } from "@nodedr-restaurant/types";
@@ -55,7 +56,7 @@ export function LogWasteDialog({ branchId }: { branchId: string | null }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm">{t("inventory.waste.log")}</Button>} />
+      <DialogTrigger render={<Button><Plus className="size-4" />{t("inventory.waste.log")}</Button>} />
       <DialogContent className="sm:max-w-sm">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>

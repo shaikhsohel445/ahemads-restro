@@ -1,14 +1,18 @@
 "use client";
 
 import type { KotStatusDto } from "@nodedr-restaurant/types";
+import { BellRing, CookingPot } from "lucide-react";
 import { useEffect } from "react";
 import { BranchNotice } from "@/components/layout/branch-notice";
 import { PerformanceWidget } from "@/components/kds/performance-widget";
 import { IncomingOrderCard } from "@/components/kds/incoming-order-card";
-import { LiveStatus } from "@/components/kds/live-status";
+import { LiveIndicator, LiveOfflineBanner, SoundControls } from "@/components/kds/live-status";
 import { TicketCard } from "@/components/kds/ticket-card";
 import { QueryError } from "@/components/ui/query-error";
+import { Segmented } from "@/components/ui/segmented";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TONE_SOFT } from "@/components/ui/stat-card";
+import { KOT_STATUS_TONE, StatusPill } from "@/components/ui/status-pill";
 import { hasPermission, useCurrentUser } from "@/hooks/use-auth";
 import { useBranch } from "@/hooks/use-branch";
 import { useKdsSound } from "@/hooks/use-kds-sound";
@@ -42,45 +46,51 @@ export default function KdsPage() {
     tickets.data?.filter((t) => t.status === status) ?? [];
   const pendingOrders = incoming.data ?? [];
 
+  // Station counts come from the tickets already on screen: every station when
+  // "All" is showing, otherwise only the station in view.
+  const boardTickets = tickets.data?.filter((tk) => COLUMNS.includes(tk.status));
+  const stationCount = (id: string): number | undefined => {
+    if (!boardTickets) return undefined;
+    if (activeStation === "") return id === "" ? boardTickets.length : boardTickets.filter((tk) => tk.station?.id === id).length;
+    return id === activeStation ? boardTickets.length : undefined;
+  };
+
   return (
-    <div className="flex min-h-[calc(100dvh-10rem)] flex-col gap-4 lg:h-[calc(100dvh-8rem)]">
-      <div>
-        <h1 className="text-2xl font-semibold sm:text-[32px] tracking-tight text-foreground">
-          {t("kds.title")}
-        </h1>
-        <p className="text-sm text-muted-foreground">{t("kds.subtitle")}</p>
+    // Fills the viewport under the 4rem header: dense shell padding on top,
+    // the floating tab bar (~7rem incl. padding) below lg, a small gap on lg+.
+    <div className="flex h-[calc(100dvh-11.75rem)] min-h-[30rem] flex-col gap-3 sm:h-[calc(100dvh-12rem)] lg:h-[calc(100dvh-7.25rem)]">
+      <h1 className="sr-only">{t("kds.title")}</h1>
+
+      {/* Compact toolbar: live state, station picker, sound, inline stats */}
+      <div className="flex shrink-0 flex-wrap items-center gap-2 rounded-2xl border border-border/80 bg-card p-2 sm:gap-3 sm:p-2.5">
+        <LiveIndicator />
+        {stations && stations.length > 0 && (
+          <Segmented
+            aria-label={t("kds.station")}
+            size="lg"
+            className="order-last min-w-0 basis-full sm:order-none sm:basis-auto"
+            value={activeStation}
+            onChange={(id) => pref.choose(id)}
+            options={[{ id: "", name: t("kds.allStations") }, ...stations].map((s) => ({
+              value: s.id,
+              label: s.name,
+              count: stationCount(s.id),
+            }))}
+          />
+        )}
+        <PerformanceWidget branchId={branchId} className="hidden xl:flex" />
+        <SoundControls className="ms-auto" />
       </div>
+      <PerformanceWidget branchId={branchId} className="shrink-0 px-1 xl:hidden" />
 
-      <LiveStatus />
-
-      {stations && stations.length > 0 && (
-        <div role="group" aria-label={t("kds.station")} className="flex flex-wrap gap-2">
-          {[{ id: "", name: t("kds.allStations") }, ...stations].map((s) => (
-            <button
-              key={s.id || "all"}
-              type="button"
-              aria-pressed={s.id === activeStation}
-              onClick={() => pref.choose(s.id)}
-              className={cn(
-                "min-h-11 rounded-full border px-4 text-sm font-medium transition-colors",
-                s.id === activeStation
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border text-muted-foreground hover:bg-secondary",
-              )}
-            >
-              {s.name}
-            </button>
-          ))}
-        </div>
-      )}
-
+      <LiveOfflineBanner className="shrink-0" />
       {stale && (
-        <p role="status" className="text-xs text-warning">
+        <p role="status" className="shrink-0 rounded-xl bg-status-warning-soft px-3 py-2 text-xs text-status-warning">
           {t("kds.staleStation")}
         </p>
       )}
       {pref.saveFailed && (
-        <p role="alert" className="text-xs text-destructive">
+        <p role="alert" className="shrink-0 rounded-xl bg-status-danger-soft px-3 py-2 text-xs text-status-danger">
           {t("kds.saveBlocked")}
         </p>
       )}
@@ -88,12 +98,18 @@ export default function KdsPage() {
       <BranchNotice />
 
       {pendingOrders.length > 0 && (
-        <section aria-label={t("kds.incomingOrders")} className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold text-foreground">
-            {t("kds.incomingHeading")}{" "}
-            <span className="ms-1 rounded-full bg-destructive px-2 py-0.5 text-xs text-white">{pendingOrders.length}</span>
+        <section
+          aria-label={t("kds.incomingOrders")}
+          className="flex shrink-0 flex-col gap-2 rounded-2xl bg-status-gold-soft/60 p-2.5 ring-1 ring-status-gold/25 sm:p-3"
+        >
+          <h2 className="flex items-center gap-2 px-1 text-sm font-semibold text-foreground">
+            <BellRing className="size-4 text-status-gold motion-safe:animate-pulse" aria-hidden />
+            {t("kds.incomingHeading")}
+            <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-status-gold px-2 text-xs font-bold tabular-nums text-white">
+              {pendingOrders.length}
+            </span>
           </h2>
-          <div className="flex gap-3 overflow-x-auto pb-2">
+          <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [scrollbar-width:thin]">
             {pendingOrders.map((order) => (
               <IncomingOrderCard key={order.id} order={order} branchId={branchId} />
             ))}
@@ -101,12 +117,10 @@ export default function KdsPage() {
         </section>
       )}
       {canAnswer && incoming.isError && (
-        <p role="alert" className="text-xs text-destructive">
+        <p role="alert" className="shrink-0 rounded-xl bg-status-danger-soft px-3 py-2 text-xs text-status-danger">
           {t("kds.incomingFailed")}
         </p>
       )}
-
-      <PerformanceWidget branchId={branchId} />
 
       {tickets.isError ? (
         <QueryError
@@ -116,29 +130,50 @@ export default function KdsPage() {
           retrying={tickets.isFetching}
         />
       ) : (
-        <div className="flex min-h-0 flex-1 snap-x snap-mandatory gap-3 overflow-x-auto sm:grid sm:snap-none sm:grid-cols-2 sm:gap-4 sm:overflow-hidden xl:grid-cols-4">
-          {COLUMNS.map((status) => (
-            <div key={status} className="flex w-[85%] shrink-0 snap-center flex-col gap-3 overflow-hidden rounded-2xl bg-secondary/40 p-3 sm:w-auto sm:shrink">
-              <div className="flex items-center justify-between px-1">
-                <h2 className="text-sm font-semibold text-foreground">{t(`common.kotStatus.${status}`)}</h2>
-                <span className="text-xs font-medium text-muted-foreground">
-                  {byStatus(status).length}
-                </span>
-              </div>
-              <div className="flex flex-1 flex-col gap-3 overflow-y-auto pb-2">
-                {(tickets.isLoading || !canFetch) &&
-                  Array.from({ length: 2 }).map((_, i) => (
-                    <Skeleton key={i} className="h-32 rounded-2xl" />
+        // Phones: one column at a time, swipe sideways. Tablets portrait: two
+        // side by side. lg+: all four share the width (scrolling only if a
+        // very narrow window cannot fit 15rem each).
+        <div className="flex min-h-[20rem] flex-1 snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain lg:snap-none">
+          {COLUMNS.map((status) => {
+            const list = byStatus(status);
+            const tone = KOT_STATUS_TONE[status];
+            return (
+              <section
+                key={status}
+                aria-label={t(`common.kotStatus.${status}`)}
+                className="flex w-[86%] shrink-0 snap-center flex-col overflow-hidden rounded-2xl bg-surface-2 ring-1 ring-border/60 sm:w-[calc(50%-0.375rem)] sm:snap-start lg:w-auto lg:min-w-[15rem] lg:flex-1 lg:basis-0"
+              >
+                <header className="flex shrink-0 items-center justify-between gap-2 px-3 pt-3 pb-2">
+                  <h2>
+                    <StatusPill tone={tone} pulse={status === "NEW" && list.length > 0} className="h-8 px-3 text-sm font-semibold">
+                      {t(`common.kotStatus.${status}`)}
+                    </StatusPill>
+                  </h2>
+                  <span
+                    className={cn(
+                      "inline-flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-sm font-bold tabular-nums",
+                      list.length > 0 ? TONE_SOFT[tone] : "bg-card text-muted-foreground",
+                    )}
+                  >
+                    {list.length}
+                  </span>
+                </header>
+                <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-2 pb-2 sm:px-2.5 sm:pb-2.5">
+                  {(tickets.isLoading || !canFetch) &&
+                    Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-40 shrink-0 rounded-2xl" />)}
+                  {list.map((ticket) => (
+                    <TicketCard key={ticket.id} ticket={ticket} branchId={branchId} />
                   ))}
-                {byStatus(status).map((ticket) => (
-                  <TicketCard key={ticket.id} ticket={ticket} branchId={branchId} />
-                ))}
-                {canFetch && !tickets.isLoading && byStatus(status).length === 0 && (
-                  <p className="py-6 text-center text-xs text-muted-foreground">{t("kds.noTickets")}</p>
-                )}
-              </div>
-            </div>
-          ))}
+                  {canFetch && !tickets.isLoading && list.length === 0 && (
+                    <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/80 px-4 py-10 text-center text-sm text-muted-foreground">
+                      <CookingPot className="size-6 opacity-50" aria-hidden />
+                      {t("kds.noTickets")}
+                    </div>
+                  )}
+                </div>
+              </section>
+            );
+          })}
         </div>
       )}
     </div>

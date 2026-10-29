@@ -1,15 +1,32 @@
 "use client";
 
-import { Clock, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import {
+  Ban,
+  BellRing,
+  CalendarDays,
+  ChevronRight,
+  Clock,
+  ListOrdered,
+  ReceiptText,
+  SearchX,
+  Trash2,
+  Wallet,
+  X,
+} from "lucide-react";
+import { useMemo, useState } from "react";
 import { ScanOrderInput } from "@/components/orders/scan-order-input";
 import { DeleteOrdersDialog } from "@/components/orders/delete-orders-dialog";
 import { ChannelBadge, TypeBadge } from "@/components/orders/channel-badges";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
+import { Segmented } from "@/components/ui/segmented";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatCard, type Tone } from "@/components/ui/stat-card";
+import { ORDER_STATUS_TONE, StatusPill } from "@/components/ui/status-pill";
+import { SearchInput, Toolbar } from "@/components/ui/toolbar";
 import { hasPermission, useCurrentUser } from "@/hooks/use-auth";
 import { useBranch } from "@/hooks/use-branch";
 import {
@@ -18,10 +35,12 @@ import {
   type OrderChannel,
   type OrderTab,
 } from "@/hooks/use-orders";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDateTime, formatDefaults } from "@/lib/format";
 import { openEntity } from "@/lib/entity-events";
 import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
+
+type T = (key: string, vars?: Record<string, string | number>) => string;
 
 // Labels: orders.tab.<key>, translated at render time.
 const TABS: { key: OrderTab }[] = [{ key: "pending" }, { key: "active" }, { key: "history" }];
@@ -38,15 +57,7 @@ const FILTERS: { key: string; channel?: OrderChannel; type?: string }[] = [
   { key: "dinein", type: "DINE_IN" },
 ];
 
-const chip = (on: boolean) =>
-  cn(
-    "rounded-full border px-3.5 py-1.5 text-sm transition-colors",
-    on
-      ? "border-primary bg-primary text-primary-foreground"
-      : "border-border text-muted-foreground hover:bg-secondary",
-  );
-
-function timeAgo(iso: string, t: (key: string, vars?: Record<string, string | number>) => string) {
+function timeAgo(iso: string, t: T) {
   const m = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
   if (m < 1) return t("orders.ago.now");
   if (m < 60) return t("orders.ago.minutes", { n: m });
@@ -54,15 +65,66 @@ function timeAgo(iso: string, t: (key: string, vars?: Record<string, string | nu
   return h < 24 ? t("orders.ago.hours", { n: h }) : t("orders.ago.days", { n: Math.round(h / 24) });
 }
 
+/** yyyy-mm-dd of a timestamp in the restaurant's time zone (matches <input type="date">). */
+function dayKey(iso: string) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: formatDefaults().timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(iso));
+}
+
+function rowStatus(order: ManagedOrder, t: T): { tone: Tone; label: string; pulse?: boolean } {
+  if (order.acceptance === "PENDING") return { tone: "gold", label: t("orders.needsAction"), pulse: true };
+  if (order.acceptance === "REJECTED") return { tone: "danger", label: t("orders.rejected") };
+  return { tone: ORDER_STATUS_TONE[order.status] ?? "neutral", label: t(`common.orderStatus.${order.status}`) };
+}
+
+const isFinished = (o: ManagedOrder) => o.status === "PAID" || o.status === "CANCELLED";
+
 export default function OrdersPage() {
   const { t } = useI18n();
   const { branchId } = useBranch();
   const [tab, setTab] = useState<OrderTab>("pending");
   const [filterKey, setFilterKey] = useState("all");
+  const [query, setQuery] = useState("");
+  const [day, setDay] = useState("");
   const filter = FILTERS.find((f) => f.key === filterKey) ?? FILTERS[0];
   const { data: orders, isLoading } = useManagedOrders(branchId, tab, filter.channel, filter.type);
   const { data: pendingOrders } = useManagedOrders(branchId, "pending");
   const pendingCount = pendingOrders?.length ?? 0;
+
+  // Search and date narrow the list already loaded for this tab/filter.
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return (orders ?? []).filter((o) => {
+      if (day && dayKey(o.createdAt) !== day) return false;
+      if (!q) return true;
+      const hay = [
+        o.orderNumber,
+        o.guestName,
+        o.customer?.name,
+        o.customer?.phone,
+        o.table ? String(o.table.number) : null,
+        o.table?.name,
+        ...o.items.map((i) => i.nameSnapshot),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(q);
+    });
+  }, [orders, query, day]);
+  const narrowed = query.trim() !== "" || day !== "";
+
+  const stats = useMemo(() => {
+    const live = visible.filter((o) => o.status !== "CANCELLED" && o.acceptance !== "REJECTED");
+    return {
+      value: live.reduce((sum, o) => sum + Number(o.totalAmount || 0), 0),
+      cancelled: visible.length - live.length,
+    };
+  }, [visible]);
 
   // Admin-only multi-select delete of finished transactions (History tab).
   const { data: me } = useCurrentUser();
@@ -70,7 +132,7 @@ export default function OrdersPage() {
     hasPermission(me?.user, "orders.delete") &&
     ["OWNER", "ADMINISTRATOR"].includes(me?.user.roleName ?? "");
   const selectable = canDelete && tab === "history";
-  const finished = (orders ?? []).filter((o) => o.status === "PAID" || o.status === "CANCELLED");
+  const finished = visible.filter(isFinished);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
   const visibleSelected = finished.filter((o) => selected.has(o.id)).map((o) => o.id);
@@ -82,90 +144,169 @@ export default function OrdersPage() {
       else next.add(id);
       return next;
     });
-  const toggleAll = () =>
-    setSelected(allSelected ? new Set() : new Set(finished.map((o) => o.id)));
+  const toggleAll = () => setSelected(allSelected ? new Set() : new Set(finished.map((o) => o.id)));
+
+  const rowProps = (o: ManagedOrder) => ({
+    order: o,
+    selectable: selectable && isFinished(o),
+    selected: selected.has(o.id),
+    onToggle: () => toggle(o.id),
+  });
 
   return (
-    <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">{t("common.orders")}</h1>
-        <p className="text-sm text-muted-foreground">
-          {t("orders.subtitle")}
-        </p>
+    <div className="flex flex-col gap-5 sm:gap-6">
+      <PageHeader
+        title={t("common.orders")}
+        description={t("orders.subtitle")}
+        icon={ReceiptText}
+        actions={<ScanOrderInput branchId={branchId} className="sm:w-80" />}
+      />
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+        <StatCard
+          label={t("orders.stats.needsAction")}
+          value={pendingCount}
+          icon={BellRing}
+          tone={pendingCount > 0 ? "gold" : "neutral"}
+          hint={t("orders.tab.pending")}
+          onClick={() => {
+            setTab("pending");
+            setSelected(new Set());
+          }}
+          className={cn(pendingCount > 0 && "ring-1 ring-status-gold/30")}
+        />
+        <StatCard
+          label={t("orders.stats.showing")}
+          value={isLoading ? "–" : visible.length}
+          icon={ListOrdered}
+          tone="info"
+          hint={t(`orders.tab.${tab}`)}
+        />
+        <StatCard
+          label={t("orders.stats.value")}
+          value={isLoading ? "–" : formatCurrency(stats.value)}
+          icon={Wallet}
+          tone="success"
+          hint={t("orders.stats.valueHint")}
+        />
+        <StatCard
+          label={t("orders.stats.cancelled")}
+          value={isLoading ? "–" : stats.cancelled}
+          icon={Ban}
+          tone={stats.cancelled > 0 ? "danger" : "neutral"}
+          hint={t(`orders.tab.${tab}`)}
+        />
       </div>
 
-      <ScanOrderInput branchId={branchId} />
-
-      <div className="flex flex-wrap gap-2">
-        {TABS.map((tb) => (
-          <button key={tb.key} type="button" onClick={() => {
-              setTab(tb.key);
+      <div className="flex flex-col gap-3">
+        <Toolbar className="gap-3">
+          <Segmented
+            aria-label={t("orders.statusFilter")}
+            size="lg"
+            value={tab}
+            onChange={(next) => {
+              setTab(next);
               setSelected(new Set());
-            }} className={chip(tab === tb.key)}>
-            {t(`orders.tab.${tb.key}`)}
-            {tb.key === "pending" && pendingCount > 0 && (
-              <span className="ms-2 rounded-full bg-destructive px-1.5 text-xs text-white">
-                {pendingCount}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {FILTERS.map((f) => (
-          <button
-            key={f.key}
-            type="button"
-            onClick={() => setFilterKey(f.key)}
-            className={cn(chip(filterKey === f.key), "py-1 text-xs")}
-          >
-            {t(`orders.filter.${f.key}`)}
-          </button>
-        ))}
-      </div>
-
-      {selectable && finished.length > 0 && (
-        <label className="flex w-fit cursor-pointer items-center gap-2 text-sm text-muted-foreground">
-          <Checkbox checked={allSelected} onCheckedChange={toggleAll} aria-label={t("orders.selectAllLabel")} />
-          {t("orders.selectAll", { n: finished.length })}
-        </label>
-      )}
-
-      <Card className="flex flex-col divide-y divide-border p-2">
-        {isLoading ? (
-          <div className="flex flex-col gap-2 p-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-16 rounded-lg" />
-            ))}
-          </div>
-        ) : orders && orders.length > 0 ? (
-          orders.map((o) => (
-            <OrderRow
-              key={o.id}
-              order={o}
-              selectable={selectable && (o.status === "PAID" || o.status === "CANCELLED")}
-              selected={selected.has(o.id)}
-              onToggle={() => toggle(o.id)}
+            }}
+            options={TABS.map((tb) => ({
+              value: tb.key,
+              label: t(`orders.tab.${tb.key}`),
+              count: tb.key === "pending" && pendingCount > 0 ? pendingCount : undefined,
+            }))}
+          />
+          <Segmented
+            aria-label={t("orders.channelFilter")}
+            value={filterKey}
+            onChange={setFilterKey}
+            options={FILTERS.map((f) => ({ value: f.key, label: t(`orders.filter.${f.key}`) }))}
+          />
+        </Toolbar>
+        <Toolbar>
+          <SearchInput value={query} onChange={setQuery} placeholder={t("orders.searchPlaceholder")} />
+          <div className="relative flex items-center">
+            <CalendarDays
+              className="pointer-events-none absolute start-3 size-4 text-muted-foreground"
+              aria-hidden
             />
-          ))
-        ) : (
-          <div className="flex flex-col items-center gap-1 py-16 text-center">
-            <p className="text-sm font-medium text-foreground">
-              {tab === "pending" ? t("orders.emptyPending") : t("orders.empty")}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {t("orders.emptyHint")}
-            </p>
+            <input
+              type="date"
+              value={day}
+              onChange={(e) => setDay(e.target.value)}
+              aria-label={t("orders.dateLabel")}
+              className="h-10 rounded-xl border border-input bg-card ps-9 pe-3 text-sm tabular-nums shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            />
           </div>
-        )}
-      </Card>
+          {day && (
+            <Button variant="ghost" className="h-10" onClick={() => setDay("")}>
+              <X className="size-4" aria-hidden /> {t("orders.clearDate")}
+            </Button>
+          )}
+          {selectable && finished.length > 0 && (
+            <label className="ms-auto flex h-10 cursor-pointer items-center gap-2 rounded-xl px-2 text-sm text-muted-foreground hover:text-foreground">
+              <Checkbox checked={allSelected} onCheckedChange={toggleAll} aria-label={t("orders.selectAllLabel")} />
+              {t("orders.selectAll", { n: finished.length })}
+            </label>
+          )}
+        </Toolbar>
+      </div>
+
+      {isLoading ? (
+        <Card className="gap-2 p-3 sm:p-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 rounded-xl" />
+          ))}
+        </Card>
+      ) : visible.length === 0 ? (
+        narrowed && (orders?.length ?? 0) > 0 ? (
+          <EmptyState icon={SearchX} title={t("orders.noMatch")} description={t("orders.noMatchHint")} />
+        ) : (
+          <EmptyState
+            icon={ReceiptText}
+            title={tab === "pending" ? t("orders.emptyPending") : t("orders.empty")}
+            description={t("orders.emptyHint")}
+          />
+        )
+      ) : (
+        <>
+          {/* Phones: card list */}
+          <ul className="flex flex-col gap-2.5 md:hidden">
+            {visible.map((o) => (
+              <OrderCard key={o.id} {...rowProps(o)} />
+            ))}
+          </ul>
+
+          {/* md+: data table with a sticky header (sticks to the scrolling main) */}
+          <Card className="hidden gap-0 overflow-clip p-0 md:flex">
+            <table className="w-full border-separate border-spacing-0 text-sm">
+              <thead>
+                <tr className="text-xs font-medium text-muted-foreground">
+                  {selectable && <th className="sticky top-0 z-10 w-12 border-b border-border/80 bg-surface-2/95 ps-4 backdrop-blur" />}
+                  <Th>{t("orders.col.order")}</Th>
+                  <Th>{t("orders.col.customer")}</Th>
+                  <Th className="hidden lg:table-cell">{t("orders.col.type")}</Th>
+                  <Th className="hidden xl:table-cell">{t("orders.col.items")}</Th>
+                  <Th>{t("orders.col.status")}</Th>
+                  <Th className="text-end">{t("orders.col.total")}</Th>
+                  <th className="sticky top-0 z-10 w-12 border-b border-border/80 bg-surface-2/95 backdrop-blur">
+                    <span className="sr-only">{t("common.actions")}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map((o) => (
+                  <OrderTableRow key={o.id} {...rowProps(o)} showSelect={selectable} />
+                ))}
+              </tbody>
+            </table>
+          </Card>
+        </>
+      )}
 
       {/* Floating bar: transform/opacity only, instant under reduced motion */}
       <div
         aria-hidden={visibleSelected.length === 0}
         className={cn(
-          "pointer-events-none fixed inset-x-0 bottom-6 z-40 flex justify-center px-4 transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none",
+          "pointer-events-none fixed inset-x-0 bottom-24 z-40 flex justify-center px-4 transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none lg:bottom-6",
           visibleSelected.length > 0 ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
         )}
       >
@@ -185,7 +326,7 @@ export default function OrdersPage() {
             tabIndex={visibleSelected.length > 0 ? 0 : -1}
             onClick={() => setSelected(new Set())}
           >
-            <X className="h-4 w-4" aria-hidden /> {t("common.clear")}
+            <X className="size-4" aria-hidden /> {t("common.clear")}
           </Button>
           <Button
             type="button"
@@ -194,7 +335,7 @@ export default function OrdersPage() {
             tabIndex={visibleSelected.length > 0 ? 0 : -1}
             onClick={() => setConfirmOpen(true)}
           >
-            <Trash2 className="h-4 w-4" aria-hidden /> {t("common.delete")}
+            <Trash2 className="size-4" aria-hidden /> {t("common.delete")}
           </Button>
         </div>
       </div>
@@ -210,30 +351,124 @@ export default function OrdersPage() {
   );
 }
 
-function OrderRow({
-  order,
-  selectable,
-  selected,
-  onToggle,
-}: {
+function Th({ className, children }: { className?: string; children: React.ReactNode }) {
+  return (
+    <th
+      scope="col"
+      className={cn(
+        "sticky top-0 z-10 border-b border-border/80 bg-surface-2/95 px-4 py-3 text-start font-medium whitespace-nowrap backdrop-blur",
+        className,
+      )}
+    >
+      {children}
+    </th>
+  );
+}
+
+interface RowProps {
   order: ManagedOrder;
   selectable: boolean;
   selected: boolean;
   onToggle: () => void;
-}) {
+}
+
+function useRowText(order: ManagedOrder) {
   const { t } = useI18n();
-  const name = order.guestName ?? order.customer?.name ?? t("orders.walkIn");
-  const summary = order.items.map((i) => `${i.quantity}× ${i.nameSnapshot}`).join(", ");
-  const rejected = order.acceptance === "REJECTED";
+  return {
+    t,
+    name: order.guestName ?? order.customer?.name ?? t("orders.walkIn"),
+    summary: order.items.map((i) => `${i.quantity}× ${i.nameSnapshot}`).join(", "),
+    status: rowStatus(order, t),
+    where: order.table ? (order.table.name ?? t("orders.edit.tableN", { n: order.table.number })) : null,
+  };
+}
+
+function OrderTableRow({ order, selectable, selected, onToggle, showSelect }: RowProps & { showSelect: boolean }) {
+  const { t, name, summary, status, where } = useRowText(order);
+  const open = () => openEntity("Order", order.id);
   return (
-    <div
+    <tr
+      onClick={open}
       className={cn(
-        "flex items-start gap-1 rounded-lg transition-colors duration-150 motion-reduce:transition-none",
-        selected && "bg-primary/5",
+        "group cursor-pointer transition-colors duration-150 hover:bg-muted/50 motion-reduce:transition-none [&>td]:border-b [&>td]:border-border/60 last:[&>td]:border-b-0",
+        selected && "bg-accent/60 hover:bg-accent/70",
+      )}
+    >
+      {showSelect && (
+        <td className="ps-4" onClick={(e) => e.stopPropagation()}>
+          {selectable && (
+            <Checkbox
+              checked={selected}
+              onCheckedChange={onToggle}
+              aria-label={t("orders.selectOne", { number: order.orderNumber })}
+            />
+          )}
+        </td>
+      )}
+      <td className="px-4 py-3 align-middle">
+        <div className="flex flex-col gap-0.5">
+          <bdi className="font-semibold tabular-nums text-foreground">#{order.orderNumber}</bdi>
+          <span className="flex items-center gap-1 text-xs whitespace-nowrap text-muted-foreground">
+            <Clock className="size-3" aria-hidden />
+            <span title={formatDateTime(order.createdAt)}>{timeAgo(order.createdAt, t)}</span>
+          </span>
+        </div>
+      </td>
+      <td className="max-w-56 px-4 py-3 align-middle">
+        <div className="flex min-w-0 flex-col gap-1">
+          <span className="truncate font-medium text-foreground">{name}</span>
+          {where && <span className="truncate text-xs text-muted-foreground">{where}</span>}
+          <span className="flex flex-wrap gap-1 lg:hidden">
+            <ChannelBadge channel={order.channel} />
+            <TypeBadge type={order.type} />
+          </span>
+        </div>
+      </td>
+      <td className="hidden px-4 py-3 align-middle lg:table-cell">
+        <div className="flex flex-wrap gap-1">
+          <ChannelBadge channel={order.channel} />
+          <TypeBadge type={order.type} />
+        </div>
+      </td>
+      <td className="hidden max-w-72 px-4 py-3 align-middle xl:table-cell">
+        <span className="line-clamp-2 text-xs text-muted-foreground">{summary}</span>
+      </td>
+      <td className="px-4 py-3 align-middle">
+        <StatusPill tone={status.tone} pulse={status.pulse}>
+          {status.label}
+        </StatusPill>
+      </td>
+      <td className="px-4 py-3 text-end align-middle font-semibold whitespace-nowrap tabular-nums text-foreground">
+        {formatCurrency(order.totalAmount)}
+      </td>
+      <td className="pe-3 align-middle">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            open();
+          }}
+          aria-label={t("orders.openOrder", { number: order.orderNumber })}
+          className="flex size-9 items-center justify-center rounded-xl text-muted-foreground transition-colors group-hover:bg-card group-hover:text-foreground"
+        >
+          <ChevronRight className="size-4 rtl:-scale-x-100" aria-hidden />
+        </button>
+      </td>
+    </tr>
+  );
+}
+
+function OrderCard({ order, selectable, selected, onToggle }: RowProps) {
+  const { t, name, summary, status, where } = useRowText(order);
+  return (
+    <li
+      className={cn(
+        "flex items-stretch overflow-hidden rounded-2xl border border-border/80 bg-card transition-colors duration-150 motion-reduce:transition-none",
+        selected && "border-primary/40 bg-accent/60",
       )}
     >
       {selectable && (
-        <div className="flex h-full items-center py-4 ps-4">
+        <div className="flex items-center ps-3.5">
           <Checkbox
             checked={selected}
             onCheckedChange={onToggle}
@@ -241,36 +476,37 @@ function OrderRow({
           />
         </div>
       )}
-    <button
-      type="button"
-      onClick={() => openEntity("Order", order.id)}
-      className="flex flex-1 items-start justify-between gap-4 rounded-lg px-4 py-3 text-start transition hover:bg-secondary/50"
-    >
-      <div className="flex min-w-0 flex-col gap-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <bdi className="text-sm font-semibold text-foreground">#{order.orderNumber}</bdi>
-          <span className="text-sm text-foreground">{name}</span>
+      <button
+        type="button"
+        onClick={() => openEntity("Order", order.id)}
+        className="flex min-w-0 flex-1 flex-col gap-2.5 p-3.5 text-start active:bg-muted/50"
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <bdi className="text-base font-semibold tabular-nums text-foreground">#{order.orderNumber}</bdi>
+            <span className="truncate text-sm text-foreground">
+              {name}
+              {where && <span className="text-muted-foreground"> · {where}</span>}
+            </span>
+          </div>
+          <StatusPill tone={status.tone} pulse={status.pulse}>
+            {status.label}
+          </StatusPill>
+        </div>
+        <div className="flex flex-wrap gap-1">
           <ChannelBadge channel={order.channel} />
           <TypeBadge type={order.type} />
-          {order.acceptance === "PENDING" && (
-            <Badge className="font-normal">{t("orders.needsAction")}</Badge>
-          )}
-          {rejected && <Badge variant="secondary" className="font-normal">{t("orders.rejected")}</Badge>}
-          {!rejected && order.status === "CANCELLED" && (
-            <Badge variant="secondary" className="font-normal">{t("common.orderStatus.CANCELLED")}</Badge>
-          )}
         </div>
-        <span className="truncate text-xs text-muted-foreground">{summary}</span>
-      </div>
-      <div className="flex shrink-0 flex-col items-end gap-1">
-        <span className="text-sm font-medium tabular-nums text-foreground">
-          {formatCurrency(order.totalAmount)}
-        </span>
-        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-          <Clock className="h-3 w-3" /> {timeAgo(order.createdAt, t)}
-        </span>
-      </div>
-    </button>
-    </div>
+        {summary && <span className="line-clamp-1 text-xs text-muted-foreground">{summary}</span>}
+        <div className="flex items-center justify-between gap-2 border-t border-dashed border-border pt-2.5">
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Clock className="size-3" aria-hidden /> {timeAgo(order.createdAt, t)}
+          </span>
+          <span className="text-base font-semibold tabular-nums text-foreground">
+            {formatCurrency(order.totalAmount)}
+          </span>
+        </div>
+      </button>
+    </li>
   );
 }

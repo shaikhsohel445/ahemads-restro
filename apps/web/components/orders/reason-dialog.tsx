@@ -80,7 +80,7 @@ export function ReasonDialog({
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
           {warning && (
-            <p role="alert" className="rounded-lg bg-warning/10 px-3 py-2 text-sm text-warning">
+            <p role="alert" className="rounded-xl bg-status-warning-soft px-3 py-2 text-sm text-status-warning">
               {warning}
             </p>
           )}
@@ -98,14 +98,14 @@ export function ReasonDialog({
             />
             <div className="flex flex-wrap gap-2">
               {reasons.map((r) => (
-                <Button key={r} type="button" variant="outline" className="h-10 px-3" onClick={() => setReason(r)}>
+                <Button key={r} type="button" variant="outline" className="h-10 rounded-full px-3.5" onClick={() => setReason(r)}>
                   {r}
                 </Button>
               ))}
             </div>
           </div>
           {error && (
-            <p role="alert" className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <p role="alert" className="rounded-xl bg-status-danger-soft px-3 py-2 text-sm text-status-danger">
               {error}
             </p>
           )}

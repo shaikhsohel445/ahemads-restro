@@ -1,5 +1,6 @@
 "use client";
 
+import { FolderPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -45,7 +46,8 @@ export function AddCategoryDialog({ branchId }: { branchId: string | null }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button variant="outline" size="sm">
+          <Button variant="outline">
+            <FolderPlus />
             {t("menu.category.add")}
           </Button>
         }

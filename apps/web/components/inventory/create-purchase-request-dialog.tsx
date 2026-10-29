@@ -67,7 +67,7 @@ export function CreatePurchaseRequestDialog({ branchId }: { branchId: string | n
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm">{t("inventory.pr.newShort")}</Button>} />
+      <DialogTrigger render={<Button size="sm" variant="outline"><Plus />{t("inventory.pr.newShort")}</Button>} />
       <DialogContent className="sm:max-w-lg">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>

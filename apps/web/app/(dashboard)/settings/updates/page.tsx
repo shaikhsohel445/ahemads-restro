@@ -1,9 +1,9 @@
 "use client";
 
-import { SettingsTabs } from "@/components/settings/settings-tabs";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { CloudDownload, ExternalLink, Info, Rocket } from "lucide-react";
+import { SettingsBody, SettingsCallout, SettingsSection } from "@/components/settings/settings-section";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatusPill } from "@/components/ui/status-pill";
 import { useUpdateCheck } from "@/hooks/use-updates";
 import { useI18n } from "@/lib/i18n/context";
 
@@ -15,40 +15,48 @@ export default function UpdatesPage() {
   const { data, isLoading } = useUpdateCheck();
 
   return (
-    <div className="flex flex-col gap-6">
-      <SettingsTabs />
-
-      <Card className="flex flex-col gap-4 p-6">
-        <div>
-          <h2 className="text-base font-medium">{t("settings.updates.title")}</h2>
-          <p className="text-sm text-muted-foreground">{t("settings.updates.cloudflareNote")}</p>
-        </div>
-
+    <SettingsSection
+      icon={CloudDownload}
+      title={t("settings.updates.title")}
+      description={t("settings.updates.cloudflareNote")}
+    >
+      <SettingsBody divided={false}>
         {isLoading ? (
-          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-20 w-full rounded-xl" />
         ) : data ? (
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-2 text-sm">
-              <span className="text-muted-foreground">{t("settings.updates.running")}</span>
-              <Badge variant="outline">
-                <bdi>{data.currentVersion}</bdi>
-              </Badge>
+          <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-surface-2/60 p-4 ring-1 ring-border/60 sm:p-5">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-accent text-accent-foreground ring-1 ring-primary/10">
+                <Rocket className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">{t("settings.updates.running")}</p>
+                <p className="font-mono text-lg font-semibold text-foreground tabular-nums">
+                  <bdi dir="ltr">{data.currentVersion}</bdi>
+                </p>
+              </div>
             </div>
-            {data.releaseUrl && (
-              <a
-                href={data.releaseUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="self-start text-sm text-muted-foreground underline underline-offset-3 hover:text-foreground"
-              >
-                {t("settings.updates.releaseNotes")}
-              </a>
-            )}
+            <div className="flex flex-wrap items-center gap-3">
+              <StatusPill tone="success">{t("settings.updates.autoUpdated")}</StatusPill>
+              {data.releaseUrl && (
+                <a
+                  href={data.releaseUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  {t("settings.updates.releaseNotes")}
+                  <ExternalLink className="size-3.5 rtl:-scale-x-100" />
+                </a>
+              )}
+            </div>
           </div>
         ) : null}
 
-        <p className="text-sm text-muted-foreground">{t("settings.updates.noAction")}</p>
-      </Card>
-    </div>
+        <SettingsCallout icon={Info}>
+          <p>{t("settings.updates.noAction")}</p>
+        </SettingsCallout>
+      </SettingsBody>
+    </SettingsSection>
   );
 }

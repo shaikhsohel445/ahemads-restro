@@ -40,8 +40,8 @@ export function AddFloorDialog({ branchId }: { branchId: string | null }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button variant="outline" size="sm">
-            <Plus className="h-4 w-4" />
+          <Button variant="outline" className="h-10 px-3.5">
+            <Plus className="size-4" />
             {t("tables.addFloor")}
           </Button>
         }

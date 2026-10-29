@@ -1,15 +1,27 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Upload } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, CircleCheck, CircleDashed, CornerDownRight, Landmark, PiggyBank, Plus, Sparkles, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { FIELD_LABEL, TABLE_CARD, TABLE_CARD_HEAD } from "@/components/reports/table-styles";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatCard, type Tone } from "@/components/ui/stat-card";
+import { StatusPill } from "@/components/ui/status-pill";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { api, ApiError } from "@/lib/api";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDate, formatNumber } from "@/lib/format";
 import { translate, useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 
@@ -56,82 +68,129 @@ export function BudgetsTab({ branchId }: { branchId: string | null }) {
     onError: (e) => toast.error(err(e)),
   });
 
+  const usedTone = (pct: number) => (pct > 100 ? "danger" : pct >= 80 ? "warning" : "success");
+  const BAR: Record<string, string> = {
+    danger: "bg-status-danger",
+    warning: "bg-status-warning",
+    success: "bg-status-success",
+  };
+  const totalPct = data && data.totalBudget > 0 ? Math.round((data.totalActual / data.totalBudget) * 100) : 0;
+
   return (
     <div className="flex flex-col gap-4">
-      <Card className="flex flex-wrap items-end gap-3 p-4">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground" htmlFor="bud-month">{t("accounting.budgets.month")}</label>
-          <Input id="bud-month" type="month" className="w-44" value={month} onChange={(e) => setMonth(e.target.value)} />
+      <Card className="px-4 sm:px-5">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[auto_minmax(0,1fr)_minmax(0,12rem)_auto] lg:items-end">
+          <div className="flex flex-col gap-1.5">
+            <label className={FIELD_LABEL} htmlFor="bud-month">{t("accounting.budgets.month")}</label>
+            <Input id="bud-month" type="month" className="lg:w-44" value={month} onChange={(e) => setMonth(e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className={FIELD_LABEL} htmlFor="bud-cat">{t("accounting.budgets.expenseCategory")}</label>
+            <Input id="bud-cat" placeholder={t("accounting.budgets.categoryPlaceholder")} value={category} onChange={(e) => setCategory(e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className={FIELD_LABEL} htmlFor="bud-amt">{t("accounting.budgets.budget")}</label>
+            <Input id="bud-amt" type="number" min="0" step="0.01" className="tabular-nums" dir="ltr" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          </div>
+          <Button
+            className="h-10"
+            disabled={!category.trim() || !amount || save.isPending}
+            onClick={() => save.mutate({ month, category: category.trim(), amount: Number(amount) })}
+          >
+            <Plus className="size-4" />
+            {t("accounting.budgets.set")}
+          </Button>
         </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground" htmlFor="bud-cat">{t("accounting.budgets.expenseCategory")}</label>
-          <Input id="bud-cat" className="w-48" placeholder={t("accounting.budgets.categoryPlaceholder")} value={category} onChange={(e) => setCategory(e.target.value)} />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground" htmlFor="bud-amt">{t("accounting.budgets.budget")}</label>
-          <Input id="bud-amt" type="number" min="0" step="0.01" className="w-36" dir="ltr" value={amount} onChange={(e) => setAmount(e.target.value)} />
-        </div>
-        <Button
-          disabled={!category.trim() || !amount || save.isPending}
-          onClick={() => save.mutate({ month, category: category.trim(), amount: Number(amount) })}
-        >
-          {t("accounting.budgets.set")}
-        </Button>
       </Card>
 
-      <Card className="overflow-x-auto p-4">
-        {isLoading ? (
-          <Skeleton className="h-24" />
-        ) : data && data.rows.length > 0 ? (
-          <>
-            <table className="w-full text-sm">
-              <thead className="text-start text-xs text-muted-foreground">
-                <tr><th className="py-1">{t("common.category")}</th><th>{t("accounting.budgets.budget")}</th><th>{t("accounting.budgets.spent")}</th><th>{t("accounting.budgets.left")}</th><th className="w-40">{t("accounting.budgets.used")}</th><th /></tr>
-              </thead>
-              <tbody>
-                {data.rows.map((r) => (
-                  <tr key={r.id} className="border-t border-border">
-                    <td className="py-1.5">{r.category}</td>
-                    <td className="tabular-nums">{formatCurrency(r.budget)}</td>
-                    <td className="tabular-nums">{formatCurrency(r.actual)}</td>
-                    <td className={cn("tabular-nums", r.remaining < 0 && "text-destructive")}>{formatCurrency(r.remaining)}</td>
-                    <td>
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-secondary" role="progressbar" aria-valuenow={r.percentUsed} aria-valuemin={0} aria-valuemax={100} aria-label={t("accounting.budgets.usedAria", { category: r.category })}>
-                        <div
-                          className={cn("h-full rounded-full", r.percentUsed > 100 ? "bg-destructive" : r.percentUsed >= 80 ? "bg-amber-500" : "bg-emerald-500")}
-                          style={{ width: `${Math.min(100, r.percentUsed)}%` }}
-                        />
-                      </div>
-                      <span className="text-[11px] text-muted-foreground">{r.percentUsed}%</span>
-                    </td>
-                    <td className="text-end">
-                      <button type="button" className="text-xs text-muted-foreground hover:text-destructive" onClick={() => remove.mutate(r.id)}>{t("common.remove")}</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr className="border-t-2 border-border font-semibold">
-                  <td className="py-1.5">{t("common.total")}</td>
-                  <td className="tabular-nums">{formatCurrency(data.totalBudget)}</td>
-                  <td className="tabular-nums">{formatCurrency(data.totalActual)}</td>
-                  <td className={cn("tabular-nums", data.remaining < 0 && "text-destructive")}>{formatCurrency(data.remaining)}</td>
-                  <td colSpan={2} />
-                </tr>
-              </tfoot>
-            </table>
-            {data.unbudgeted.length > 0 && (
-              <p className="mt-3 text-xs text-muted-foreground">
-                {t("accounting.budgets.unbudgeted", {
-                  list: data.unbudgeted.map((u) => `${u.category} (${formatCurrency(u.actual)})`).join(t("accounting.listSeparator")),
-                })}
-              </p>
-            )}
-          </>
-        ) : (
-          <p className="py-8 text-center text-sm text-muted-foreground">{t("accounting.budgets.empty", { month })}</p>
-        )}
-      </Card>
+      {isLoading ? (
+        <Skeleton className="h-40 rounded-2xl" />
+      ) : data && data.rows.length > 0 ? (
+        <>
+          <Card className="px-4 sm:px-5">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="text-sm text-muted-foreground">{t("accounting.budgets.spent")}</p>
+                <p className="text-2xl font-semibold tracking-tight tabular-nums text-foreground">
+                  {formatCurrency(data.totalActual)}
+                  <span className="ms-2 text-sm font-normal text-muted-foreground">
+                    / {formatCurrency(data.totalBudget)}
+                  </span>
+                </p>
+              </div>
+              <StatusPill tone={usedTone(totalPct)}>
+                {data.remaining < 0
+                  ? t("accounting.budgets.overBy", { amount: formatCurrency(Math.abs(data.remaining)) })
+                  : t("accounting.budgets.leftAmount", { amount: formatCurrency(data.remaining) })}
+              </StatusPill>
+            </div>
+            <div
+              className="h-2.5 w-full overflow-hidden rounded-full bg-surface-2"
+              role="progressbar"
+              aria-valuenow={totalPct}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={t("accounting.budgets.used")}
+            >
+              <div className={cn("h-full rounded-full transition-all", BAR[usedTone(totalPct)])} style={{ width: `${Math.min(100, totalPct)}%` }} />
+            </div>
+          </Card>
+
+          <ul className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-3">
+            {data.rows.map((r) => {
+              const tone = usedTone(r.percentUsed);
+              return (
+                <li key={r.id} className="flex flex-col gap-3 rounded-2xl border border-border/80 bg-card p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-foreground">{r.category}</p>
+                      <p className="text-xs text-muted-foreground tabular-nums">
+                        {formatCurrency(r.actual)} / {formatCurrency(r.budget)}
+                      </p>
+                    </div>
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      className="-me-1.5 -mt-1 text-muted-foreground hover:text-destructive"
+                      aria-label={t("common.remove")}
+                      onClick={() => remove.mutate(r.id)}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                  <div
+                    className="h-2 w-full overflow-hidden rounded-full bg-surface-2"
+                    role="progressbar"
+                    aria-valuenow={r.percentUsed}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={t("accounting.budgets.usedAria", { category: r.category })}
+                  >
+                    <div className={cn("h-full rounded-full transition-all", BAR[tone])} style={{ width: `${Math.min(100, r.percentUsed)}%` }} />
+                  </div>
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <StatusPill tone={tone}>
+                      <span className="tabular-nums">{r.percentUsed}%</span> {t("accounting.budgets.used")}
+                    </StatusPill>
+                    <span className={cn("tabular-nums", r.remaining < 0 ? "text-status-danger" : "text-muted-foreground")}>
+                      {t("accounting.budgets.left")}: {formatCurrency(r.remaining)}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          {data.unbudgeted.length > 0 && (
+            <p className="rounded-xl bg-status-warning-soft px-4 py-3 text-xs text-status-warning">
+              {t("accounting.budgets.unbudgeted", {
+                list: data.unbudgeted.map((u) => `${u.category} (${formatCurrency(u.actual)})`).join(t("accounting.listSeparator")),
+              })}
+            </p>
+          )}
+        </>
+      ) : (
+        <EmptyState icon={PiggyBank} title={t("accounting.budgets.empty", { month })} />
+      )}
     </div>
   );
 }
@@ -150,6 +209,12 @@ interface BankView {
     expense: { id: string; category: string; note: string | null; spentOn: string } | null;
   }[];
 }
+const BANK_TONE: Record<BankView["transactions"][number]["status"], Tone> = {
+  MATCHED: "success",
+  UNMATCHED: "warning",
+  IGNORED: "neutral",
+};
+
 interface Candidate { id: string; category: string; amount: string; spentOn: string; note: string | null }
 
 export function BankTab({ branchId }: { branchId: string | null }) {
@@ -216,85 +281,117 @@ export function BankTab({ branchId }: { branchId: string | null }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Card className="flex flex-wrap items-center gap-3 p-4">
-        <input ref={fileRef} type="file" accept=".csv,text/csv" className="sr-only" id="bank-csv" onChange={(e) => onFile(e.target.files?.[0])} />
-        <Button onClick={() => fileRef.current?.click()} disabled={importCsv.isPending}>
-          <Upload className="me-2 h-4 w-4" /> {t("accounting.bank.import")}
-        </Button>
-        <Button variant="outline" onClick={() => autoMatch.mutate()} disabled={autoMatch.isPending}>{t("accounting.bank.autoMatch")}</Button>
-        <p className="text-xs text-muted-foreground">
-          {t("accounting.bank.help")}
-        </p>
+      <Card className="px-4 sm:px-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="max-w-xl text-xs text-muted-foreground">{t("accounting.bank.help")}</p>
+          <div className="flex flex-wrap gap-2 sm:shrink-0">
+            <input ref={fileRef} type="file" accept=".csv,text/csv" className="sr-only" id="bank-csv" onChange={(e) => onFile(e.target.files?.[0])} />
+            <Button variant="outline" onClick={() => autoMatch.mutate()} disabled={autoMatch.isPending}>
+              <Sparkles className="size-4 text-gold" />
+              {t("accounting.bank.autoMatch")}
+            </Button>
+            <Button onClick={() => fileRef.current?.click()} disabled={importCsv.isPending}>
+              <Upload className="size-4" /> {t("accounting.bank.import")}
+            </Button>
+          </div>
+        </div>
       </Card>
 
       {data && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            [t("accounting.bank.status.MATCHED"), data.summary.matched],
-            [t("accounting.bank.status.UNMATCHED"), data.summary.unmatched],
-            [t("accounting.bank.moneyIn"), formatCurrency(data.summary.moneyIn)],
-            [t("accounting.bank.moneyOut"), formatCurrency(Math.abs(data.summary.moneyOut))],
-          ].map(([l, v]) => (
-            <Card key={String(l)} className="p-3">
-              <p className="text-xs text-muted-foreground">{l}</p>
-              <p className="text-lg font-semibold tabular-nums">{v}</p>
-            </Card>
-          ))}
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+          <StatCard label={t("accounting.bank.status.MATCHED")} value={formatNumber(data.summary.matched)} icon={CircleCheck} tone="success" />
+          <StatCard
+            label={t("accounting.bank.status.UNMATCHED")}
+            value={formatNumber(data.summary.unmatched)}
+            icon={CircleDashed}
+            tone={data.summary.unmatched > 0 ? "warning" : "neutral"}
+          />
+          <StatCard label={t("accounting.bank.moneyIn")} value={formatCurrency(data.summary.moneyIn)} icon={ArrowDownLeft} tone="info" />
+          <StatCard label={t("accounting.bank.moneyOut")} value={formatCurrency(Math.abs(data.summary.moneyOut))} icon={ArrowUpRight} tone="neutral" />
         </div>
       )}
 
-      <Card className="overflow-x-auto p-4">
-        {isLoading ? (
-          <Skeleton className="h-24" />
-        ) : data && data.transactions.length > 0 ? (
-          <table className="w-full text-sm">
-            <thead className="text-start text-xs text-muted-foreground">
-              <tr><th className="py-1">{t("common.date")}</th><th>{t("common.description")}</th><th className="text-end">{t("common.amount")}</th><th>{t("common.status")}</th><th /></tr>
-            </thead>
-            <tbody>
+      {isLoading ? (
+        <Skeleton className="h-40 rounded-2xl" />
+      ) : data && data.transactions.length > 0 ? (
+        <Card className={TABLE_CARD}>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("common.date")}</TableHead>
+                <TableHead>{t("common.description")}</TableHead>
+                <TableHead className="text-end">{t("common.amount")}</TableHead>
+                <TableHead>{t("common.status")}</TableHead>
+                <TableHead className="text-end">
+                  <span className="sr-only">{t("common.actions")}</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {data.transactions.map((tx) => (
-                <tr key={tx.id} className="border-t border-border align-top">
-                  <td className="py-1.5 whitespace-nowrap">{tx.postedOn.slice(0, 10)}</td>
-                  <td>
-                    {tx.description}
-                    {tx.expense && <span className="block text-xs text-muted-foreground">↳ {tx.expense.category}{tx.expense.note ? ` · ${tx.expense.note}` : ""}</span>}
-                  </td>
-                  <td className={cn("text-end tabular-nums", tx.amount < 0 ? "text-foreground" : "text-emerald-600")}>{formatCurrency(tx.amount)}</td>
-                  <td>
-                    <span className={cn("rounded-full px-2 py-0.5 text-[11px]", tx.status === "MATCHED" ? "bg-emerald-500/15 text-emerald-600" : tx.status === "IGNORED" ? "bg-secondary text-muted-foreground" : "bg-amber-500/15 text-amber-600")}>
-                      {t(`accounting.bank.status.${tx.status}`)}
-                    </span>
-                  </td>
-                  <td className="space-x-3 text-end text-xs">
-                    {tx.status === "UNMATCHED" && tx.amount < 0 && (
-                      <button type="button" className="text-primary hover:underline" onClick={() => setPicking(picking === tx.id ? null : tx.id)}>{t("accounting.bank.match")}</button>
+                <TableRow key={tx.id} className="align-top">
+                  <TableCell className="text-muted-foreground tabular-nums">{tx.postedOn.slice(0, 10)}</TableCell>
+                  <TableCell className="min-w-56 whitespace-normal">
+                    <span className="text-foreground">{tx.description}</span>
+                    {tx.expense && (
+                      <span className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                        <CornerDownRight className="size-3 shrink-0 rtl:-scale-x-100" />
+                        {tx.expense.category}{tx.expense.note ? ` · ${tx.expense.note}` : ""}
+                      </span>
                     )}
-                    {tx.status === "UNMATCHED" && (
-                      <button type="button" className="text-muted-foreground hover:underline" onClick={() => setStatus.mutate({ id: tx.id, status: "IGNORED" })}>{t("accounting.bank.ignore")}</button>
-                    )}
-                    {tx.status !== "UNMATCHED" && (
-                      <button type="button" className="text-muted-foreground hover:underline" onClick={() => setStatus.mutate({ id: tx.id, status: "UNMATCHED" })}>{t("accounting.bank.undo")}</button>
-                    )}
+                  </TableCell>
+                  <TableCell className={cn("text-end font-medium tabular-nums", tx.amount < 0 ? "text-foreground" : "text-status-success")}>
+                    {formatCurrency(tx.amount)}
+                  </TableCell>
+                  <TableCell>
+                    <StatusPill tone={BANK_TONE[tx.status]}>{t(`accounting.bank.status.${tx.status}`)}</StatusPill>
+                  </TableCell>
+                  <TableCell className="text-end">
+                    <div className="flex justify-end gap-1">
+                      {tx.status === "UNMATCHED" && tx.amount < 0 && (
+                        <Button size="sm" variant="outline" aria-expanded={picking === tx.id} onClick={() => setPicking(picking === tx.id ? null : tx.id)}>
+                          {t("accounting.bank.match")}
+                        </Button>
+                      )}
+                      {tx.status === "UNMATCHED" && (
+                        <Button size="sm" variant="ghost" className="text-muted-foreground" onClick={() => setStatus.mutate({ id: tx.id, status: "IGNORED" })}>
+                          {t("accounting.bank.ignore")}
+                        </Button>
+                      )}
+                      {tx.status !== "UNMATCHED" && (
+                        <Button size="sm" variant="ghost" className="text-muted-foreground" onClick={() => setStatus.mutate({ id: tx.id, status: "UNMATCHED" })}>
+                          {t("accounting.bank.undo")}
+                        </Button>
+                      )}
+                    </div>
                     {picking === tx.id && (
-                      <div className="mt-2 flex flex-col gap-1 rounded-lg border border-border bg-card p-2 text-start">
-                        {candidates.isLoading && <span className="text-muted-foreground">{t("accounting.bank.looking")}</span>}
-                        {candidates.data?.length === 0 && <span className="text-muted-foreground">{t("accounting.bank.noCandidates")}</span>}
+                      <div className="mt-2 flex min-w-60 flex-col gap-1 rounded-xl border border-border/80 bg-card p-1.5 text-start text-xs shadow-sm">
+                        {candidates.isLoading && <span className="px-2 py-1.5 text-muted-foreground">{t("accounting.bank.looking")}</span>}
+                        {candidates.data?.length === 0 && <span className="px-2 py-1.5 text-muted-foreground">{t("accounting.bank.noCandidates")}</span>}
                         {candidates.data?.map((c) => (
-                          <button key={c.id} type="button" className="rounded px-2 py-1 text-start hover:bg-secondary" onClick={() => match.mutate({ id: tx.id, expenseId: c.id })}>
-                            {c.spentOn.slice(0, 10)} · {c.category} · {formatCurrency(Number(c.amount))}
+                          <button
+                            key={c.id}
+                            type="button"
+                            className="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 text-start hover:bg-accent"
+                            onClick={() => match.mutate({ id: tx.id, expenseId: c.id })}
+                          >
+                            <span className="truncate">
+                              <span className="tabular-nums text-muted-foreground">{c.spentOn.slice(0, 10)}</span> · {c.category}
+                            </span>
+                            <span className="shrink-0 font-medium tabular-nums">{formatCurrency(Number(c.amount))}</span>
                           </button>
                         ))}
                       </div>
                     )}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        ) : (
-          <p className="py-8 text-center text-sm text-muted-foreground">{t("accounting.bank.empty")}</p>
-        )}
-      </Card>
+            </TableBody>
+          </Table>
+        </Card>
+      ) : (
+        <EmptyState icon={Landmark} title={t("accounting.bank.empty")} />
+      )}
     </div>
   );
 }
@@ -313,9 +410,14 @@ interface BalanceSheet {
 
 function Line({ label, amount, strong }: { label: string; amount: number; strong?: boolean }) {
   return (
-    <div className={cn("flex justify-between py-1.5 text-sm", strong && "border-t border-border font-semibold")}>
-      <span className={strong ? "" : "text-muted-foreground"}>{label}</span>
-      <span className="tabular-nums">{formatCurrency(amount)}</span>
+    <div
+      className={cn(
+        "flex items-baseline justify-between gap-4 px-4 py-2.5 text-sm sm:px-5",
+        strong && "border-t border-border/70 bg-surface-2/60 font-semibold",
+      )}
+    >
+      <span className={strong ? "text-foreground" : "text-muted-foreground"}>{label}</span>
+      <span className="shrink-0 tabular-nums text-foreground">{formatCurrency(amount)}</span>
     </div>
   );
 }
@@ -330,19 +432,32 @@ export function BalanceSheetTab({ branchId }: { branchId: string | null }) {
   });
   return (
     <div className="flex flex-col gap-4">
-      <Input type="date" className="w-44" value={asOf} onChange={(e) => setAsOf(e.target.value)} aria-label={t("accounting.balance.asOf")} />
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="bs-asof" className={FIELD_LABEL}>{t("accounting.balance.asOf")}</label>
+        <Input id="bs-asof" type="date" className="w-full sm:w-44" value={asOf} onChange={(e) => setAsOf(e.target.value)} />
+      </div>
       {isLoading || !data ? (
-        <Skeleton className="h-48" />
+        <Skeleton className="h-48 rounded-2xl" />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card className="p-4">
-            <h3 className="mb-2 font-medium">{t("accounting.balance.assets")}</h3>
-            {data.assets.map((a) => <Line key={a.label} {...a} />)}
+        <div className="grid items-start gap-4 md:grid-cols-2">
+          <Card className="gap-0 py-0">
+            <div className={TABLE_CARD_HEAD}>
+              <h3 className="text-sm font-semibold text-foreground">{t("accounting.balance.assets")}</h3>
+              <span className="text-xs text-muted-foreground tabular-nums">{formatDate(asOf)}</span>
+            </div>
+            <div className="py-1">
+              {data.assets.map((a) => <Line key={a.label} {...a} />)}
+            </div>
             <Line label={t("accounting.balance.totalAssets")} amount={data.totalAssets} strong />
           </Card>
-          <Card className="p-4">
-            <h3 className="mb-2 font-medium">{t("accounting.balance.liabilitiesEquity")}</h3>
-            {data.liabilities.map((a) => <Line key={a.label} {...a} />)}
+          <Card className="gap-0 py-0">
+            <div className={TABLE_CARD_HEAD}>
+              <h3 className="text-sm font-semibold text-foreground">{t("accounting.balance.liabilitiesEquity")}</h3>
+              <span className="text-xs text-muted-foreground tabular-nums">{formatDate(asOf)}</span>
+            </div>
+            <div className="py-1">
+              {data.liabilities.map((a) => <Line key={a.label} {...a} />)}
+            </div>
             <Line label={t("accounting.balance.totalLiabilities")} amount={data.totalLiabilities} strong />
             <Line label={t("accounting.balance.equity")} amount={data.equity} strong />
           </Card>

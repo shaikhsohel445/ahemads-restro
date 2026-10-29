@@ -1,19 +1,23 @@
 "use client";
 
-import { Gift, Pencil, Star, Trash2 } from "lucide-react";
+import { ChevronRight, Gift, Pencil, Star, Trash2, Users, Wallet } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AddCustomerDialog } from "@/components/customers/add-customer-dialog";
 import { EditCustomerDialog } from "@/components/customers/edit-customer-dialog";
+import { InitialsAvatar } from "@/components/customers/initials-avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatCard } from "@/components/ui/stat-card";
+import { SearchInput, Toolbar } from "@/components/ui/toolbar";
 import { useBranch } from "@/hooks/use-branch";
 import { useCustomers, useDeleteCustomer, type Customer } from "@/hooks/use-customers";
 import { ApiError } from "@/lib/api";
-import { formatCurrency, formatNumber } from "@/lib/format";
+import { formatCurrency, formatDate, formatNumber } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/context";
 
 export default function CustomersPage() {
@@ -23,6 +27,15 @@ export default function CustomersPage() {
   const deleteCustomer = useDeleteCustomer(branchId);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const { t } = useI18n();
+
+  const totals = useMemo(() => {
+    const list = customers ?? [];
+    return {
+      count: list.length,
+      points: list.reduce((s, c) => s + (c.loyaltyPoints || 0), 0),
+      wallet: list.reduce((s, c) => s + Number(c.walletBalance || 0), 0),
+    };
+  }, [customers]);
 
   const onDelete = (e: React.MouseEvent, customer: Customer) => {
     e.preventDefault();
@@ -37,58 +50,108 @@ export default function CustomersPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-[32px] font-semibold tracking-tight text-foreground">{t("customers.title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("customers.subtitle")}</p>
-        </div>
-        <AddCustomerDialog branchId={branchId} />
-      </div>
-
-      <Input
-        placeholder={t("customers.searchPlaceholder")}
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="max-w-sm"
+      <PageHeader
+        title={t("customers.title")}
+        description={t("customers.subtitle")}
+        icon={Users}
+        actions={<AddCustomerDialog branchId={branchId} triggerSize="default" />}
       />
 
-      <Card className="flex flex-col divide-y divide-border p-2">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+        <StatCard
+          label={search ? t("customers.stats.matching") : t("customers.stats.customers")}
+          value={isLoading ? "—" : formatNumber(totals.count)}
+          icon={Users}
+        />
+        <StatCard
+          label={t("customers.loyaltyPoints")}
+          value={isLoading ? "—" : formatNumber(totals.points)}
+          icon={Star}
+          tone="gold"
+          hint={t("customers.stats.pointsHint")}
+        />
+        <StatCard
+          className="col-span-2 lg:col-span-1"
+          label={t("common.paymentMethod.STORE_CREDIT")}
+          value={isLoading ? "—" : formatCurrency(totals.wallet)}
+          icon={Wallet}
+          tone="success"
+          hint={t("customers.stats.walletHint")}
+        />
+      </div>
+
+      <Card className="flex min-w-0 flex-col gap-0 rounded-2xl p-0">
+        <Toolbar className="border-b border-border/70 p-3 sm:p-4">
+          <SearchInput value={search} onChange={setSearch} placeholder={t("customers.searchPlaceholder")} />
+        </Toolbar>
+
+        {/* Column labels — only where the row lays out as columns. */}
+        <div className="hidden grid-cols-[minmax(0,1fr)_7rem_8rem_8rem_5.5rem] items-center gap-4 border-b border-border/70 bg-surface-2/50 px-5 py-2.5 text-xs font-medium text-muted-foreground md:grid">
+          <span>{t("customers.col.customer")}</span>
+          <span className="text-end">{t("customers.loyaltyPoints")}</span>
+          <span className="text-end">{t("customers.col.credit")}</span>
+          <span>{t("customers.col.since")}</span>
+          <span className="sr-only">{t("common.actions")}</span>
+        </div>
+
         {isLoading ? (
           <div className="flex flex-col gap-2 p-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-14 rounded-lg" />
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-14 rounded-xl" />
             ))}
           </div>
         ) : customers && customers.length > 0 ? (
-          customers.map((c) => (
-            <Link
-              key={c.id}
-              href={`/customers/${c.id}`}
-              className="flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-secondary"
-            >
-              <div className="flex flex-col">
-                <span className="text-sm font-medium text-foreground">
-                  {c.name ?? t("customers.unnamed")}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  <bdi>{[c.phone, c.email].filter(Boolean).join(" · ") || t("customers.noContact")}</bdi>
-                </span>
-              </div>
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Star className="h-3.5 w-3.5" />
-                  {t("customers.points", { n: formatNumber(c.loyaltyPoints) })}
-                </span>
-                {Number(c.walletBalance) > 0 && (
-                  <span className="flex items-center gap-1">
-                    <Gift className="h-3.5 w-3.5" />{formatCurrency(c.walletBalance)}
+          <ul className="flex flex-col divide-y divide-border/70">
+            {customers.map((c) => (
+              <li
+                key={c.id}
+                className="group relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-2/60 md:grid md:grid-cols-[minmax(0,1fr)_7rem_8rem_8rem_5.5rem] md:gap-4 md:px-5"
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <InitialsAvatar name={c.name} seed={c.id} />
+                  <div className="flex min-w-0 flex-col">
+                    {/* Stretched link: the whole row opens the profile, buttons stay separate controls. */}
+                    <Link
+                      href={`/customers/${c.id}`}
+                      className="truncate text-sm font-semibold text-foreground outline-none after:absolute after:inset-0 after:content-[''] focus-visible:after:rounded-xl focus-visible:after:ring-3 focus-visible:after:ring-ring/50"
+                    >
+                      {c.name ?? t("customers.unnamed")}
+                    </Link>
+                    <span className="truncate text-xs text-muted-foreground">
+                      <bdi>{[c.phone, c.email].filter(Boolean).join(" · ") || t("customers.noContact")}</bdi>
+                    </span>
+                    {/* Phones: the numbers ride under the name. */}
+                    <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground md:hidden">
+                      <span className="inline-flex items-center gap-1 font-medium text-status-gold">
+                        <Star className="size-3.5" />
+                        {t("customers.points", { n: formatNumber(c.loyaltyPoints) })}
+                      </span>
+                      {Number(c.walletBalance) > 0 && (
+                        <span className="inline-flex items-center gap-1 tabular-nums">
+                          <Gift className="size-3.5" />
+                          {formatCurrency(c.walletBalance)}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                <span className="hidden text-end text-sm font-medium tabular-nums text-foreground md:block">
+                  <span className="inline-flex items-center gap-1">
+                    <Star className="size-3.5 text-gold" />
+                    {formatNumber(c.loyaltyPoints)}
                   </span>
-                )}
-                <div className="flex items-center gap-0.5">
+                </span>
+                <span className="hidden text-end text-sm tabular-nums text-foreground md:block">
+                  {Number(c.walletBalance) > 0 ? formatCurrency(c.walletBalance) : <span className="text-muted-foreground">—</span>}
+                </span>
+                <span className="hidden text-sm text-muted-foreground md:block">{formatDate(c.createdAt)}</span>
+
+                <div className="relative z-10 flex shrink-0 items-center justify-end gap-0.5">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-primary"
+                    className="text-muted-foreground hover:text-primary"
                     title={t("customers.edit")}
                     aria-label={t("customers.edit")}
                     onClick={(e) => {
@@ -97,29 +160,31 @@ export default function CustomersPage() {
                       setEditingCustomer(c);
                     }}
                   >
-                    <Pencil className="h-4 w-4" />
+                    <Pencil />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    className="text-muted-foreground hover:text-destructive"
                     title={t("customers.delete")}
                     aria-label={t("customers.delete")}
                     onClick={(e) => onDelete(e, c)}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 />
                   </Button>
+                  <ChevronRight className="hidden size-4 text-muted-foreground/60 sm:block md:hidden rtl:-scale-x-100" />
                 </div>
-              </div>
-            </Link>
-          ))
+              </li>
+            ))}
+          </ul>
         ) : (
-          <div className="flex flex-col items-center gap-2 py-16 text-center">
-            <p className="text-sm font-medium text-foreground">{t("customers.empty")}</p>
-            <p className="text-sm text-muted-foreground">
-              {t("customers.emptyHint")}
-            </p>
-          </div>
+          <EmptyState
+            className="m-4 border-0 bg-transparent"
+            icon={Users}
+            title={search ? t("customers.noMatches") : t("customers.empty")}
+            description={search ? undefined : t("customers.emptyHint")}
+            action={search ? undefined : <AddCustomerDialog branchId={branchId} triggerSize="default" />}
+          />
         )}
       </Card>
 

@@ -2,14 +2,24 @@
 
 import { Check, MessageCircle, Phone, Users, X } from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ChannelBadge } from "@/components/orders/channel-badges";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import type { Tone } from "@/components/ui/stat-card";
+import { StatusPill } from "@/components/ui/status-pill";
 import { useUpdateReservationStatus, type Reservation } from "@/hooks/use-reservations";
 import { formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/context";
+
+const RESERVATION_TONE: Record<string, Tone> = {
+  RESERVED: "info",
+  CONFIRMED: "success",
+  ARRIVED: "gold",
+  COMPLETED: "neutral",
+  CANCELLED: "danger",
+  NO_SHOW: "danger",
+};
 
 const when = (iso: string) =>
   formatDateTime(iso, {
@@ -72,16 +82,16 @@ export function ReservationManageDialog({
         {r && (
           <div className="flex flex-col gap-4 text-sm">
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <Badge variant="secondary" className="font-normal">
+              <StatusPill tone={RESERVATION_TONE[r.status] ?? "neutral"} pulse={pending}>
                 {pending ? t("reservations.awaiting") : t(`common.reservationStatus.${r.status}`)}
-              </Badge>
+              </StatusPill>
               <span className="flex items-center gap-1">
                 <Users className="h-3 w-3" /> {t("reservations.guestsCount", { n: r.guestCount })}
               </span>
               {r.table && <span>· {r.table.name ?? t("reservations.tableN", { n: r.table.number })}</span>}
             </div>
-            <div className="rounded-lg bg-secondary/40 px-3 py-2">
-              <div className="font-medium text-foreground">{when(r.reservedAt)}</div>
+            <div className="rounded-xl bg-surface-2 px-3.5 py-3">
+              <div className="font-semibold text-foreground tabular-nums">{when(r.reservedAt)}</div>
               {r.specialRequests && (
                 <p className="mt-1 text-xs text-muted-foreground">{t("reservations.requestNote", { text: r.specialRequests })}</p>
               )}
@@ -98,14 +108,14 @@ export function ReservationManageDialog({
                     <Phone className="h-4 w-4" /> <bdi dir="ltr">{phone}</bdi>
                   </span>
                   <div className="flex gap-2">
-                    <a href={`tel:${phone}`} className={cn(buttonVariants({ size: "sm" }), "flex-1")}>
+                    <a href={`tel:${phone}`} className={cn(buttonVariants(), "h-10 flex-1")}>
                       <Phone className="me-1.5 h-4 w-4" /> {t("reservations.call")}
                     </a>
                     <a
                       href={waHref ?? "#"}
                       target="_blank"
                       rel="noreferrer"
-                      className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex-1")}
+                      className={cn(buttonVariants({ variant: "outline" }), "h-10 flex-1")}
                     >
                       <MessageCircle className="me-1.5 h-4 w-4" /> WhatsApp
                     </a>
@@ -119,7 +129,7 @@ export function ReservationManageDialog({
             {pending && (
               <div className="flex gap-2">
                 <Button
-                  className="flex-1"
+                  className="h-11 flex-1"
                   disabled={update.isPending}
                   onClick={() => setStatus("CONFIRMED", t("reservations.accepted"))}
                 >
@@ -127,7 +137,7 @@ export function ReservationManageDialog({
                 </Button>
                 <Button
                   variant="destructive"
-                  className="flex-1"
+                  className="h-11 flex-1"
                   disabled={update.isPending}
                   onClick={() => setStatus("CANCELLED", t("reservations.rejected"))}
                 >
@@ -138,6 +148,7 @@ export function ReservationManageDialog({
             {cancellable && !pending && (
               <Button
                 variant="destructive"
+                className="h-11"
                 disabled={update.isPending}
                 onClick={() => setStatus("CANCELLED", t("reservations.cancelled"))}
               >

@@ -21,10 +21,15 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
     <Select value={locale} onValueChange={(v) => v && setLocale(v as Locale)}>
       <SelectTrigger
         aria-label={t("common.language")}
-        className={compact ? "h-8 w-auto gap-1.5 px-2 text-xs" : undefined}
+        className={
+          compact
+            ? "h-10 w-auto gap-1.5 rounded-xl border-transparent bg-transparent px-2.5 text-xs shadow-none hover:bg-secondary max-sm:[&>svg:last-child]:hidden"
+            : undefined
+        }
       >
-        {compact && <Languages className="h-3.5 w-3.5 shrink-0" />}
-        <SelectValue>
+        {compact && <Languages className="h-4 w-4 shrink-0" />}
+        {/* Compact (app header): icon only on phones, so the page title keeps its room. */}
+        <SelectValue className={compact ? "max-sm:sr-only" : undefined}>
           <span lang={locale}>{LOCALE_LABELS[locale]}</span>
         </SelectValue>
       </SelectTrigger>

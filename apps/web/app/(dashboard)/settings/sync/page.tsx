@@ -1,10 +1,9 @@
 "use client";
 
-import { CloudOff } from "lucide-react";
-import { SettingsTabs } from "@/components/settings/settings-tabs";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { CloudOff, RefreshCw, Wifi } from "lucide-react";
+import { SettingsBody, SettingsSection } from "@/components/settings/settings-section";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatusPill } from "@/components/ui/status-pill";
 import { useSyncStatus } from "@/hooks/use-sync";
 import { useI18n } from "@/lib/i18n/context";
 
@@ -19,35 +18,37 @@ export default function SyncSettingsPage() {
   const unavailable = !data || data.unavailable || data.role === "unavailable";
 
   return (
-    <div className="flex flex-col gap-6">
-      <SettingsTabs />
-
-      <Card className="flex flex-col gap-4 p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-[18px] font-medium text-foreground">{t("settings.sync.title")}</h2>
-            <p className="text-sm text-muted-foreground">{t("settings.sync.description")}</p>
-          </div>
-          {data ? (
-            <Badge variant="outline">
-              {unavailable ? t("settings.sync.unavailableBadge") : t("common.enabled")}
-            </Badge>
-          ) : null}
-        </div>
-
+    <SettingsSection
+      icon={RefreshCw}
+      title={t("settings.sync.title")}
+      description={t("settings.sync.description")}
+      actions={
+        data ? (
+          <StatusPill tone={unavailable ? "neutral" : "success"}>
+            {unavailable ? t("settings.sync.unavailableBadge") : t("common.enabled")}
+          </StatusPill>
+        ) : null
+      }
+    >
+      <SettingsBody divided={false}>
         {isLoading ? (
-          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-28 w-full rounded-xl" />
         ) : (
-          <div className="flex gap-3 rounded-lg border border-border bg-secondary/40 p-4">
-            <CloudOff className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
-            <div className="flex flex-col gap-2 text-sm">
-              <p className="font-medium text-foreground">{t("settings.sync.unavailableTitle")}</p>
-              <p className="text-muted-foreground">{t("settings.sync.unavailableBody")}</p>
-              <p className="text-muted-foreground">{t("settings.sync.unavailableOffline")}</p>
+          <div className="flex flex-col items-start gap-4 rounded-2xl bg-surface-2/60 p-4 ring-1 ring-border/60 sm:flex-row sm:p-5">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-card text-muted-foreground ring-1 ring-border/70">
+              <CloudOff className="size-5" />
+            </span>
+            <div className="flex min-w-0 flex-col gap-2 text-sm">
+              <p className="font-semibold text-foreground">{t("settings.sync.unavailableTitle")}</p>
+              <p className="text-pretty text-muted-foreground">{t("settings.sync.unavailableBody")}</p>
+              <p className="flex items-start gap-2 text-muted-foreground">
+                <Wifi className="mt-0.5 size-4 shrink-0" />
+                {t("settings.sync.unavailableOffline")}
+              </p>
             </div>
           </div>
         )}
-      </Card>
-    </div>
+      </SettingsBody>
+    </SettingsSection>
   );
 }

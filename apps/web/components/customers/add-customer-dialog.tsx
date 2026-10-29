@@ -1,5 +1,6 @@
 "use client";
 
+import { UserPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -20,9 +21,12 @@ import { useI18n } from "@/lib/i18n/context";
 export function AddCustomerDialog({
   branchId,
   onCreated,
+  triggerSize = "sm",
 }: {
   branchId: string | null;
   onCreated?: (customer: Customer) => void;
+  /** Trigger button size — "sm" (default) for inline pickers, "default" for page headers. */
+  triggerSize?: "sm" | "default";
 }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -52,7 +56,14 @@ export function AddCustomerDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm">{t("customers.new")}</Button>} />
+      <DialogTrigger
+        render={
+          <Button size={triggerSize}>
+            <UserPlus />
+            {t("customers.new")}
+          </Button>
+        }
+      />
       <DialogContent className="sm:max-w-sm">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>
